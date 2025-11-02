@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+:root {
+	--background: #fdf8f3;
+	--foreground: #2d2d2d;
+	--heading-pink: #e75480;
+	--accent-rose: #f7a4bc;
+	--text-gray: #4a4a4a;
+	--border-light: #e8dfd6;
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-heading-pink: var(--heading-pink);
+	--color-accent-rose: var(--accent-rose);
+	--color-text-gray: var(--text-gray);
+	--color-border-light: var(--border-light);
+	--font-heading: var(--font-monoton);
+	--font-body: var(--font-roboto);
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	background: var(--background);
+	color: var(--foreground);
+	font-family: var(--font-roboto), sans-serif;
+}
+
+/* Use Monoton only for hero and main section titles */
+.monoton-heading {
+	font-family: var(--font-monoton), cursive;
+	color: var(--heading-pink);
+}
+
+h3, h4, h5, h6 {
+	font-family: var(--font-roboto), sans-serif;
+	color: var(--foreground);
+	font-weight: 300;
+}
+
+@media (max-width: 640px) {
+	.monoton-heading {
+		font-size: 2rem;
+	}
+}
