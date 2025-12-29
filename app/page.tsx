@@ -282,9 +282,16 @@ export default function Home() {
 			{/* Contact Section */}
 			<section id="contact" className="relative py-20 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-4xl mx-auto">
-					<h2 className="monoton-heading text-3xl sm:text-4xl md:text-5xl text-center mb-20">
+					<h2 className="monoton-heading text-3xl sm:text-4xl md:text-5xl text-center mb-12">
 						CONTACT
 					</h2>
+					{/* Contact Form Link */}
+					<div className="text-center mb-16">
+						<a href="/contact"
+						   className="inline-block px-8 py-3 border-2 border-heading-pink text-heading-pink rounded-full hover:bg-heading-pink hover:text-white transition-all duration-300">
+							Send a Message
+						</a>
+					</div>
 					<div className="space-y-12 max-w-2xl mx-auto">
 						{/* Email */}
 						<div className="text-center pb-8 border-b border-border-light">
