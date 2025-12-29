@@ -1,23 +1,29 @@
 @import "tailwindcss";
 
 :root {
-	--background: #fdf8f3;
-	--foreground: #2d2d2d;
-	--heading-pink: #e75480;
-	--accent-rose: #f7a4bc;
-	--text-gray: #4a4a4a;
-	--border-light: #e8dfd6;
+	--background: #faf6f1;
+	--background-alt: #f5f0e8;
+	--foreground: #1a1a1a;
+	--foreground-muted: #3d3d3d;
+	--text-gray: #5c5c5c;
+	--accent: #000000;
+	--accent-hover: #333333;
+	--border: #d9d4cc;
+	--border-light: #e8e3db;
 }
 
 @theme inline {
 	--color-background: var(--background);
+	--color-background-alt: var(--background-alt);
 	--color-foreground: var(--foreground);
-	--color-heading-pink: var(--heading-pink);
-	--color-accent-rose: var(--accent-rose);
+	--color-foreground-muted: var(--foreground-muted);
 	--color-text-gray: var(--text-gray);
+	--color-accent: var(--accent);
+	--color-accent-hover: var(--accent-hover);
+	--color-border: var(--border);
 	--color-border-light: var(--border-light);
-	--font-heading: var(--font-monoton);
-	--font-body: var(--font-roboto);
+	--font-heading: var(--font-lora);
+	--font-body: var(--font-lora);
 }
 
 html {
@@ -27,23 +33,53 @@ html {
 body {
 	background: var(--background);
 	color: var(--foreground);
-	font-family: var(--font-roboto), sans-serif;
+	font-family: var(--font-lora), serif;
 }
 
-/* Use Monoton only for hero and main section titles */
-.monoton-heading {
-	font-family: var(--font-monoton), cursive;
-	color: var(--heading-pink);
+h1, h2 {
+	font-family: var(--font-lora), serif;
+	color: var(--foreground);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-weight: 400;
+}
+
+h1 {
+	font-size: 2.5rem;
+	line-height: 1.1;
+}
+
+h2 {
+	font-size: 2rem;
+	line-height: 1.2;
 }
 
 h3, h4, h5, h6 {
-	font-family: var(--font-roboto), sans-serif;
+	font-family: var(--font-lora), serif;
 	color: var(--foreground);
-	font-weight: 300;
+	font-weight: 400;
 }
 
-@media (max-width: 640px) {
-	.monoton-heading {
-		font-size: 2rem;
+@media (min-width: 640px) {
+	h1 {
+		font-size: 3rem;
+	}
+	h2 {
+		font-size: 2.5rem;
+	}
+}
+
+@media (min-width: 768px) {
+	h1 {
+		font-size: 3.75rem;
+	}
+	h2 {
+		font-size: 3rem;
+	}
+}
+
+@media (min-width: 1024px) {
+	h1 {
+		font-size: 4.5rem;
 	}
 }
