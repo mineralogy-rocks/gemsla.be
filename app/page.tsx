@@ -115,77 +115,89 @@ export default function Home() {
 							Whether you&apos;re a collector searching for the perfect piece, a jeweler wanting to verify authenticity, or simply curious about a family heirloom, I&apos;m here to help with:
 						</motion.p>
 
-						{/* Service Callout Cards */}
-						<div className="space-y-6 mb-12">
-							<CalloutCard variant="service"
-							             title="Consulting">
-								Looking to dive into the world of gemstones? Whether you&apos;re after tips on finding the perfect stone, figuring out quality, or making smart investment choices, I&apos;m here to help. Let&apos;s make your gemstone journey exciting and enjoyable!
-							</CalloutCard>
+						{/* Callout Cards with vertical connector line */}
+						<div className="relative">
+							{/* Vertical line connecting titles (visible on md+, behind titles) */}
+							<div className="hidden md:block absolute w-px z-0"
+							     style={{
+								     right: 'calc(100% + 6.25rem)',
+								     top: '0',
+								     bottom: '0',
+								     background: 'linear-gradient(to bottom, var(--secondary) 0%, var(--secondary) 70%, transparent 100%)'
+							     }} />
 
+							{/* Service Callout Cards */}
+							<div className="space-y-6 mb-12">
+								<CalloutCard variant="service"
+								             title="Consulting">
+									Looking to dive into the world of gemstones? Whether you&apos;re after tips on finding the perfect stone, figuring out quality, or making smart investment choices, I&apos;m here to help. Let&apos;s make your gemstone journey exciting and enjoyable!
+								</CalloutCard>
+
+								<CalloutCard variant="service"
+								             title="Examination">
+									Comprehensive stone analysis, quality evaluation, and precise identification. Every gemstone analyzed with meticulous attention to detail and scientific rigor. I issue a certificate of analysis detailing the gemstone&apos;s properties, quality, and authenticity.
+								</CalloutCard>
+							</div>
+
+							{/* Methods Intro */}
+							<motion.p className="text-lg text-foreground leading-relaxed mb-8"
+							          variants={paragraphReveal}
+							          initial="hidden"
+							          whileInView="visible"
+							          viewport={{once: true, margin: "-50px"}}>
+								I bring scientific precision to every analysis, using state-of-the-art analytical techniques:
+							</motion.p>
+
+							<div className="mb-12">
+								<CalloutCard variant="service"
+								             title="Analytical Methods">
+									My toolkit includes <strong>Raman Spectroscopy</strong> and <strong>X-ray Diffraction</strong> for structural analysis, <strong>NMR Spectroscopy</strong> for molecular insights, <strong>Fluorescence Spectroscopy</strong> for detecting treatments, <strong>Electrochemical Analysis</strong> for composition studies, and <strong>Optical Analysis</strong> for visual evaluation.
+								</CalloutCard>
+							</div>
+
+							{/* Experience Paragraph */}
+							<motion.p className="text-lg text-foreground leading-relaxed mb-8"
+							          variants={paragraphReveal}
+							          initial="hidden"
+							          whileInView="visible"
+							          viewport={{once: true, margin: "-50px"}}>
+								When I&apos;m not in the lab, you&apos;ll find me sharing my passion for mineralogy through writing. As a contributing author for the International Gem Society, I&apos;ve authored 15+ comprehensive articles covering everything from crystal systems to advanced analytical techniques. My research on beryl crystals and chrysoberyl has been published in the Journal of Raman Spectroscopy and Mineralogical Magazine.
+							</motion.p>
+
+							{/* Credential Callout Card with Publications */}
 							<CalloutCard variant="service"
-							             title="Examination">
-								Comprehensive stone analysis, quality evaluation, and precise identification. Every gemstone analyzed with meticulous attention to detail and scientific rigor. I issue a certificate of analysis detailing the gemstone&apos;s properties, quality, and authenticity.
+							             title="Publications & Writing">
+								<ul className="space-y-3">
+									<li>
+										<a href="https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/jrs.6566"
+										   target="_blank"
+										   rel="noopener noreferrer"
+										   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
+											Raman spectroscopy study of synthetic beryl crystals
+										</a>
+										<span className="text-text-gray"> - Journal of Raman Spectroscopy</span>
+									</li>
+									<li>
+										<a href="https://www.cambridge.org/core/journals/mineralogical-magazine/article/abs/chrysoberyl-and-associated-beryllium-minerals-resulting-from-metamorphic-overprint-of-the-marsikov-schinderhubel-iii-pegmatite-czech-republic/BAB26257DC4AD16E79B43D6A54D68516"
+										   target="_blank"
+										   rel="noopener noreferrer"
+										   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
+											Chrysoberyl and associated beryllium minerals
+										</a>
+										<span className="text-text-gray"> - Mineralogical Magazine</span>
+									</li>
+									<li>
+										<a href="https://www.gemsociety.org/author/olenarybnikova/"
+										   target="_blank"
+										   rel="noopener noreferrer"
+										   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
+											15+ Articles on Gemology & Mineralogy
+										</a>
+										<span className="text-text-gray"> - International Gem Society</span>
+									</li>
+								</ul>
 							</CalloutCard>
 						</div>
-
-						{/* Methods Intro */}
-						<motion.p className="text-lg text-foreground leading-relaxed mb-8"
-						          variants={paragraphReveal}
-						          initial="hidden"
-						          whileInView="visible"
-						          viewport={{once: true, margin: "-50px"}}>
-							I bring scientific precision to every analysis, using state-of-the-art analytical techniques:
-						</motion.p>
-
-						<div className="mb-12">
-							<CalloutCard variant="service"
-							             title="Analytical Methods">
-								My toolkit includes <strong>Raman Spectroscopy</strong> and <strong>X-ray Diffraction</strong> for structural analysis, <strong>NMR Spectroscopy</strong> for molecular insights, <strong>Fluorescence Spectroscopy</strong> for detecting treatments, <strong>Electrochemical Analysis</strong> for composition studies, and <strong>Optical Analysis</strong> for visual evaluation.
-							</CalloutCard>
-						</div>
-
-						{/* Experience Paragraph */}
-						<motion.p className="text-lg text-foreground leading-relaxed mb-8"
-						          variants={paragraphReveal}
-						          initial="hidden"
-						          whileInView="visible"
-						          viewport={{once: true, margin: "-50px"}}>
-							When I&apos;m not in the lab, you&apos;ll find me sharing my passion for mineralogy through writing. As a contributing author for the International Gem Society, I&apos;ve authored 15+ comprehensive articles covering everything from crystal systems to advanced analytical techniques. My research on beryl crystals and chrysoberyl has been published in the Journal of Raman Spectroscopy and Mineralogical Magazine.
-						</motion.p>
-
-						{/* Credential Callout Card with Publications */}
-						<CalloutCard variant="service"
-						             title="Publications & Writing">
-							<ul className="space-y-3">
-								<li>
-									<a href="https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/jrs.6566"
-									   target="_blank"
-									   rel="noopener noreferrer"
-									   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
-										Raman spectroscopy study of synthetic beryl crystals
-									</a>
-									<span className="text-text-gray"> - Journal of Raman Spectroscopy</span>
-								</li>
-								<li>
-									<a href="https://www.cambridge.org/core/journals/mineralogical-magazine/article/abs/chrysoberyl-and-associated-beryllium-minerals-resulting-from-metamorphic-overprint-of-the-marsikov-schinderhubel-iii-pegmatite-czech-republic/BAB26257DC4AD16E79B43D6A54D68516"
-									   target="_blank"
-									   rel="noopener noreferrer"
-									   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
-										Chrysoberyl and associated beryllium minerals
-									</a>
-									<span className="text-text-gray"> - Mineralogical Magazine</span>
-								</li>
-								<li>
-									<a href="https://www.gemsociety.org/author/olenarybnikova/"
-									   target="_blank"
-									   rel="noopener noreferrer"
-									   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
-										15+ Articles on Gemology & Mineralogy
-									</a>
-									<span className="text-text-gray"> - International Gem Society</span>
-								</li>
-							</ul>
-						</CalloutCard>
 
 						{/* Closing Paragraph with CTA */}
 						<motion.div className="mt-12 text-center"
@@ -206,117 +218,60 @@ export default function Home() {
 					</article>
 				</section>
 
-				{/* Legal Section */}
-				<motion.section id="legal"
-				                className="relative py-20 px-4 sm:px-6 lg:px-8 z-10"
-				                initial="hidden"
-				                whileInView="visible"
-				                viewport={{once: true, margin: "-100px"}}
-				                variants={fadeInUp}>
-					<div className="max-w-5xl mx-auto">
-						<h2 className="text-center mb-20">
-							LEGAL
-						</h2>
-						<div className="border-t border-border-light pt-12">
-							<h3 className="text-2xl sm:text-3xl font-light mb-8 text-center text-foreground">
-								Rutheniai s.r.o.
-							</h3>
-							<motion.div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-3xl mx-auto"
-							            variants={staggerContainer}
-							            initial="hidden"
-							            whileInView="visible"
-							            viewport={{once: true, margin: "-100px"}}>
-								<motion.address className="space-y-6 not-italic"
-								                variants={fadeInUp}>
-									<div>
-										<p className="text-text-gray text-sm mb-2">Registration Number</p>
-										<p className="text-foreground">57 211 604</p>
-									</div>
-
-									<div>
-										<p className="text-text-gray text-sm mb-2">Legal Form</p>
-										<p className="text-foreground">Limited Liability Company</p>
-									</div>
-
-									<div>
-										<p className="text-text-gray text-sm mb-2">Registration Date</p>
-										<p className="text-foreground">September 19, 2025</p>
-									</div>
-								</motion.address>
-								<motion.address className="space-y-6 not-italic"
-								                variants={fadeInUp}>
-									<div>
-										<p className="text-text-gray text-sm mb-2">Headquarters</p>
-										<p className="text-foreground">
-											Karpatske namestie 7770/10A<br />
-											Bratislava - Raca, 831 06<br />
-											Slovakia
-										</p>
-									</div>
-
-									<div>
-										<p className="text-text-gray text-sm mb-2">Business Activities</p>
-										<p className="text-foreground">
-											Research and development in natural, technical, social, and humanitarian sciences
-										</p>
-									</div>
-								</motion.address>
-							</motion.div>
-						</div>
-					</div>
-				</motion.section>
-
-				<motion.section id="contact"
-				                className="relative py-20 px-4 sm:px-6 lg:px-8 z-10"
-				                initial="hidden"
-				                whileInView="visible"
-				                viewport={{once: true, margin: "-100px"}}
-				                variants={fadeInUp}>
-					<div className="max-w-4xl mx-auto">
-						<h2 className="text-center mb-12">
-							CONTACT
-						</h2>
-						<motion.div className="space-y-12 max-w-2xl mx-auto"
-						            variants={staggerContainer}
-						            initial="hidden"
-						            whileInView="visible"
-						            viewport={{once: true, margin: "-100px"}}>
-							<motion.address className="text-center pb-8 border-b border-border-light not-italic"
-							                variants={fadeInUp}>
-								<p className="text-text-gray text-sm mb-3">Email</p>
-								<a href="mailto:olena.rybnikova@gmail.com"
-								   className="text-lg sm:text-xl text-foreground hover:text-accent-hover transition-colors duration-300">
-									olena.rybnikova@gmail.com
-								</a>
-							</motion.address>
-
-							<motion.address className="text-center pb-8 border-b border-border-light not-italic"
-							                variants={fadeInUp}>
-								<p className="text-text-gray text-sm mb-3">Phone</p>
-								<a href="tel:+421919206955"
-								   className="text-lg sm:text-xl text-foreground hover:text-accent-hover transition-colors duration-300">
-									+421 919 206 955
-								</a>
-							</motion.address>
-
-							<motion.address className="text-center pb-8 border-b border-border-light not-italic"
-							                variants={fadeInUp}>
-								<p className="text-text-gray text-sm mb-3">Instagram</p>
-								<a href="https://www.instagram.com/olena_rybnikova"
-								   target="_blank"
-								   rel="noopener noreferrer"
-								   className="text-lg sm:text-xl text-foreground hover:text-accent-hover transition-colors duration-300">
-									@olena_rybnikova
-								</a>
-							</motion.address>
-						</motion.div>
-					</div>
-				</motion.section>
 			</main>
 
-			<footer className="relative py-12 px-4 sm:px-6 lg:px-8 border-t border-border-light z-10">
-				<div className="max-w-6xl mx-auto text-center text-text-gray text-sm">
-					<p>&copy; 2025 Rutheniai s.r.o. All rights reserved.</p>
+			<footer className="relative py-10 px-4 sm:px-6 lg:px-8 border-t border-border-light z-10">
+				<div className="max-w-5xl mx-auto">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+						<div>
+							<h4 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">Contact</h4>
+							<address className="not-italic space-y-2 text-sm">
+								<p>
+									<a href="mailto:olena.rybnikova@gmail.com"
+									   className="text-text-gray hover:text-foreground transition-colors">
+										olena.rybnikova@gmail.com
+									</a>
+								</p>
+								<p>
+									<a href="tel:+421919206955"
+									   className="text-text-gray hover:text-foreground transition-colors">
+										+421 919 206 955
+									</a>
+								</p>
+								<p>
+									<a href="https://www.instagram.com/olena_rybnikova"
+									   target="_blank"
+									   rel="noopener noreferrer"
+									   className="text-text-gray hover:text-foreground transition-colors">
+										@olena_rybnikova
+									</a>
+								</p>
+							</address>
+						</div>
+
+						<div>
+							<h4 className="text-sm font-semibold text-foreground mb-4 tracking-wide">Rutheniai s.r.o.</h4>
+							<address className="not-italic space-y-1 text-sm text-text-gray">
+								<p>Karpatske namestie 7770/10A</p>
+								<p>Bratislava - Raca, 831 06</p>
+								<p>Slovakia</p>
+							</address>
+						</div>
+
+						<div>
+							<h4 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">Legal</h4>
+							<div className="space-y-1 text-sm text-text-gray">
+								<p>IČO: 57 211 604</p>
+								<p>Limited Liability Company</p>
+								<p>Est. September 2025</p>
+							</div>
+						</div>
+					</div>
+
+					{/* Copyright */}
+					<div className="pt-6 border-t border-border-light text-center text-text-gray text-xs">
+						<p>&copy; 2025 Rutheniai s.r.o. All rights reserved.</p>
+					</div>
 				</div>
 			</footer>
 		</div>

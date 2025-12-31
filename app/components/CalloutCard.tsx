@@ -45,7 +45,7 @@ export function CalloutCard({variant, title, children}: CalloutCardProps) {
 		return (
 			<div ref={ref}
 			     className="relative">
-				<motion.h4 className="text-xl md:text-2xl font-medium text-foreground mb-4 md:mb-0 md:absolute md:right-full md:mr-20 md:pt-1 md:text-right md:w-40"
+				<motion.h4 className="text-xl md:text-2xl font-medium text-foreground mb-4 md:mb-0 md:absolute md:right-full md:mr-20 md:pt-1 md:text-right md:w-40 md:bg-white md:py-2 md:z-10"
 				           style={{y: titleY}}>
 					{title}
 				</motion.h4>
