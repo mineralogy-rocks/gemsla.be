@@ -11,7 +11,7 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-	title: "GemsLabe - Gemological Services & Consulting",
+	title: "GemsLabé - Gemological Services & Consulting",
 	description: "Professional gemological services by Olena Rybnikova, PhD in Mineralogy. GIA Applied Jewelry Professional offering gemstone consulting, examination, and advanced analysis using Raman spectroscopy, X-ray diffraction, and more.",
 	keywords: ["gemology", "mineralogy", "gemstone consulting", "gemological examination", "Raman spectroscopy", "GIA certified", "beryllium minerals", "gemstone analysis"],
 	authors: [{name: "Olena Rybnikova"}],

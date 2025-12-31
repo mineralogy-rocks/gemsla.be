@@ -2,6 +2,7 @@
 
 import {motion} from "framer-motion";
 import {fadeInUp, staggerContainer, staggerItem, fadeInLeft} from "./lib/animations";
+import {Button3D} from "./components/Button3D";
 
 export default function Home() {
 	return (
@@ -61,10 +62,12 @@ export default function Home() {
 							</p>
 						</motion.div>
 						<motion.div variants={fadeInUp}>
-							<a href="/contact"
-							   className="inline-block px-8 py-3 border-2 border-foreground rounded-full bg-accent text-secondary hover:text-background transition-all duration-300">
-								Contact Me
-							</a>
+							<Button3D as="a"
+							          href="/contact"
+							          variant="secondary"
+							          size="md">
+								<span className="font-medium">Let&apos;s Talk Gems!</span>
+							</Button3D>
 						</motion.div>
 					</motion.div>
 
@@ -79,40 +82,38 @@ export default function Home() {
 				                variants={fadeInUp}>
 					<div className="max-w-5xl mx-auto">
 						<h2 className="text-left mb-20">
-							SERVICES
+							Gemological Services
 						</h2>
 						<motion.div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-20"
 						            variants={staggerContainer}
 						            initial="hidden"
 						            whileInView="visible"
 						            viewport={{once: true, margin: "-100px"}}>
-							{/* Gemological Consulting */}
-							<motion.article className="border-l-2 border-foreground pl-8"
+							<motion.article className="pl-8"
 							                variants={fadeInLeft}>
 								<h3 className="text-2xl sm:text-3xl font-semibold mb-4 text-foreground">
-									Gemological Consulting
+									Consulting
 								</h3>
 								<p className="text-text-gray leading-relaxed">
-									Expert guidance through gemstone acquisition, quality assessment, and investment decisions. Professional consulting backed by scientific expertise for cut stones and rough material.
+									Looking to dive into the world of gemstones? Whether you&apos;re after tips on finding the perfect stone, figuring out quality, or making smart investment choices, I&apos;m here to help. Let&apos;s make your gemstone journey exciting and enjoyable!
 								</p>
 							</motion.article>
 
-							{/* Gemological Examination */}
-							<motion.article className="border-l-2 border-foreground-muted pl-8"
+							<motion.article className="pl-8"
 							                variants={fadeInLeft}>
 								<h3 className="text-2xl sm:text-3xl font-semibold mb-4 text-foreground">
-									Gemological Examination
+									Examination
 								</h3>
 								<p className="text-text-gray leading-relaxed">
 									Comprehensive stone analysis, quality evaluation, and precise identification. Every gemstone analyzed with meticulous attention to detail and scientific rigor.
+									We issue a certificate of analysis detailing the gemstone&apos;s properties, quality, and authenticity.
 								</p>
 							</motion.article>
 						</motion.div>
 
-						{/* Analysis Methods */}
 						<div className="mt-20 border-t border-border-light pt-16">
 							<h3 className="text-xl sm:text-2xl font-light mb-12 text-foreground text-center">
-								Advanced Analysis Methods
+								Analysis Methods
 							</h3>
 							<motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
 							            variants={staggerContainer}
@@ -386,10 +387,12 @@ export default function Home() {
 						</h2>
 						<motion.div className="text-center mb-16"
 						            variants={fadeInUp}>
-							<a href="/contact"
-							   className="inline-block px-8 py-3 border-2 border-foreground text-foreground rounded-full hover:bg-accent hover:text-background transition-all duration-300">
+							<Button3D as="a"
+							          href="/contact"
+							          variant="secondary"
+							          size="md">
 								Send a Message
-							</a>
+							</Button3D>
 						</motion.div>
 						<motion.div className="space-y-12 max-w-2xl mx-auto"
 						            variants={staggerContainer}

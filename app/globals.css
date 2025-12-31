@@ -3,7 +3,7 @@
 :root {
 	--background: #faf6f1;
 	--background-alt: #f5f0e8;
-	--foreground: #1a1a1a;
+	--foreground: #000000;
 	--foreground-muted: #3d3d3d;
 	--text-gray: #5c5c5c;
 	--accent: #000000;
@@ -41,9 +41,8 @@ body {
 h1, h2 {
 	font-family: var(--font-lora), serif;
 	color: var(--foreground);
-	text-transform: uppercase;
 	letter-spacing: 0.08em;
-	font-weight: 400;
+	font-weight: 500;
 }
 
 h1 {
@@ -83,5 +82,19 @@ h3, h4, h5, h6 {
 @media (min-width: 1024px) {
 	h1 {
 		font-size: 4.5rem;
+	}
+}
+
+/* 3D Button Focus States */
+.group:focus-visible {
+	outline: 2px solid var(--foreground);
+	outline-offset: 4px;
+}
+
+/* Reduced Motion Support for 3D Buttons */
+@media (prefers-reduced-motion: reduce) {
+	.group span {
+		transition: none !important;
+		animation: none !important;
 	}
 }
