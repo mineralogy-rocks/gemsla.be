@@ -1,8 +1,9 @@
 "use client";
 
 import {motion} from "framer-motion";
-import {fadeInUp, staggerContainer, staggerItem, fadeInLeft} from "./lib/animations";
+import {fadeInUp, staggerContainer, paragraphReveal} from "./lib/animations";
 import {Button3D} from "./components/Button3D";
+import {CalloutCard} from "./components/CalloutCard";
 
 export default function Home() {
 	return (
@@ -73,247 +74,126 @@ export default function Home() {
 
 				</section>
 
-				{/* Services Section */}
-				<motion.section id="services"
-				                className="relative py-20 px-4 sm:px-6 lg:px-8 z-10"
-				                initial="hidden"
-				                whileInView="visible"
-				                viewport={{once: true, margin: "-100px"}}
-				                variants={fadeInUp}>
-					<div className="max-w-5xl mx-auto">
-						<h2 className="text-left mb-20">
-							Gemological Services
-						</h2>
-						<motion.div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-20"
-						            variants={staggerContainer}
-						            initial="hidden"
-						            whileInView="visible"
-						            viewport={{once: true, margin: "-100px"}}>
-							<motion.article className="pl-8"
-							                variants={fadeInLeft}>
-								<h3 className="text-2xl sm:text-3xl font-semibold mb-4 text-foreground">
-									Consulting
-								</h3>
-								<p className="text-text-gray leading-relaxed">
-									Looking to dive into the world of gemstones? Whether you&apos;re after tips on finding the perfect stone, figuring out quality, or making smart investment choices, I&apos;m here to help. Let&apos;s make your gemstone journey exciting and enjoyable!
-								</p>
-							</motion.article>
+				{/* Article Section */}
+				<section className="relative py-20 px-4 sm:px-6 lg:px-8 z-10">
+					<article className="max-w-2xl mx-auto">
+						{/* Opening Paragraph */}
+						<motion.p className="text-xl text-foreground leading-loose mb-10"
+						          variants={paragraphReveal}
+						          initial="hidden"
+						          whileInView="visible"
+						          viewport={{once: true, margin: "-50px"}}>
+							Hi there and welcome to my Labé! I&apos;m Olena, a <strong>gemologist</strong> with a deep love for the science and beauty of gemstones. Based in <strong>Bratislava, Slovakia</strong>, I combine my academic background in <strong>mineralogy</strong> with hands-on expertise to help you navigate the fascinating world of precious stones.
+						</motion.p>
 
-							<motion.article className="pl-8"
-							                variants={fadeInLeft}>
-								<h3 className="text-2xl sm:text-3xl font-semibold mb-4 text-foreground">
-									Examination
-								</h3>
-								<p className="text-text-gray leading-relaxed">
-									Comprehensive stone analysis, quality evaluation, and precise identification. Every gemstone analyzed with meticulous attention to detail and scientific rigor.
-									We issue a certificate of analysis detailing the gemstone&apos;s properties, quality, and authenticity.
-								</p>
-							</motion.article>
-						</motion.div>
+						{/* Background Paragraph */}
+						<motion.p className="text-xl text-foreground leading-loose mb-10"
+						          variants={paragraphReveal}
+						          initial="hidden"
+						          whileInView="visible"
+						          viewport={{once: true, margin: "-50px"}}>
+							My journey with gemstones began at <strong>Taras Shevchenko National University</strong> in Kyiv, where I completed my <strong>Master&apos;s in Geochemistry and Mineralogy</strong>. I then pursued my <strong>PhD at Comenius University</strong> in Bratislava, focusing on beryllium minerals in granitic pegmatites. Along the way, I earned certifications from the <strong>Gemological Institute of America (GIA)</strong> in colored stones, diamond grading, and jewelry essentials.
+						</motion.p>
 
-						<div className="mt-20 border-t border-border-light pt-16">
-							<h3 className="text-xl sm:text-2xl font-light mb-12 text-foreground text-center">
-								Analysis Methods
-							</h3>
-							<motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-							            variants={staggerContainer}
-							            initial="hidden"
-							            whileInView="visible"
-							            viewport={{once: true, margin: "-100px"}}>
-								{[
-									"Raman Spectroscopy",
-									"X-ray Diffraction",
-									"NMR Spectroscopy",
-									"Fluorescence Spectroscopy",
-									"Electrochemical Analysis",
-									"Optical Analysis",
-								].map((method, index) => (
-									<motion.div key={index}
-									            className="text-center py-4 border-b border-border-light"
-									            variants={staggerItem}>
-										<p className="text-foreground">{method}</p>
-									</motion.div>
-								))}
-							</motion.div>
+						{/* Services Intro */}
+						<motion.p className="text-lg text-foreground leading-relaxed mt-80 mb-8"
+						          variants={paragraphReveal}
+						          initial="hidden"
+						          whileInView="visible"
+						          viewport={{once: true, margin: "-50px"}}>
+							Whether you&apos;re a collector searching for the perfect piece, a jeweler wanting to verify authenticity, or simply curious about a family heirloom, I&apos;m here to help with:
+						</motion.p>
+
+						{/* Service Callout Cards */}
+						<div className="space-y-6 mb-12">
+							<CalloutCard variant="service"
+							             title="Consulting">
+								Looking to dive into the world of gemstones? Whether you&apos;re after tips on finding the perfect stone, figuring out quality, or making smart investment choices, I&apos;m here to help. Let&apos;s make your gemstone journey exciting and enjoyable!
+							</CalloutCard>
+
+							<CalloutCard variant="service"
+							             title="Examination">
+								Comprehensive stone analysis, quality evaluation, and precise identification. Every gemstone analyzed with meticulous attention to detail and scientific rigor. I issue a certificate of analysis detailing the gemstone&apos;s properties, quality, and authenticity.
+							</CalloutCard>
 						</div>
-					</div>
-				</motion.section>
 
-				{/* Certifications Section */}
-				<motion.section id="certifications"
-				                className="relative py-20 px-4 sm:px-6 lg:px-8 z-10"
-				                initial="hidden"
-				                whileInView="visible"
-				                viewport={{once: true, margin: "-100px"}}
-				                variants={fadeInUp}>
-					<div className="max-w-5xl mx-auto">
-						<h2 className="text-left mb-20">
-							CERTIFICATIONS
-						</h2>
-						<motion.div className="space-y-6"
-						            variants={staggerContainer}
+						{/* Methods Intro */}
+						<motion.p className="text-lg text-foreground leading-relaxed mb-8"
+						          variants={paragraphReveal}
+						          initial="hidden"
+						          whileInView="visible"
+						          viewport={{once: true, margin: "-50px"}}>
+							I bring scientific precision to every analysis, using state-of-the-art analytical techniques:
+						</motion.p>
+
+						<div className="mb-12">
+							<CalloutCard variant="service"
+							             title="Analytical Methods">
+								My toolkit includes <strong>Raman Spectroscopy</strong> and <strong>X-ray Diffraction</strong> for structural analysis, <strong>NMR Spectroscopy</strong> for molecular insights, <strong>Fluorescence Spectroscopy</strong> for detecting treatments, <strong>Electrochemical Analysis</strong> for composition studies, and <strong>Optical Analysis</strong> for visual evaluation.
+							</CalloutCard>
+						</div>
+
+						{/* Experience Paragraph */}
+						<motion.p className="text-lg text-foreground leading-relaxed mb-8"
+						          variants={paragraphReveal}
+						          initial="hidden"
+						          whileInView="visible"
+						          viewport={{once: true, margin: "-50px"}}>
+							When I&apos;m not in the lab, you&apos;ll find me sharing my passion for mineralogy through writing. As a contributing author for the International Gem Society, I&apos;ve authored 15+ comprehensive articles covering everything from crystal systems to advanced analytical techniques. My research on beryl crystals and chrysoberyl has been published in the Journal of Raman Spectroscopy and Mineralogical Magazine.
+						</motion.p>
+
+						{/* Credential Callout Card with Publications */}
+						<CalloutCard variant="service"
+						             title="Publications & Writing">
+							<ul className="space-y-3">
+								<li>
+									<a href="https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/jrs.6566"
+									   target="_blank"
+									   rel="noopener noreferrer"
+									   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
+										Raman spectroscopy study of synthetic beryl crystals
+									</a>
+									<span className="text-text-gray"> - Journal of Raman Spectroscopy</span>
+								</li>
+								<li>
+									<a href="https://www.cambridge.org/core/journals/mineralogical-magazine/article/abs/chrysoberyl-and-associated-beryllium-minerals-resulting-from-metamorphic-overprint-of-the-marsikov-schinderhubel-iii-pegmatite-czech-republic/BAB26257DC4AD16E79B43D6A54D68516"
+									   target="_blank"
+									   rel="noopener noreferrer"
+									   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
+										Chrysoberyl and associated beryllium minerals
+									</a>
+									<span className="text-text-gray"> - Mineralogical Magazine</span>
+								</li>
+								<li>
+									<a href="https://www.gemsociety.org/author/olenarybnikova/"
+									   target="_blank"
+									   rel="noopener noreferrer"
+									   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
+										15+ Articles on Gemology & Mineralogy
+									</a>
+									<span className="text-text-gray"> - International Gem Society</span>
+								</li>
+							</ul>
+						</CalloutCard>
+
+						{/* Closing Paragraph with CTA */}
+						<motion.div className="mt-12 text-center"
+						            variants={paragraphReveal}
 						            initial="hidden"
 						            whileInView="visible"
-						            viewport={{once: true, margin: "-100px"}}>
-							{[
-								{title: "GIA Colored Stones", date: "September 2022"},
-								{title: "Diamonds & Diamond Grading", date: "August 2022"},
-								{title: "Graduate Diamonds", date: "August 2022"},
-								{title: "Applied Jewelry Professional Diploma", date: "March 2021"},
-								{title: "Diamond Essentials Certificate", date: "March 2021"},
-								{title: "Colored Stone Essentials Certificate", date: "February 2021"},
-								{title: "Jewelry Essentials Certificate", date: "February 2021"},
-							].map((cert, index) => (
-								<motion.article key={index}
-								                className="flex justify-between items-center flex-wrap gap-4 py-4 border-b border-border-light"
-								                variants={staggerItem}>
-									<h4 className="text-lg sm:text-xl font-light text-foreground">
-										{cert.title}
-									</h4>
-									<span className="text-text-gray text-sm">{cert.date}</span>
-								</motion.article>
-							))}
-						</motion.div>
-					</div>
-				</motion.section>
-
-				{/* Education Section */}
-				<motion.section id="education"
-				                className="relative py-20 px-4 sm:px-6 lg:px-8 z-10"
-				                initial="hidden"
-				                whileInView="visible"
-				                viewport={{once: true, margin: "-100px"}}
-				                variants={fadeInUp}>
-					<div className="max-w-5xl mx-auto">
-						<h2 className="text-right mb-20">
-							EDUCATION
-						</h2>
-						<motion.div className="space-y-16"
-						            variants={staggerContainer}
-						            initial="hidden"
-						            whileInView="visible"
-						            viewport={{once: true, margin: "-100px"}}>
-							{/* PhD */}
-							<motion.article className="border-l-2 border-foreground pl-8"
-							                variants={fadeInLeft}>
-								<h3 className="text-2xl sm:text-3xl font-light mb-3 text-foreground">
-									PhD in Mineralogy
-								</h3>
-								<p className="text-text-gray mb-4 text-sm">
-									September 2019 - August 2023
-								</p>
-								<p className="text-foreground mb-4">
-									Comenius University in Bratislava, Slovakia
-								</p>
-								<p className="text-text-gray leading-relaxed italic">
-									&quot;Beryllium minerals in granitic pegmatites: indicators
-									of metamorphic and hydrothermal overprint&quot;
-								</p>
-							</motion.article>
-
-							{/* MSc */}
-							<motion.article className="border-l-2 border-foreground-muted pl-8"
-							                variants={fadeInLeft}>
-								<h3 className="text-2xl sm:text-3xl font-light mb-3 text-foreground">
-									MSc in Geochemistry & Mineralogy
-								</h3>
-								<p className="text-text-gray mb-4 text-sm">
-									September 2016 - August 2019
-								</p>
-								<p className="text-foreground">
-									Taras Shevchenko National University, Kyiv, Ukraine
-								</p>
-							</motion.article>
-						</motion.div>
-					</div>
-				</motion.section>
-
-				{/* Publications Section */}
-				<motion.section id="publications"
-				                className="relative py-20 px-4 sm:px-6 lg:px-8 z-10"
-				                initial="hidden"
-				                whileInView="visible"
-				                viewport={{once: true, margin: "-100px"}}
-				                variants={fadeInUp}>
-					<div className="max-w-5xl mx-auto">
-						<h2 className="text-right mb-20">
-							PUBLICATIONS
-						</h2>
-						<motion.div className="space-y-12"
-						            variants={staggerContainer}
-						            initial="hidden"
-						            whileInView="visible"
-						            viewport={{once: true, margin: "-100px"}}>
-							{/* Publication 1 */}
-							<motion.article className="pb-8 border-b border-border-light"
-							                variants={staggerItem}>
-								<h4 className="text-lg font-light text-foreground mb-3">
-									Raman spectroscopy study of synthetic beryl crystals
-								</h4>
-								<p className="text-text-gray text-sm mb-4">
-									Journal of Raman Spectroscopy
-								</p>
-								<a href="https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/jrs.6566"
-								   target="_blank"
-								   rel="noopener noreferrer"
-								   className="text-foreground hover:text-accent-hover transition-colors duration-300 text-sm">
-									Read Publication
-								</a>
-							</motion.article>
-
-							{/* Publication 2 */}
-							<motion.article className="pb-8 border-b border-border-light"
-							                variants={staggerItem}>
-								<h4 className="text-lg font-light text-foreground mb-3">
-									Chrysoberyl and associated beryllium minerals resulting from
-									metamorphic overprint of the Marsikov-Schinderhubel III
-									pegmatite, Czech Republic
-								</h4>
-								<p className="text-text-gray text-sm mb-4">
-									Mineralogical Magazine
-								</p>
-								<a href="https://www.cambridge.org/core/journals/mineralogical-magazine/article/abs/chrysoberyl-and-associated-beryllium-minerals-resulting-from-metamorphic-overprint-of-the-marsikov-schinderhubel-iii-pegmatite-czech-republic/BAB26257DC4AD16E79B43D6A54D68516"
-								   target="_blank"
-								   rel="noopener noreferrer"
-								   className="text-foreground hover:text-accent-hover transition-colors duration-300 text-sm">
-									Read Publication
-								</a>
-							</motion.article>
-						</motion.div>
-					</div>
-				</motion.section>
-
-				{/* Experience Section */}
-				<motion.section id="experience"
-				                className="relative py-20 px-4 sm:px-6 lg:px-8 z-10"
-				                initial="hidden"
-				                whileInView="visible"
-				                viewport={{once: true, margin: "-100px"}}
-				                variants={fadeInUp}>
-					<div className="max-w-5xl mx-auto">
-						<h2 className="text-right mb-20">
-							EXPERIENCE
-						</h2>
-						<motion.article className="border-l-2 border-foreground pl-8"
-						                variants={fadeInLeft}>
-							<h3 className="text-2xl sm:text-3xl font-light mb-4 text-foreground">
-								Contributing Author
-							</h3>
-							<p className="text-foreground mb-6">
-								International Gem Society
+						            viewport={{once: true, margin: "-50px"}}>
+							<p className="text-lg text-foreground leading-relaxed mb-8">
+								Ready to explore the world of gemstones together? I&apos;d love to hear from you.
 							</p>
-							<p className="text-text-gray leading-relaxed mb-6">
-								Gemologist and mineralogist specializing in beryllium minerals, actively promoting knowledge and appreciation of nature, geology, and gemstones. Author of 15+ comprehensive articles covering mineralogy, gemstone identification, crystal systems, and advanced analytical techniques.
-							</p>
-							<a href="https://www.gemsociety.org/author/olenarybnikova/"
-							   target="_blank"
-							   rel="noopener noreferrer"
-							   className="text-foreground hover:text-accent-hover transition-colors duration-300 text-sm">
-								View Articles
-							</a>
-						</motion.article>
-					</div>
-				</motion.section>
+							<Button3D as="a"
+							          href="/contact"
+							          variant="secondary"
+							          size="md">
+								<span className="font-medium">Get in Touch</span>
+							</Button3D>
+						</motion.div>
+					</article>
+				</section>
 
 				{/* Legal Section */}
 				<motion.section id="legal"
@@ -336,7 +216,7 @@ export default function Home() {
 							            whileInView="visible"
 							            viewport={{once: true, margin: "-100px"}}>
 								<motion.address className="space-y-6 not-italic"
-								                variants={staggerItem}>
+								                variants={fadeInUp}>
 									<div>
 										<p className="text-text-gray text-sm mb-2">Registration Number</p>
 										<p className="text-foreground">57 211 604</p>
@@ -353,7 +233,7 @@ export default function Home() {
 									</div>
 								</motion.address>
 								<motion.address className="space-y-6 not-italic"
-								                variants={staggerItem}>
+								                variants={fadeInUp}>
 									<div>
 										<p className="text-text-gray text-sm mb-2">Headquarters</p>
 										<p className="text-foreground">
@@ -385,22 +265,13 @@ export default function Home() {
 						<h2 className="text-center mb-12">
 							CONTACT
 						</h2>
-						<motion.div className="text-center mb-16"
-						            variants={fadeInUp}>
-							<Button3D as="a"
-							          href="/contact"
-							          variant="secondary"
-							          size="md">
-								Send a Message
-							</Button3D>
-						</motion.div>
 						<motion.div className="space-y-12 max-w-2xl mx-auto"
 						            variants={staggerContainer}
 						            initial="hidden"
 						            whileInView="visible"
 						            viewport={{once: true, margin: "-100px"}}>
 							<motion.address className="text-center pb-8 border-b border-border-light not-italic"
-							                variants={staggerItem}>
+							                variants={fadeInUp}>
 								<p className="text-text-gray text-sm mb-3">Email</p>
 								<a href="mailto:olena.rybnikova@gmail.com"
 								   className="text-lg sm:text-xl text-foreground hover:text-accent-hover transition-colors duration-300">
@@ -409,7 +280,7 @@ export default function Home() {
 							</motion.address>
 
 							<motion.address className="text-center pb-8 border-b border-border-light not-italic"
-							                variants={staggerItem}>
+							                variants={fadeInUp}>
 								<p className="text-text-gray text-sm mb-3">Phone</p>
 								<a href="tel:+421919206955"
 								   className="text-lg sm:text-xl text-foreground hover:text-accent-hover transition-colors duration-300">
@@ -418,7 +289,7 @@ export default function Home() {
 							</motion.address>
 
 							<motion.address className="text-center pb-8 border-b border-border-light not-italic"
-							                variants={staggerItem}>
+							                variants={fadeInUp}>
 								<p className="text-text-gray text-sm mb-3">Instagram</p>
 								<a href="https://www.instagram.com/olena_rybnikova"
 								   target="_blank"

@@ -11,6 +11,10 @@
 	--border: #d9d4cc;
 	--border-light: #e8e3db;
 	--secondary: #d1d5db;
+	--callout-accent: #c4a77d;
+	--callout-accent-light: #e8dcc8;
+	--callout-bg: rgba(250, 246, 241, 0.8);
+	--quote-mark: #d1c4b0;
 }
 
 @theme inline {
@@ -24,6 +28,10 @@
 	--color-border: var(--border);
 	--color-border-light: var(--border-light);
 	--color-secondary: var(--secondary);
+	--color-callout-accent: var(--callout-accent);
+	--color-callout-accent-light: var(--callout-accent-light);
+	--color-callout-bg: var(--callout-bg);
+	--color-quote-mark: var(--quote-mark);
 	--font-heading: var(--font-lora);
 	--font-body: var(--font-lora);
 }
@@ -58,7 +66,6 @@ h2 {
 h3, h4, h5, h6 {
 	font-family: var(--font-lora), serif;
 	color: var(--foreground);
-	font-weight: 400;
 }
 
 @media (min-width: 640px) {
