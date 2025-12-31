@@ -1,9 +1,15 @@
 "use client";
 
 import {motion} from "framer-motion";
+import dynamic from "next/dynamic";
 import {fadeInUp, staggerContainer, paragraphReveal} from "./lib/animations";
 import {Button3D} from "./components/Button3D";
 import {CalloutCard} from "./components/CalloutCard";
+
+const DiamondWireframe = dynamic(() => import("./components/DiamondWireframe"), {
+	ssr: false,
+	loading: () => <div className="w-full h-48 sm:h-64 md:h-80" />
+});
 
 export default function Home() {
 	return (
@@ -95,8 +101,13 @@ export default function Home() {
 							My journey with gemstones began at <strong>Taras Shevchenko National University</strong> in Kyiv, where I completed my <strong>Master&apos;s in Geochemistry and Mineralogy</strong>. I then pursued my <strong>PhD at Comenius University</strong> in Bratislava, focusing on beryllium minerals in granitic pegmatites. Along the way, I earned certifications from the <strong>Gemological Institute of America (GIA)</strong> in colored stones, diamond grading, and jewelry essentials.
 						</motion.p>
 
+						{/* Diamond Separator */}
+						<div className="my-16 sm:my-24">
+							<DiamondWireframe />
+						</div>
+
 						{/* Services Intro */}
-						<motion.p className="text-lg text-foreground leading-relaxed mt-80 mb-8"
+						<motion.p className="text-lg text-foreground leading-relaxed mb-8"
 						          variants={paragraphReveal}
 						          initial="hidden"
 						          whileInView="visible"
