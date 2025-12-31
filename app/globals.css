@@ -10,6 +10,7 @@
 	--accent-hover: #333333;
 	--border: #d9d4cc;
 	--border-light: #e8e3db;
+	--secondary: #d1d5db;
 }
 
 @theme inline {
@@ -22,6 +23,7 @@
 	--color-accent-hover: var(--accent-hover);
 	--color-border: var(--border);
 	--color-border-light: var(--border-light);
+	--color-secondary: var(--secondary);
 	--font-heading: var(--font-lora);
 	--font-body: var(--font-lora);
 }

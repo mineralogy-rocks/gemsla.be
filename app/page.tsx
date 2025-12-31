@@ -21,30 +21,48 @@ export default function Home() {
 			     }} />
 
 			<main id="main-content">
-				{/* Hero Section */}
-				<section className="relative min-h-screen flex items-center justify-center overflow-hidden z-10">
-					<div className="absolute inset-0 opacity-15">
-					</div>
-					<motion.div className="relative z-10 text-center px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto"
+				<section className="relative min-h-screen flex items-center justify-end overflow-hidden z-10">
+					<div className="absolute top-1/5 bottom-40 invisible sm:visible sm:right-6 lg:right-44 w-px"
+					     style={{ background: 'linear-gradient(to bottom, transparent, var(--secondary) 20%, var(--secondary) 80%, transparent)' }} />
+
+					<motion.div className="relative z-10 text-right px-4 sm:px-6 lg:px-8 max-w-4xl lg:mr-44"
 					            initial="hidden"
 					            animate="visible"
 					            variants={staggerContainer}>
-						<motion.h1 className="mb-6"
-						           variants={fadeInUp}>
-							OLENA RYBNIKOVA
+						<motion.h1 className="mb-2"
+						           variants={fadeInUp}
+						           style={{ textTransform: 'none' }}>
+							GemsLab<i>é</i>
 						</motion.h1>
-						<motion.p className="text-xl sm:text-2xl md:text-3xl text-text-gray mb-4"
-						          variants={fadeInUp}>
-							PhD in Mineralogy
-						</motion.p>
-						<motion.p className="text-lg sm:text-xl text-text-gray"
-						          variants={fadeInUp}>
-							Applied Jewelry Professional (GIA)
-						</motion.p>
-						<motion.div className="text-center mt-10"
+						<motion.div className="relative inline-block w-full"
 						            variants={fadeInUp}>
+							<p className="text-sm sm:text-base text-text-gray italic">
+								/ˈdʒemzləˈbeɪ/
+							</p>
+							<div className="absolute -bottom-3 right-0 sm:-right-8 h-px w-48 sm:w-full"
+							     style={{ background: 'linear-gradient(to right, transparent, var(--secondary))' }} />
+						</motion.div>
+						<div className="mb-6" />
+						<motion.p className="text-xl sm:text-2xl md:text-3xl mb-2"
+						          variants={fadeInUp}>
+							Gemological Expertise and Consultancy
+						</motion.p>
+						<motion.p className="text-lg sm:text-2xl mb-8"
+						          variants={fadeInUp}>
+							provided by Olena Rybnikova
+						</motion.p>
+						<motion.div className="space-y-1 mb-10 text-text-gray"
+						            variants={fadeInUp}>
+							<p className="text-base sm:text-lg">
+								PhD in Mineralogy
+							</p>
+							<p className="text-base sm:text-lg">
+								Applied Jewelry Professional (GIA)
+							</p>
+						</motion.div>
+						<motion.div variants={fadeInUp}>
 							<a href="/contact"
-							   className="inline-block px-8 py-3 border-2 border-foreground text-foreground rounded-full hover:bg-accent hover:text-background transition-all duration-300">
+							   className="inline-block px-8 py-3 border-2 border-foreground rounded-full bg-accent text-secondary hover:text-background transition-all duration-300">
 								Contact Me
 							</a>
 						</motion.div>
