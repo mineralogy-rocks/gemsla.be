@@ -87,9 +87,9 @@ const depthLineMaterial = new THREE.ShaderMaterial({
 	transparent: true,
 	uniforms: {
 		nearColor: {value: new THREE.Color("#000000")},
-		farColor: {value: new THREE.Color("#cccccc")},
+		farColor: {value: new THREE.Color("#f4f4f4")},
 		nearOpacity: {value: 1.0},
-		farOpacity: {value: 0.15},
+		farOpacity: {value: 0.1},
 	},
 	vertexShader: `
 		varying float vDepth;
@@ -137,17 +137,12 @@ function Gem({position, scale, rotationSpeed, initialRotation}: GemProps) {
 	);
 }
 
-// 3 brilliant cuts from different angles
 const gemConfigs: Omit<GemProps, "position">[] = [
-	// Left: top-down view (looking at the table)
 	{scale: 0.7, rotationSpeed: 0.006, initialRotation: [-Math.PI / 2, 0, 0]},
-	// Center: classic side view
 	{scale: 0.95, rotationSpeed: 0.008, initialRotation: [0.3, 0, 0]},
-	// Right: bottom-up view (looking at the pavilion)
 	{scale: 0.7, rotationSpeed: 0.006, initialRotation: [Math.PI / 2, 0, 0]},
 ];
 
-// Positions spread horizontally
 const positions: [number, number, number][] = [
 	[-2.5, 0, 0],
 	[0, 0, 0],

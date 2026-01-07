@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-	--background: #faf6f1;
-	--background-alt: #f5f0e8;
+	--background: #ffffff;
+	--background-creme: #f5f0e8;
 	--foreground: #000000;
 	--foreground-muted: #3d3d3d;
 	--text-gray: #5c5c5c;
@@ -19,7 +19,7 @@
 
 @theme inline {
 	--color-background: var(--background);
-	--color-background-alt: var(--background-alt);
+	--color-background-creme: var(--background-creme);
 	--color-foreground: var(--foreground);
 	--color-foreground-muted: var(--foreground-muted);
 	--color-text-gray: var(--text-gray);
@@ -103,5 +103,13 @@ h3, h4, h5, h6 {
 	.group span {
 		transition: none !important;
 		animation: none !important;
+	}
+}
+
+/* Reduced Motion Support for Pricing Cards and other interactive elements */
+@media (prefers-reduced-motion: reduce) {
+	[class*="transition-"],
+	[class*="hover:"] {
+		transition: none !important;
 	}
 }

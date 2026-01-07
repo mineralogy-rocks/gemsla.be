@@ -1,7 +1,5 @@
 import type {Metadata} from "next";
 import {Lora} from "next/font/google";
-import {Theme} from "@radix-ui/themes";
-import "@radix-ui/themes/styles.css";
 import "./globals.css";
 
 const lora = Lora({
@@ -55,10 +53,8 @@ export default function RootLayout({
 			<head>
 				<script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(structuredData)}} />
 			</head>
-			<body className={`${lora.variable} antialiased`}>
-				<Theme accentColor="gray" radius="medium">
-					{children}
-				</Theme>
+			<body className={`${lora.variable} ${lora.className} antialiased`}>
+				{children}
 			</body>
 		</html>
 	);

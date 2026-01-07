@@ -50,24 +50,36 @@ export function Button3D({
 		           whileTap="pressed"
 		           initial="idle"
 		           {...(props as any)}>
-			{/* Shadow Layer */}
-			<motion.span className="absolute inset-0 rounded-xl"
+
+			<motion.span className="absolute inset-0 rounded-xl will-change-transform"
 			             style={{
-				             background: "hsla(30, 20%, 20%, 0.35)",
-				             filter: "blur(4px)",
+				             background: "hsl(0deg 0% 0% / 0.25)",
 			             }}
 			             variants={{
-				             idle: { y: 2 },
-				             hover: { y: 4 },
-				             pressed: { y: 1 },
-			             }}
-			             transition={{
-				             type: "tween",
-				             duration: 0.15,
+				             idle: {
+					             y: 2,
+					             transition: {
+						             duration: 0.6,
+						             ease: [0.3, 0.7, 0.4, 1],
+					             },
+				             },
+				             hover: {
+					             y: 4,
+					             transition: {
+						             duration: 0.25,
+						             ease: [0.3, 0.7, 0.4, 1.5],
+					             },
+				             },
+				             pressed: {
+					             y: 1,
+					             transition: {
+						             duration: 0.034,
+						             ease: "easeOut",
+					             },
+				             },
 			             }}
 			             aria-hidden="true" />
 
-			{/* Edge Layer - The 3D beveled edge */}
 			<motion.span className="absolute inset-0 rounded-xl"
 			             style={{
 				             background: isPrimary
@@ -76,33 +88,29 @@ export function Button3D({
 			             }}
 			             aria-hidden="true" />
 
-			{/* Front Layer - Interactive surface */}
-			<motion.span className={`relative block rounded-xl ${sizeClasses[size]} ${isPrimary ? "bg-foreground text-secondary" : "bg-background text-foreground border-2 border-foreground"} font-normal tracking-wide will-change-transform`}
+			<motion.span className={`relative block rounded-xl ${sizeClasses[size]} ${isPrimary ? "bg-foreground text-secondary" : "bg-background-creme text-foreground border-2 border-foreground"} font-normal tracking-wide will-change-transform`}
 			             variants={{
 				             idle: {
 					             y: -4,
 					             transition: {
-						             type: "spring",
-						             stiffness: 400,
-						             damping: 25
-					             }
+						             duration: 0.6,
+						             ease: [0.3, 0.7, 0.4, 1],
+					             },
 				             },
 				             hover: {
 					             y: -6,
 					             filter: "brightness(1.1)",
 					             transition: {
-						             type: "tween",
 						             duration: 0.25,
-						             ease: "easeOut"
-					             }
+						             ease: [0.3, 0.7, 0.4, 1.5],
+					             },
 				             },
 				             pressed: {
 					             y: -2,
 					             transition: {
-						             type: "tween",
 						             duration: 0.034,
-						             ease: "easeOut"
-					             }
+						             ease: "easeOut",
+					             },
 				             },
 			             }}>
 				{children}

@@ -5,7 +5,13 @@ import { createClient } from "@/lib/supabase/server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-function generateEmailTemplate(name: string, email: string, message: string): string {
+const SERVICE_LABELS: Record<string, string> = {
+	initial_consultation: "Initial Consultation (€90)",
+	standard_examination: "Standard Examination (€165)",
+	comprehensive_analysis: "Comprehensive Analysis (€320)",
+};
+
+function generateEmailTemplate(name: string, email: string, message: string, chosenService?: string): string {
 	const timestamp = new Date().toLocaleString("en-US", {
 		dateStyle: "medium",
 		timeStyle: "short",
@@ -60,6 +66,20 @@ function generateEmailTemplate(name: string, email: string, message: string): st
 									</td>
 								</tr>
 							</table>
+							${chosenService ? `
+							<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 24px;">
+								<tr>
+									<td>
+										<p style="margin: 0 0 4px 0; font-size: 12px; font-weight: 400; letter-spacing: 0.08em; color: #5c5c5c; text-transform: uppercase;">
+											Interested In
+										</p>
+										<p style="margin: 0; font-size: 16px; color: #c4a77d; font-weight: 500; line-height: 1.5;">
+											${SERVICE_LABELS[chosenService] || chosenService}
+										</p>
+									</td>
+								</tr>
+							</table>
+							` : ""}
 							<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
 								<tr>
 									<td>
@@ -90,7 +110,7 @@ function generateEmailTemplate(name: string, email: string, message: string): st
 
 export async function POST(request: Request) {
 	try {
-		const { name, email, message } = await request.json();
+		const { name, email, message, chosen_service } = await request.json();
 
 		if (!name || !email || !message) {
 			return NextResponse.json(
@@ -107,15 +127,24 @@ export async function POST(request: Request) {
 			);
 		}
 
+		// Validate chosen_service if provided
+		const validServices = ["initial_consultation", "standard_examination", "comprehensive_analysis"];
+		const sanitizedService = chosen_service && validServices.includes(chosen_service) ? chosen_service : null;
+
 		const supabase = await createClient();
-		await supabase.from('contact_submissions').insert({ name, email, message });
+		await supabase.from('contact_submissions').insert({
+			name,
+			email,
+			message,
+			chosen_service: sanitizedService,
+		});
 
 		const { error: emailError } = await resend.emails.send({
 			from: "GemsLabe <noreply@notifications.gemsla.be>",
 			to: ["liubomyr.gavryliv@gmail.com"],
 			replyTo: email,
-			subject: `New contact from ${name}`,
-			html: generateEmailTemplate(name, email, message),
+			subject: `New contact from ${name}${sanitizedService ? ` - ${SERVICE_LABELS[sanitizedService]}` : ""}`,
+			html: generateEmailTemplate(name, email, message, sanitizedService || undefined),
 		});
 
 		if (emailError) {

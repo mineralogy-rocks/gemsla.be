@@ -2,6 +2,7 @@
 
 import {motion} from "framer-motion";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import {fadeInUp, staggerContainer, paragraphReveal} from "./lib/animations";
 import {Button3D} from "./components/Button3D";
 import {CalloutCard} from "./components/CalloutCard";
@@ -14,13 +15,11 @@ const DiamondWireframe = dynamic(() => import("./components/DiamondWireframe"), 
 export default function Home() {
 	return (
 		<div className="min-h-screen relative">
-			{/* Skip Link for Accessibility */}
 			<a href="#main-content"
 			   className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-foreground focus:text-background focus:rounded">
 				Skip to main content
 			</a>
 
-			{/* Background Noise Texture */}
 			<div className="fixed inset-0 z-0 opacity-10 pointer-events-none"
 			     style={{
 				     backgroundImage: 'url("/NNNoise Texture Generator.svg")',
@@ -80,11 +79,9 @@ export default function Home() {
 
 				</section>
 
-				{/* Article Section */}
 				<section className="relative py-20 px-4 sm:px-6 lg:px-8 z-10">
 					<article className="max-w-2xl mx-auto">
-						{/* Opening Paragraph */}
-						<motion.p className="text-xl text-foreground leading-loose mb-10"
+						<motion.p className="text-lg text-foreground leading-relaxed mb-10"
 						          variants={paragraphReveal}
 						          initial="hidden"
 						          whileInView="visible"
@@ -92,8 +89,7 @@ export default function Home() {
 							Hi there and welcome to my Labé! I&apos;m Olena, a <strong>gemologist</strong> with a deep love for the science and beauty of gemstones. Based in <strong>Bratislava, Slovakia</strong>, I combine my academic background in <strong>mineralogy</strong> with hands-on expertise to help you navigate the fascinating world of precious stones.
 						</motion.p>
 
-						{/* Background Paragraph */}
-						<motion.p className="text-xl text-foreground leading-loose mb-10"
+						<motion.p className="text-lg text-foreground leading-relaxed mb-10"
 						          variants={paragraphReveal}
 						          initial="hidden"
 						          whileInView="visible"
@@ -101,12 +97,10 @@ export default function Home() {
 							My journey with gemstones began at <strong>Taras Shevchenko National University</strong> in Kyiv, where I completed my <strong>Master&apos;s in Geochemistry and Mineralogy</strong>. I then pursued my <strong>PhD at Comenius University</strong> in Bratislava, focusing on beryllium minerals in granitic pegmatites. Along the way, I earned certifications from the <strong>Gemological Institute of America (GIA)</strong> in colored stones, diamond grading, and jewelry essentials.
 						</motion.p>
 
-						{/* Diamond Separator */}
 						<div className="my-16 sm:my-24">
 							<DiamondWireframe />
 						</div>
 
-						{/* Services Intro */}
 						<motion.p className="text-lg text-foreground leading-relaxed mb-8"
 						          variants={paragraphReveal}
 						          initial="hidden"
@@ -115,9 +109,7 @@ export default function Home() {
 							Whether you&apos;re a collector searching for the perfect piece, a jeweler wanting to verify authenticity, or simply curious about a family heirloom, I&apos;m here to help with:
 						</motion.p>
 
-						{/* Callout Cards with vertical connector line */}
 						<div className="relative">
-							{/* Vertical line connecting titles (visible on md+, behind titles) */}
 							<div className="hidden md:block absolute w-px z-0"
 							     style={{
 								     right: 'calc(100% + 6.25rem)',
@@ -126,7 +118,6 @@ export default function Home() {
 								     background: 'linear-gradient(to bottom, var(--secondary) 0%, var(--secondary) 70%, transparent 100%)'
 							     }} />
 
-							{/* Service Callout Cards */}
 							<div className="space-y-6 mb-12">
 								<CalloutCard variant="service"
 								             title="Consulting">
@@ -135,11 +126,10 @@ export default function Home() {
 
 								<CalloutCard variant="service"
 								             title="Examination">
-									Comprehensive stone analysis, quality evaluation, and precise identification. Every gemstone analyzed with meticulous attention to detail and scientific rigor. I issue a certificate of analysis detailing the gemstone&apos;s properties, quality, and authenticity.
+									Comprehensive stone analysis, quality evaluation, and precise identification. Every gemstone analyzed with meticulous attention to detail and scientific rigor. I issue a certificate of analysis detailing the gemstone&apos;s properties, quality, and authenticity. See current <Link href="/pricing" className="text-foreground hover:text-callout-accent underline underline-offset-2 transition-colors">pricing and service tiers</Link>.
 								</CalloutCard>
 							</div>
 
-							{/* Methods Intro */}
 							<motion.p className="text-lg text-foreground leading-relaxed mb-8"
 							          variants={paragraphReveal}
 							          initial="hidden"
@@ -155,7 +145,6 @@ export default function Home() {
 								</CalloutCard>
 							</div>
 
-							{/* Experience Paragraph */}
 							<motion.p className="text-lg text-foreground leading-relaxed mb-8"
 							          variants={paragraphReveal}
 							          initial="hidden"
@@ -164,10 +153,10 @@ export default function Home() {
 								When I&apos;m not in the lab, you&apos;ll find me sharing my passion for mineralogy through writing. As a contributing author for the International Gem Society, I&apos;ve authored 15+ comprehensive articles covering everything from crystal systems to advanced analytical techniques. My research on beryl crystals and chrysoberyl has been published in the Journal of Raman Spectroscopy and Mineralogical Magazine.
 							</motion.p>
 
-							{/* Credential Callout Card with Publications */}
 							<CalloutCard variant="service"
 							             title="Publications & Writing">
-								<ul className="space-y-3">
+								<span className="font-medium">Here are some of my publications related to Gemology:</span>
+								<ul className="space-y-3 mt-3">
 									<li>
 										<a href="https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/jrs.6566"
 										   target="_blank"
@@ -199,7 +188,6 @@ export default function Home() {
 							</CalloutCard>
 						</div>
 
-						{/* Closing Paragraph with CTA */}
 						<motion.div className="mt-12 text-center"
 						            variants={paragraphReveal}
 						            initial="hidden"
@@ -268,7 +256,6 @@ export default function Home() {
 						</div>
 					</div>
 
-					{/* Copyright */}
 					<div className="pt-6 border-t border-border-light text-center text-text-gray text-xs">
 						<p>&copy; 2025 Rutheniai s.r.o. All rights reserved.</p>
 					</div>
