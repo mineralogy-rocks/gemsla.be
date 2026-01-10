@@ -49,7 +49,7 @@ export function CalloutCard({variant, title, children}: CalloutCardProps) {
 				           style={{y: titleY}}>
 					{title}
 				</motion.h4>
-				<div className="bg-callout-bg border-l-6 border-2 border-foreground rounded-lg p-6 sm:p-8">
+				<div className="bg-callout-bg border-2 border-foreground rounded-lg p-6 sm:p-8 border-l-6">
 					<div className="leading-relaxed">
 						{children}
 					</div>

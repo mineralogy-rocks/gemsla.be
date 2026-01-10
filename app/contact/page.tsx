@@ -1,7 +1,7 @@
 "use client";
 
-import {useState} from "react";
-import Link from "next/link";
+import {useState, useEffect} from "react";
+import {useSearchParams} from "next/navigation";
 import {motion} from "framer-motion";
 import {fadeInUp, staggerContainer, staggerItem} from "../lib/animations";
 import {Input} from "../components/Input";
@@ -15,7 +15,14 @@ const serviceOptions = [
 	{ value: "comprehensive_analysis", label: "Comprehensive Analysis (€320)" },
 ];
 
+const serviceParamMap: Record<string, string> = {
+	initial: "initial_consultation",
+	standard: "standard_examination",
+	comprehensive: "comprehensive_analysis",
+};
+
 export default function ContactPage() {
+	const searchParams = useSearchParams();
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
@@ -24,6 +31,16 @@ export default function ContactPage() {
 	});
 	const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 	const [errorMessage, setErrorMessage] = useState("");
+
+	useEffect(() => {
+		const serviceParam = searchParams.get("service");
+		if (serviceParam && serviceParamMap[serviceParam]) {
+			setFormData((prev) => ({
+				...prev,
+				chosen_service: serviceParamMap[serviceParam],
+			}));
+		}
+	}, [searchParams]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -54,22 +71,13 @@ export default function ContactPage() {
 	};
 
 	return (
-		<div className="min-h-screen relative">
+		<div className="min-h-screen relative pt-16">
 			<div className="fixed inset-0 z-0 opacity-10 pointer-events-none"
 			     style={{
 				     backgroundImage: 'url("/NNNoise Texture Generator.svg")',
 				     backgroundSize: "400px 400px",
 				     backgroundRepeat: "repeat",
 			     }} />
-
-			<div className="relative z-10 px-4 sm:px-6 lg:px-8 pt-8">
-				<div className="max-w-2xl mx-auto">
-					<Link href="/"
-					      className="text-foreground hover:text-accent-hover transition-colors duration-300">
-						&larr; Back to Home
-					</Link>
-				</div>
-			</div>
 
 			<motion.section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10"
 			                initial="hidden"
@@ -84,11 +92,11 @@ export default function ContactPage() {
 						or just want to say hello — I&apos;m here and happy to help.
 					</p>
 
-					<div className="flex flex-col sm:flex-row justify-center items-center gap-6 mb-12">
+					<div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mb-12">
 						<a href="https://instagram.com/olena_rybnikova"
 						   target="_blank"
 						   rel="noopener noreferrer"
-						   className="flex items-center gap-2 text-foreground hover:text-callout-accent transition-colors duration-300">
+						   className="flex items-center justify-center gap-2 min-h-[44px] min-w-[44px] px-4 py-2 -mx-4 -my-2 text-foreground hover:text-callout-accent transition-colors duration-300">
 							<svg xmlns="http://www.w3.org/2000/svg"
 							     width="22"
 							     height="22"
@@ -107,7 +115,7 @@ export default function ContactPage() {
 						<a href="https://www.linkedin.com/in/olena-rybnikova-phd/"
 						   target="_blank"
 						   rel="noopener noreferrer"
-						   className="flex items-center gap-2 text-foreground hover:text-callout-accent transition-colors duration-300">
+						   className="flex items-center justify-center gap-2 min-h-[44px] min-w-[44px] px-4 py-2 -mx-4 -my-2 text-foreground hover:text-callout-accent transition-colors duration-300">
 							<svg xmlns="http://www.w3.org/2000/svg"
 							     width="22"
 							     height="22"

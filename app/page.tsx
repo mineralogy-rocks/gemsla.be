@@ -9,7 +9,7 @@ import {CalloutCard} from "./components/CalloutCard";
 
 const DiamondWireframe = dynamic(() => import("./components/DiamondWireframe"), {
 	ssr: false,
-	loading: () => <div className="w-full h-48 sm:h-64 md:h-80" />
+	loading: () => <div className="w-full h-32 sm:h-40 md:h-48" />
 });
 
 export default function Home() {
@@ -86,7 +86,7 @@ export default function Home() {
 						          initial="hidden"
 						          whileInView="visible"
 						          viewport={{once: true, margin: "-50px"}}>
-							Hi there and welcome to my Labé! I&apos;m Olena, a <strong>gemologist</strong> with a deep love for the science and beauty of gemstones. Based in <strong>Bratislava, Slovakia</strong>, I combine my academic background in <strong>mineralogy</strong> with hands-on expertise to help you navigate the fascinating world of precious stones.
+							Hi there and welcome to my Labé! I&apos;m Olena, a <strong>gemologist</strong> with a deep love for the science and beauty of gemstones. Based in Bratislava, Slovakia, I combine academic training in mineralogy with hands-on expertise to help you make confident decisions about precious stones.
 						</motion.p>
 
 						<motion.p className="text-lg text-foreground leading-relaxed mb-10"
@@ -94,7 +94,7 @@ export default function Home() {
 						          initial="hidden"
 						          whileInView="visible"
 						          viewport={{once: true, margin: "-50px"}}>
-							My journey with gemstones began at <strong>Taras Shevchenko National University</strong> in Kyiv, where I completed my <strong>Master&apos;s in Geochemistry and Mineralogy</strong>. I then pursued my <strong>PhD at Comenius University</strong> in Bratislava, focusing on beryllium minerals in granitic pegmatites. Along the way, I earned certifications from the <strong>Gemological Institute of America (GIA)</strong> in colored stones, diamond grading, and jewelry essentials.
+							I hold a <strong>PhD in Mineralogy</strong> and certifications from the <strong>Gemological Institute of America (GIA)</strong> in colored stones, diamond grading, and jewelry essentials. My research on beryl and chrysoberyl has been published in peer-reviewed journals&mdash;but my real passion is translating that science into practical guidance for collectors, jewelers, and anyone curious about gems.
 						</motion.p>
 
 						<div className="my-16 sm:my-24">
@@ -121,12 +121,12 @@ export default function Home() {
 							<div className="space-y-6 mb-12">
 								<CalloutCard variant="service"
 								             title="Consulting">
-									Looking to dive into the world of gemstones? Whether you&apos;re after tips on finding the perfect stone, figuring out quality, or making smart investment choices, I&apos;m here to help. Let&apos;s make your gemstone journey exciting and enjoyable!
+									Need guidance on buying, selling, or understanding gemstones? I offer personalized advice on stone selection, quality assessment, and investment potential&mdash;whether you&apos;re a first-time buyer or a seasoned collector.
 								</CalloutCard>
 
 								<CalloutCard variant="service"
 								             title="Examination">
-									Comprehensive stone analysis, quality evaluation, and precise identification. Every gemstone analyzed with meticulous attention to detail and scientific rigor. I issue a certificate of analysis detailing the gemstone&apos;s properties, quality, and authenticity. See current <Link href="/pricing" className="text-foreground hover:text-callout-accent underline underline-offset-2 transition-colors">pricing and service tiers</Link>.
+									Get a clear picture of what you have. I provide detailed analysis of your gemstone&apos;s identity, quality, and any treatments&mdash;backed by a formal certificate you can use for insurance, resale, or peace of mind. See current <Link href="/pricing" className="text-foreground hover:text-callout-accent underline underline-offset-2 transition-colors">pricing and service tiers</Link>.
 								</CalloutCard>
 							</div>
 
@@ -135,13 +135,13 @@ export default function Home() {
 							          initial="hidden"
 							          whileInView="visible"
 							          viewport={{once: true, margin: "-50px"}}>
-								I bring scientific precision to every analysis, using state-of-the-art analytical techniques:
+								I use advanced analytical techniques to ensure accurate identification:
 							</motion.p>
 
 							<div className="mb-12">
 								<CalloutCard variant="service"
 								             title="Analytical Methods">
-									My toolkit includes <strong>Raman Spectroscopy</strong> and <strong>X-ray Diffraction</strong> for structural analysis, <strong>NMR Spectroscopy</strong> for molecular insights, <strong>Fluorescence Spectroscopy</strong> for detecting treatments, <strong>Electrochemical Analysis</strong> for composition studies, and <strong>Optical Analysis</strong> for visual evaluation.
+									My toolkit includes <strong>Raman Spectroscopy</strong> and X-ray Diffraction for structural analysis, NMR Spectroscopy for molecular insights, <strong>Fluorescence Spectroscopy</strong> for detecting treatments, Electrochemical Analysis for composition studies, and Optical Analysis for visual evaluation.
 								</CalloutCard>
 							</div>
 
@@ -150,12 +150,12 @@ export default function Home() {
 							          initial="hidden"
 							          whileInView="visible"
 							          viewport={{once: true, margin: "-50px"}}>
-								When I&apos;m not in the lab, you&apos;ll find me sharing my passion for mineralogy through writing. As a contributing author for the International Gem Society, I&apos;ve authored 15+ comprehensive articles covering everything from crystal systems to advanced analytical techniques. My research on beryl crystals and chrysoberyl has been published in the Journal of Raman Spectroscopy and Mineralogical Magazine.
+								Beyond lab work, I write about gemology for academic journals and the International Gem Society.
 							</motion.p>
 
 							<CalloutCard variant="service"
 							             title="Publications & Writing">
-								<span className="font-medium">Here are some of my publications related to Gemology:</span>
+								<span className="font-medium">Selected publications:</span>
 								<ul className="space-y-3 mt-3">
 									<li>
 										<a href="https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/jrs.6566"
@@ -194,7 +194,7 @@ export default function Home() {
 						            whileInView="visible"
 						            viewport={{once: true, margin: "-50px"}}>
 							<p className="text-lg text-foreground leading-relaxed mb-8">
-								Ready to explore the world of gemstones together? I&apos;d love to hear from you.
+								Have a gemstone you&apos;d like examined, or questions about buying one? Let&apos;s talk.
 							</p>
 							<Button3D as="a"
 							          href="/contact"

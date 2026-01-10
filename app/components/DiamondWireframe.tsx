@@ -131,6 +131,13 @@ function Gem({position, scale, rotationSpeed, initialRotation}: GemProps) {
 		       position={position}
 		       scale={scale}
 		       rotation={initialRotation}>
+			<mesh geometry={geometry}>
+				<meshBasicMaterial color="#7ec8e3"
+				                   transparent={true}
+				                   opacity={0.5}
+				                   depthWrite={false}
+				                   side={THREE.DoubleSide} />
+			</mesh>
 			<lineSegments geometry={edgesGeometry}
 			              material={depthLineMaterial} />
 		</group>

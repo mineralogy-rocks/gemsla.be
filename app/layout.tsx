@@ -1,6 +1,7 @@
 import type {Metadata} from "next";
 import {Lora} from "next/font/google";
 import "./globals.css";
+import {Header} from "./components/Header";
 
 const lora = Lora({
 	variable: "--font-lora",
@@ -54,6 +55,7 @@ export default function RootLayout({
 				<script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(structuredData)}} />
 			</head>
 			<body className={`${lora.variable} ${lora.className} antialiased`}>
+				<Header />
 				{children}
 			</body>
 		</html>

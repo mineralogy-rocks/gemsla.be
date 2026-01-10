@@ -12,6 +12,7 @@ interface PricingCardProps {
 	features: string[];
 	bestFor: string;
 	isHighlighted?: boolean;
+	serviceParam?: string;
 }
 
 export function PricingCard({
@@ -21,7 +22,9 @@ export function PricingCard({
 	features,
 	bestFor,
 	isHighlighted = false,
+	serviceParam,
 }: PricingCardProps) {
+	const contactHref = serviceParam ? `/contact?service=${serviceParam}` : "/contact";
 	return (
 		<motion.div className={`relative bg-callout-bg rounded-lg p-6 sm:p-8 h-full flex flex-col transition-shadow duration-300 ${
 			isHighlighted
@@ -78,7 +81,7 @@ export function PricingCard({
 				</p>
 			</div>
 
-			<Link href="/contact"
+			<Link href={contactHref}
 			      className={`block w-full text-center py-3 px-4 rounded-lg font-medium transition-all duration-300 ${
 				      isHighlighted
 					      ? "bg-callout-accent text-white hover:bg-callout-accent/90 shadow-sm hover:shadow-md"

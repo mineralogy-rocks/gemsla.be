@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {motion} from "framer-motion";
 import {fadeInUp, staggerContainer, paragraphReveal} from "../lib/animations";
 import {Button3D} from "../components/Button3D";
@@ -18,6 +17,7 @@ const pricingTiers = [
 		],
 		bestFor: "Quick authenticity check or purchase advice",
 		isHighlighted: false,
+		serviceParam: "initial",
 	},
 	{
 		title: "Standard Examination",
@@ -31,6 +31,7 @@ const pricingTiers = [
 		],
 		bestFor: "Verifying gemstone identity and quality",
 		isHighlighted: true,
+		serviceParam: "standard",
 	},
 	{
 		title: "Comprehensive Analysis",
@@ -45,12 +46,13 @@ const pricingTiers = [
 		],
 		bestFor: "High-value stones, collections, insurance",
 		isHighlighted: false,
+		serviceParam: "comprehensive",
 	},
 ];
 
 export default function PricingPage() {
 	return (
-		<div className="min-h-screen relative">
+		<div className="min-h-screen relative pt-16">
 			{/* Background Noise Texture */}
 			<div className="fixed inset-0 z-0 opacity-10 pointer-events-none"
 			     style={{
@@ -58,16 +60,6 @@ export default function PricingPage() {
 				     backgroundSize: "400px 400px",
 				     backgroundRepeat: "repeat",
 			     }} />
-
-			{/* Back to Home Link */}
-			<div className="relative z-10 px-4 sm:px-6 lg:px-8 pt-8">
-				<div className="max-w-5xl mx-auto">
-					<Link href="/"
-					      className="text-foreground hover:text-accent-hover transition-colors duration-300">
-						&larr; Back to Home
-					</Link>
-				</div>
-			</div>
 
 			{/* Header Section */}
 			<motion.section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10"
@@ -100,7 +92,8 @@ export default function PricingPage() {
 							             description={tier.description}
 							             features={tier.features}
 							             bestFor={tier.bestFor}
-							             isHighlighted={tier.isHighlighted} />
+							             isHighlighted={tier.isHighlighted}
+							             serviceParam={tier.serviceParam} />
 						))}
 					</div>
 				</div>
