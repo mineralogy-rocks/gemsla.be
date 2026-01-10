@@ -1,6 +1,6 @@
 "use client";
 
-import {useState, useEffect} from "react";
+import {useState, useEffect, Suspense} from "react";
 import {useSearchParams} from "next/navigation";
 import {motion} from "framer-motion";
 import {fadeInUp, staggerContainer, staggerItem} from "../lib/animations";
@@ -21,7 +21,7 @@ const serviceParamMap: Record<string, string> = {
 	comprehensive: "comprehensive_analysis",
 };
 
-export default function ContactPage() {
+function ContactForm() {
 	const searchParams = useSearchParams();
 	const [formData, setFormData] = useState({
 		name: "",
@@ -236,5 +236,13 @@ export default function ContactPage() {
 				</div>
 			</motion.section>
 		</div>
+	);
+}
+
+export default function ContactPage() {
+	return (
+		<Suspense fallback={<div className="min-h-screen pt-16" />}>
+			<ContactForm />
+		</Suspense>
 	);
 }

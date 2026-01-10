@@ -1,8 +1,8 @@
 "use client";
 
 import React, { forwardRef } from "react";
-import { motion, HTMLMotionProps } from "framer-motion";
-import { ButtonProps, ButtonVariant, ButtonSize } from "./Button.types";
+import { motion, type HTMLMotionProps } from "framer-motion";
+import { type ButtonProps, type ButtonVariant, type ButtonSize } from "./Button.types";
 
 const variantClasses: Record<ButtonVariant, string> = {
 	primary: "bg-foreground text-background hover:opacity-90",
@@ -33,7 +33,7 @@ const Spinner = () => (
 	</svg>
 );
 
-type MotionButtonProps = Omit<HTMLMotionProps<"button">, keyof ButtonProps> & ButtonProps;
+type MotionButtonProps = HTMLMotionProps<"button"> & ButtonProps;
 
 export const Button = forwardRef<HTMLButtonElement, MotionButtonProps>(
 	({ variant = "primary", size = "md", loading = false, disabled, className = "", children, ...props }, ref) => {
