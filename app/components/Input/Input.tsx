@@ -14,7 +14,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 		const generatedId = useId();
 		const inputId = id || generatedId;
 
-		const baseClasses = "w-full border rounded-md bg-background text-foreground placeholder:text-text-gray transition-colors duration-200";
+		const baseClasses = "w-full border rounded-md bg-background text-foreground placeholder:text-text-gray transition-colors duration-200 font-[family-name:var(--font-lora)]";
 		const focusClasses = "focus:ring-2 focus:ring-callout-accent focus:outline-none";
 		const borderClasses = error ? "border-red-500" : "border-border";
 

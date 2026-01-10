@@ -132,9 +132,8 @@ function Gem({position, scale, rotationSpeed, initialRotation}: GemProps) {
 		       scale={scale}
 		       rotation={initialRotation}>
 			<mesh geometry={geometry}>
-				<meshBasicMaterial color="#7ec8e3"
+				<meshBasicMaterial color="#e0f3ff"
 				                   transparent={true}
-				                   opacity={0.5}
 				                   depthWrite={false}
 				                   side={THREE.DoubleSide} />
 			</mesh>

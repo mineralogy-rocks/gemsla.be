@@ -8,13 +8,15 @@
 	--text-gray: #5c5c5c;
 	--accent: #000000;
 	--accent-hover: #333333;
-	--border: #d9d4cc;
-	--border-light: #e8e3db;
+	--border: #d4cec4;
+	--border-light: #e6e0d6;
 	--secondary: #d1d5db;
-	--callout-accent: #c4a77d;
-	--callout-accent-light: #e8dcc8;
-	--callout-bg: rgba(250, 246, 241, 0.8);
-	--quote-mark: #d1c4b0;
+	--callout-accent: #5c5c5c;
+	--callout-accent-hover: #3d3d3d;
+	--callout-accent-light: #e6e0d6;
+	--callout-accent-text: #3d3d3d;
+	--callout-bg: rgba(248, 244, 238, 0.85);
+	--quote-mark: #d4cec4;
 }
 
 @theme inline {
@@ -29,7 +31,9 @@
 	--color-border-light: var(--border-light);
 	--color-secondary: var(--secondary);
 	--color-callout-accent: var(--callout-accent);
+	--color-callout-accent-hover: var(--callout-accent-hover);
 	--color-callout-accent-light: var(--callout-accent-light);
+	--color-callout-accent-text: var(--callout-accent-text);
 	--color-callout-bg: var(--callout-bg);
 	--color-quote-mark: var(--quote-mark);
 	--font-heading: var(--font-lora);
@@ -89,6 +93,32 @@ h3, h4, h5, h6 {
 @media (min-width: 1024px) {
 	h1 {
 		font-size: 4.5rem;
+	}
+}
+
+/* Button Underline Animation */
+.button-underline {
+	position: relative;
+}
+
+.button-underline::after {
+	content: '';
+	position: absolute;
+	bottom: 0.625rem;
+	left: 1.5rem;
+	width: 0;
+	height: 2px;
+	background-color: currentColor;
+	transition: width 0.3s ease;
+}
+
+.button-underline:hover::after {
+	width: calc(100% - 3rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.button-underline::after {
+		transition: none;
 	}
 }
 

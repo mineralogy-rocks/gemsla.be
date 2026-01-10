@@ -14,7 +14,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 		const generatedId = useId();
 		const selectId = id || generatedId;
 
-		const baseClasses = "w-full border rounded-md bg-background text-foreground transition-colors duration-200 appearance-none cursor-pointer";
+		const baseClasses = "w-full border rounded-md bg-background text-foreground transition-colors duration-200 appearance-none cursor-pointer font-[family-name:var(--font-lora)]";
 		const focusClasses = "focus:ring-2 focus:ring-callout-accent focus:outline-none";
 		const borderClasses = error ? "border-red-500" : "border-border";
 

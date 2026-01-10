@@ -6,7 +6,7 @@ import { ButtonProps, ButtonVariant, ButtonSize } from "./Button.types";
 
 const variantClasses: Record<ButtonVariant, string> = {
 	primary: "bg-foreground text-background hover:opacity-90",
-	secondary: "bg-callout-accent text-foreground hover:opacity-90",
+	secondary: "bg-background-creme text-foreground border-2 border-foreground hover:bg-border-light",
 	outline: "border border-foreground text-foreground hover:bg-foreground hover:text-background",
 };
 
@@ -41,12 +41,12 @@ export const Button = forwardRef<HTMLButtonElement, MotionButtonProps>(
 
 		const baseClasses = "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all duration-200";
 		const disabledClasses = isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer";
+		const underlineClass = !isDisabled ? "button-underline" : "";
 
 		return (
 			<motion.button ref={ref}
 			               disabled={isDisabled}
-			               className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${className}`}
-			               whileHover={isDisabled ? undefined : { scale: 1.02 }}
+			               className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${underlineClass} ${className}`}
 			               whileTap={isDisabled ? undefined : { scale: 0.98 }}
 			               transition={{ duration: 0.15 }}
 			               {...props}>

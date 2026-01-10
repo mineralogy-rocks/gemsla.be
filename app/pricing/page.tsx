@@ -99,46 +99,38 @@ export default function PricingPage() {
 				</div>
 			</motion.section>
 
-			{/* Good to Know - Immediately after pricing for context */}
-			<motion.section className="relative py-6 px-4 sm:px-6 lg:px-8 z-10"
+			<motion.section className="relative py-4 px-4 sm:px-6 lg:px-8 z-10"
 			                variants={paragraphReveal}
 			                initial="hidden"
 			                whileInView="visible"
 			                viewport={{once: true, margin: "-50px"}}>
 				<div className="max-w-5xl mx-auto">
-					<div className="flex flex-col sm:flex-row sm:justify-center sm:gap-12 gap-3 text-center text-sm text-text-gray">
-						<p><span className="text-foreground font-medium">Per stone</span> pricing</p>
-						<p><span className="text-foreground font-medium">3-5 days</span> turnaround</p>
-						<p><span className="text-foreground font-medium">Detailed</span> certificates included</p>
-					</div>
+					<p className="text-sm text-text-gray text-center leading-relaxed">
+						<span className="text-foreground font-medium">Per-stone pricing</span>
+						{" "}·{" "}
+						<span className="text-foreground font-medium">3-5 day</span> turnaround
+						{" "}·{" "}
+						<span className="text-foreground font-medium">Detailed certificates</span> included
+					</p>
 				</div>
 			</motion.section>
 
-			{/* Discounts Section */}
-			<motion.section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10"
+			<motion.section className="relative py-8 px-4 sm:px-6 lg:px-8 z-10"
 			                variants={paragraphReveal}
 			                initial="hidden"
 			                whileInView="visible"
 			                viewport={{once: true, margin: "-50px"}}>
 				<div className="max-w-3xl mx-auto">
-					<div className="border-t border-border-light pt-8">
-						<h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-6 text-center">
-							Discounts
-						</h3>
-						<div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
-							<div>
-								<p className="text-callout-accent font-semibold text-lg mb-1">10% off</p>
-								<p className="text-sm text-text-gray">Returning customers</p>
-							</div>
-							<div>
-								<p className="text-callout-accent font-semibold text-lg mb-1">15% off</p>
-								<p className="text-sm text-text-gray">Multiple stones (3-5)</p>
-							</div>
-							<div>
-								<p className="text-callout-accent font-semibold text-lg mb-1">Custom pricing</p>
-								<p className="text-sm text-text-gray">Collections (6+)</p>
-							</div>
-						</div>
+					<div className="border-t border-border-light pt-6">
+						<p className="text-sm text-text-gray text-center leading-relaxed">
+							<span className="text-foreground font-medium">Discounts:</span>
+							{" "}
+							<span className="text-foreground font-medium">10% off</span> for returning customers
+							{" "}·{" "}
+							<span className="text-foreground font-medium">15% off</span> for 3-5 stones
+							{" "}·{" "}
+							<span className="text-foreground font-medium">Custom pricing</span> for collections (6+)
+						</p>
 					</div>
 				</div>
 			</motion.section>

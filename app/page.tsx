@@ -207,60 +207,6 @@ export default function Home() {
 				</section>
 
 			</main>
-
-			<footer className="relative py-10 px-4 sm:px-6 lg:px-8 border-t border-border-light z-10">
-				<div className="max-w-5xl mx-auto">
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-						<div>
-							<h4 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">Contact</h4>
-							<address className="not-italic space-y-2 text-sm">
-								<p>
-									<a href="mailto:olena.rybnikova@gmail.com"
-									   className="text-text-gray hover:text-foreground transition-colors">
-										olena.rybnikova@gmail.com
-									</a>
-								</p>
-								<p>
-									<a href="tel:+421919206955"
-									   className="text-text-gray hover:text-foreground transition-colors">
-										+421 919 206 955
-									</a>
-								</p>
-								<p>
-									<a href="https://www.instagram.com/olena_rybnikova"
-									   target="_blank"
-									   rel="noopener noreferrer"
-									   className="text-text-gray hover:text-foreground transition-colors">
-										@olena_rybnikova
-									</a>
-								</p>
-							</address>
-						</div>
-
-						<div>
-							<h4 className="text-sm font-semibold text-foreground mb-4 tracking-wide">Rutheniai s.r.o.</h4>
-							<address className="not-italic space-y-1 text-sm text-text-gray">
-								<p>Karpatske namestie 7770/10A</p>
-								<p>Bratislava - Raca, 831 06</p>
-								<p>Slovakia</p>
-							</address>
-						</div>
-
-						<div>
-							<h4 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">Legal</h4>
-							<div className="space-y-1 text-sm text-text-gray">
-								<p>IČO: 57 211 604</p>
-								<p>Limited Liability Company</p>
-								<p>Est. September 2025</p>
-							</div>
-						</div>
-					</div>
-
-					<div className="pt-6 border-t border-border-light text-center text-text-gray text-xs">
-						<p>&copy; 2025 Rutheniai s.r.o. All rights reserved.</p>
-					</div>
-				</div>
-			</footer>
 		</div>
 	);
 }
