@@ -2,9 +2,12 @@
 
 import {useState, useEffect} from "react";
 import Link from "next/link";
+import {createClient} from "@/lib/supabase/client";
+import type {User} from "@supabase/supabase-js";
 
 export function Header() {
 	const [isScrolled, setIsScrolled] = useState(false);
+	const [user, setUser] = useState<User | null>(null);
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -13,6 +16,22 @@ export function Header() {
 
 		window.addEventListener("scroll", handleScroll, {passive: true});
 		return () => window.removeEventListener("scroll", handleScroll);
+	}, []);
+
+	useEffect(() => {
+		const supabase = createClient();
+
+		// Get initial user
+		supabase.auth.getUser().then(({data: {user}}) => {
+			setUser(user);
+		});
+
+		// Listen for auth state changes
+		const {data: {subscription}} = supabase.auth.onAuthStateChange((_event, session) => {
+			setUser(session?.user ?? null);
+		});
+
+		return () => subscription.unsubscribe();
 	}, []);
 
 	return (
@@ -38,6 +57,17 @@ export function Header() {
 						      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
 							Contact
 						</Link>
+						{user ? (
+							<Link href="/dashboard"
+							      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
+								Dashboard
+							</Link>
+						) : (
+							<Link href="/sign-in"
+							      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
+								Sign In
+							</Link>
+						)}
 					</div>
 				</div>
 			</nav>
