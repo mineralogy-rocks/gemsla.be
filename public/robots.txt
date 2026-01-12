@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /auth/
+Disallow: /sign-in/
+Disallow: /dashboard/
+Disallow: /api/
+
+Sitemap: https://gemsla.be/sitemap.xml

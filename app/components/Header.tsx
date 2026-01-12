@@ -2,12 +2,15 @@
 
 import {useState, useEffect} from "react";
 import Link from "next/link";
-import {createClient} from "@/lib/supabase/client";
+import {signOut} from "@/app/actions/auth";
 import type {User} from "@supabase/supabase-js";
 
-export function Header() {
+interface HeaderProps {
+	user: User | null;
+}
+
+export function Header({ user }: HeaderProps) {
 	const [isScrolled, setIsScrolled] = useState(false);
-	const [user, setUser] = useState<User | null>(null);
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -16,22 +19,6 @@ export function Header() {
 
 		window.addEventListener("scroll", handleScroll, {passive: true});
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, []);
-
-	useEffect(() => {
-		const supabase = createClient();
-
-		// Get initial user
-		supabase.auth.getUser().then(({data: {user}}) => {
-			setUser(user);
-		});
-
-		// Listen for auth state changes
-		const {data: {subscription}} = supabase.auth.onAuthStateChange((_event, session) => {
-			setUser(session?.user ?? null);
-		});
-
-		return () => subscription.unsubscribe();
 	}, []);
 
 	return (
@@ -58,10 +45,19 @@ export function Header() {
 							Contact
 						</Link>
 						{user ? (
-							<Link href="/dashboard"
-							      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
-								Dashboard
-							</Link>
+							<>
+								<Link href="/dashboard"
+								      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
+									Dashboard
+								</Link>
+								<form action={signOut}
+								      className="inline">
+									<button type="submit"
+									        className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300 bg-transparent border-none cursor-pointer">
+										Sign Out
+									</button>
+								</form>
+							</>
 						) : (
 							<Link href="/sign-in"
 							      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">

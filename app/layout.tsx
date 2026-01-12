@@ -3,6 +3,7 @@ import {Lora} from "next/font/google";
 import "./globals.css";
 import {Header} from "./components/Header";
 import {Footer} from "./components/Footer";
+import {createClient} from "@/lib/supabase/server";
 
 const lora = Lora({
 	variable: "--font-lora",
@@ -11,23 +12,61 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-	title: "GemsLabé - Gemological Services & Consulting",
+	metadataBase: new URL('https://gemsla.be'),
+	title: {
+		default: "GemsLabé - Gemological Services & Consulting",
+		template: "%s | GemsLabé",
+	},
 	description: "Professional gemological services by Olena Rybnikova, PhD in Mineralogy. GIA Applied Jewelry Professional offering gemstone consulting, examination, and advanced analysis using Raman spectroscopy, X-ray diffraction, and more.",
 	keywords: ["gemology", "mineralogy", "gemstone consulting", "gemological examination", "Raman spectroscopy", "GIA certified", "beryllium minerals", "gemstone analysis"],
 	authors: [{name: "Olena Rybnikova"}],
 	openGraph: {
-		title: "MSc Olena Rybnikova, PhD - Gemological Services",
+		title: "GemsLabé - Gemological Services & Consulting",
 		description: "Professional gemological consulting and examination services with advanced analysis methods",
+		url: 'https://gemsla.be',
+		siteName: 'GemsLabé',
+		images: [
+			{
+				url: '/og-image.png',
+				width: 1200,
+				height: 630,
+				alt: 'GemsLabé - Professional Gemological Services',
+			},
+		],
 		type: "website",
 		locale: "en_US",
 	},
+	twitter: {
+		card: 'summary_large_image',
+		title: 'GemsLabé - Gemological Services & Consulting',
+		description: 'Professional gemological consulting and examination services with advanced analysis methods',
+		images: ['/og-image.png'],
+	},
+	icons: {
+		icon: '/icon.png',
+		apple: '/apple-icon.png',
+	},
+	robots: {
+		index: true,
+		follow: true,
+		googleBot: {
+			index: true,
+			follow: true,
+			'max-video-preview': -1,
+			'max-image-preview': 'large',
+			'max-snippet': -1,
+		},
+	},
 };
 
-export default function RootLayout({
+export default async function RootLayout({
                                      children,
                                    }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const supabase = await createClient();
+	const { data: { user } } = await supabase.auth.getUser();
+
 	const structuredData = {
 		"@context": "https://schema.org",
 		"@type": "ProfessionalService",
@@ -56,7 +95,7 @@ export default function RootLayout({
 				<script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(structuredData)}} />
 			</head>
 			<body className={`${lora.variable} ${lora.className} antialiased`}>
-				<Header />
+				<Header user={user} />
 				{children}
 				<Footer />
 			</body>
