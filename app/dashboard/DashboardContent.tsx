@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "../components/Button";
-import { signOut } from "../actions/auth";
 import type { User } from "@supabase/supabase-js";
 
 interface DashboardContentProps {
@@ -24,16 +23,9 @@ export function DashboardContent({ user }: DashboardContentProps) {
 						<div>
 							<h1 className="mb-2">Dashboard</h1>
 							<p className="text-text-gray">
-								Welcome back, {user.email}
+								Welcome back, {user.email}.
 							</p>
 						</div>
-						<form action={signOut}>
-							<Button type="submit"
-							        variant="outline"
-							        size="md">
-								Sign Out
-							</Button>
-						</form>
 					</div>
 
 					<div className="border border-border rounded-lg p-6 bg-background">

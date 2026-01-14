@@ -5,9 +5,44 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "../components/Button";
 
+type ErrorType = "auth_error" | "expired_link" | "invalid_token" | "default";
+
+interface ErrorConfig {
+	title: string;
+	defaultMessage: string;
+	showRequestNewLink: boolean;
+}
+
+const errorConfigs: Record<ErrorType, ErrorConfig> = {
+	auth_error: {
+		title: "Authentication Error",
+		defaultMessage: "There was a problem with your authentication. Please try signing in again.",
+		showRequestNewLink: true,
+	},
+	expired_link: {
+		title: "Link Expired",
+		defaultMessage: "This password reset link has expired. Please request a new one to continue.",
+		showRequestNewLink: true,
+	},
+	invalid_token: {
+		title: "Invalid Link",
+		defaultMessage: "This link is invalid or has already been used. Please request a new one.",
+		showRequestNewLink: true,
+	},
+	default: {
+		title: "Oops!",
+		defaultMessage: "Something went wrong",
+		showRequestNewLink: false,
+	},
+};
+
 function ErrorContent() {
 	const searchParams = useSearchParams();
-	const message = searchParams.get("message") || "Something went wrong";
+	const type = (searchParams.get("type") as ErrorType) || "default";
+	const message = searchParams.get("message");
+
+	const config = errorConfigs[type] || errorConfigs.default;
+	const displayMessage = message || config.defaultMessage;
 
 	return (
 		<div className="min-h-screen relative pt-16">
@@ -21,24 +56,34 @@ function ErrorContent() {
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-md mx-auto text-center">
 					<h1 className="mb-4">
-						Oops!
+						{config.title}
 					</h1>
 					<p className="text-text-gray mb-8">
-						{message}
+						{displayMessage}
 					</p>
 					<div className="flex flex-col sm:flex-row justify-center gap-4">
+						{config.showRequestNewLink && (
+							<Link href="/sign-in/forgot-password">
+								<Button variant="primary"
+								        size="md">
+									Request New Link
+								</Button>
+							</Link>
+						)}
 						<Link href="/">
-							<Button variant="primary"
+							<Button variant={config.showRequestNewLink ? "outline" : "primary"}
 							        size="md">
 								Go Home
 							</Button>
 						</Link>
-						<Link href="/sign-in">
-							<Button variant="outline"
-							        size="md">
-								Try Sign In
-							</Button>
-						</Link>
+						{!config.showRequestNewLink && (
+							<Link href="/sign-in">
+								<Button variant="outline"
+								        size="md">
+									Try Sign In
+								</Button>
+							</Link>
+						)}
 					</div>
 				</div>
 			</section>
