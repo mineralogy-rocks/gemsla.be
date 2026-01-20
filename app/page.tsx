@@ -46,27 +46,19 @@ export default function Home() {
 							<p className="text-sm sm:text-base text-text-gray italic">
 								/ˈdʒemzləˈbeɪ/
 							</p>
-							<div className="absolute -bottom-3 right-0 sm:-right-8 h-px w-48 sm:w-full"
+							<div className="absolute -bottom-3 right-0 sm:-right-8 h-px w-48 sm:w-full after:content-[''] after:absolute after:-right-0.5 after:top-1/2 after:-translate-y-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-foreground after:invisible sm:after:visible"
 							     style={{ background: 'linear-gradient(to right, transparent, var(--secondary))' }} />
 						</motion.div>
 						<div className="mb-6" />
-						<motion.p className="text-xl sm:text-2xl md:text-3xl mb-2"
+						<motion.p className="text-xl sm:text-2xl md:text-3xl mb-5"
 						          variants={fadeInUp}>
 							Gemological Expertise and Consultancy
 						</motion.p>
-						<motion.p className="text-lg sm:text-2xl mb-8"
+						<motion.p className="text-lg sm:text-2xl mb-10 text-text-gray"
 						          variants={fadeInUp}>
-							provided by Olena Rybnikova
+							Olena Rybnikova<br/>
+							PhD, GIA-certified
 						</motion.p>
-						<motion.div className="space-y-1 mb-10 text-text-gray"
-						            variants={fadeInUp}>
-							<p className="text-base sm:text-lg">
-								PhD in Mineralogy
-							</p>
-							<p className="text-base sm:text-lg">
-								Applied Jewelry Professional (GIA)
-							</p>
-						</motion.div>
 						<motion.div variants={fadeInUp}>
 							<Button3D as="a"
 							          href="/contact"
