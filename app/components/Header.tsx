@@ -1,6 +1,6 @@
 "use client";
 
-import {useState, useEffect} from "react";
+import {useState, useEffect, useActionState} from "react";
 import Link from "next/link";
 import {signOut} from "@/app/actions/auth";
 import type {User} from "@supabase/supabase-js";
@@ -11,6 +11,17 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
 	const [isScrolled, setIsScrolled] = useState(false);
+	const [signOutState, signOutAction, signOutPending] = useActionState(
+		async () => {
+			const result = await signOut();
+			if (result?.error) {
+				console.error('Sign out error:', result.error);
+				return { error: result.error };
+			}
+			return { error: null };
+		},
+		{ error: null as string | null }
+	);
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -50,12 +61,18 @@ export function Header({ user }: HeaderProps) {
 								      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
 									Dashboard
 								</Link>
-								<form action={signOut}
+								<form action={signOutAction}
 								      className="inline">
 									<button type="submit"
-									        className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300 bg-transparent border-none cursor-pointer">
-										Sign Out
+									        disabled={signOutPending}
+									        className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300 bg-transparent border-none cursor-pointer disabled:opacity-50">
+										{signOutPending ? 'Signing out...' : 'Sign Out'}
 									</button>
+									{signOutState.error && (
+										<p className="text-xs text-red-500 mt-1">
+											{signOutState.error}
+										</p>
+									)}
 								</form>
 							</>
 						) : (<></>)}

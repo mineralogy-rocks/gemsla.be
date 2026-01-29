@@ -10,9 +10,12 @@ const initialState = { error: null as string | null, success: false };
 
 export default function ForgotPasswordPage() {
 	const [state, formAction, pending] = useActionState(
-		async (_prevState: typeof initialState, formData: FormData) => {
+		async (_prevState: typeof initialState, formData: FormData): Promise<typeof initialState> => {
 			const result = await resetPassword(formData);
-			return result || { error: null, success: false };
+			if ('error' in result && result.error) {
+				return { error: result.error, success: false };
+			}
+			return { error: null, success: true };
 		},
 		initialState
 	);
