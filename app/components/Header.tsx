@@ -58,12 +58,7 @@ export function Header({ user }: HeaderProps) {
 									</button>
 								</form>
 							</>
-						) : (
-							<Link href="/sign-in"
-							      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
-								Sign In
-							</Link>
-						)}
+						) : (<></>)}
 					</div>
 				</div>
 			</nav>
