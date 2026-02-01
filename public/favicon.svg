@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+	<!-- Black circular background -->
+	<circle cx="256" cy="256" r="256" fill="#000000"></circle>
+
+	<!-- Side-view diamond - classic brilliant cut profile -->
+	<!-- Table (top flat) -> Crown (angled out) -> Girdle (widest) -> Pavilion (to point) -->
+	<path d="M180 140 L332 140 L390 190 L122 190 Z" fill="#ffffff"></path>
+	<path d="M122 190 L390 190 L256 380 Z" fill="#ffffff"></path>
+</svg></svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: none; } }
+</style></svg>
