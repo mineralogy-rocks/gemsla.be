@@ -78,7 +78,8 @@ export default function Home() {
 						          initial="hidden"
 						          whileInView="visible"
 						          viewport={{once: true, margin: "-50px"}}>
-							Hi there and welcome to my Labé! I&apos;m Olena, a <strong>gemologist</strong> with a deep love for the science and beauty of gemstones. Based in Bratislava, Slovakia, I combine academic training in mineralogy with hands-on expertise to help you make confident decisions about precious stones.
+							Hi there and welcome to my Labé! I&apos;m Olena, a <strong>gemologist</strong> with a deep love for the science and beauty of gemstones. Based in Bratislava, Slovakia, I combine academic training in mineralogy with hands-on expertise to help you make confident decisions about precious stones. <Link href="/about"
+							      className="text-foreground hover:text-callout-accent underline underline-offset-2 transition-colors">Learn more about me</Link>.
 						</motion.p>
 
 						<motion.p className="text-lg text-foreground leading-relaxed mb-10"

@@ -1,5 +1,3 @@
-# olena-gem
-
 Gemological services website for Olena Rybnikova. Single-page marketing site with contact form.
 
 ## Stack
@@ -33,7 +31,7 @@ lib/
 ## Development
 
 ```bash
-cd ../main && docker-compose up -d olena-gem
+cd ../main && docker-compose up -d gems-labe
 ```
 
 ## Environment Variables
@@ -93,4 +91,4 @@ Accepts `{ name, email, message }`. Stores in Supabase `contact_submissions` tab
 
 ## Debugging
 
-- we are running Next.js in docker container using docker-compose from `main` folder, so you can use `cd ../main && docker exec -it olena-gem bash` to get into container
+- we are running Next.js in docker container using docker-compose from `main` folder, so you can use `cd ../main && docker-compose exec -it gems-labe bash` to get into container
