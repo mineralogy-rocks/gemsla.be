@@ -143,29 +143,16 @@ function Gem({position, scale, rotationSpeed, initialRotation}: GemProps) {
 	);
 }
 
-const gemConfigs: Omit<GemProps, "position">[] = [
-	{scale: 0.7, rotationSpeed: 0.006, initialRotation: [-Math.PI / 2, 0, 0]},
-	{scale: 0.95, rotationSpeed: 0.008, initialRotation: [0.3, 0, 0]},
-	{scale: 0.7, rotationSpeed: 0.006, initialRotation: [Math.PI / 2, 0, 0]},
-];
-
-const positions: [number, number, number][] = [
-	[-2.5, 0, 0],
-	[0, 0, 0],
-	[2.5, 0, 0],
-];
-
 export function DiamondWireframe() {
 	return (
-		<div className="w-full h-32 sm:h-40 md:h-48 flex items-center justify-center">
+		<div className="flex items-center justify-center">
 			<Canvas camera={{position: [0, 0, 6], fov: 50}}
 			        style={{background: "transparent"}}>
 				<ambientLight intensity={0.5} />
-				{gemConfigs.map((config, index) => (
-					<Gem key={index}
-					     position={positions[index]}
-					     {...config} />
-				))}
+				<Gem position={[0, 1, 1]}
+				     scale={0.95}
+				     rotationSpeed={0.008}
+				     initialRotation={[0.3, 0, 0]} />
 			</Canvas>
 		</div>
 	);

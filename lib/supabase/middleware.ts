@@ -38,15 +38,15 @@ export async function updateSession(request: NextRequest) {
 		request.nextUrl.pathname.startsWith('/dashboard')
 	) {
 		const url = request.nextUrl.clone()
-		url.pathname = '/sign-in'
+		url.pathname = '/auth/sign-in'
 		return NextResponse.redirect(url)
 	}
 
 	// Redirect authenticated users away from sign-in page
 	if (
 		user &&
-		request.nextUrl.pathname.startsWith('/sign-in') &&
-		!request.nextUrl.pathname.startsWith('/sign-in/update-password')
+		request.nextUrl.pathname.startsWith('/auth/sign-in') &&
+		!request.nextUrl.pathname.startsWith('/auth/sign-in/update-password')
 	) {
 		const url = request.nextUrl.clone()
 		url.pathname = '/dashboard'

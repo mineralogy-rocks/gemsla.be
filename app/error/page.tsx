@@ -63,7 +63,7 @@ function ErrorContent() {
 					</p>
 					<div className="flex flex-col sm:flex-row justify-center gap-4">
 						{config.showRequestNewLink && (
-							<Link href="/sign-in/forgot-password">
+							<Link href="/auth/sign-in/forgot-password">
 								<Button variant="primary"
 								        size="md">
 									Request New Link
@@ -77,7 +77,7 @@ function ErrorContent() {
 							</Button>
 						</Link>
 						{!config.showRequestNewLink && (
-							<Link href="/sign-in">
+							<Link href="/auth/sign-in">
 								<Button variant="outline"
 								        size="md">
 									Try Sign In

@@ -6,9 +6,9 @@ import {Button3D} from "../components/Button3D";
 
 const education = [
 	{
-		institution: "Univerzita Komenského v Bratislave",
+		institution: "Comenius University in Bratislava",
 		degree: "Doctor of Philosophy (PhD)",
-		field: "Mineralogy and Petrology",
+		field: "Mineralogy and Gemmology",
 		period: "Sep 2019 – Aug 2023",
 	},
 	{

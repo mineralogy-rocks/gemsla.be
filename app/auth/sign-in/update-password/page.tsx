@@ -1,17 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
-import { Input } from "../components/Input";
-import { Button } from "../components/Button";
-import { signIn } from "../actions/auth";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
+import { updatePassword } from "../../../actions/auth";
 
 const initialState = { error: null as string | null };
 
-export default function SignInPage() {
+export default function UpdatePasswordPage() {
 	const [state, formAction, pending] = useActionState(
 		async (_prevState: typeof initialState, formData: FormData) => {
-			const result = await signIn(formData);
+			const result = await updatePassword(formData);
 			return result || { error: null };
 		},
 		initialState
@@ -29,33 +28,33 @@ export default function SignInPage() {
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-md mx-auto">
 					<h1 className="text-center mb-4">
-						Sign In
+						Update Password
 					</h1>
 					<p className="text-center text-text-gray mb-8">
-						Enter your credentials to access the dashboard.
+						Enter your new password below.
 					</p>
 
 					<form action={formAction}>
 						<div className="flex flex-col gap-5">
 							<div>
-								<Input label="Email"
-								       id="email-input"
-								       name="email"
-								       size="md"
-								       type="email"
-								       placeholder="your.email@example.com"
-								       autoComplete="email"
-								       required />
-							</div>
-
-							<div>
-								<Input label="Password"
+								<Input label="New Password"
 								       id="password-input"
 								       name="password"
 								       size="md"
 								       type="password"
-								       placeholder="Enter your password"
-								       autoComplete="current-password"
+								       placeholder="Enter new password"
+								       autoComplete="new-password"
+								       required />
+							</div>
+
+							<div>
+								<Input label="Confirm Password"
+								       id="confirm-password-input"
+								       name="confirmPassword"
+								       size="md"
+								       type="password"
+								       placeholder="Confirm new password"
+								       autoComplete="new-password"
 								       required />
 							</div>
 
@@ -74,15 +73,8 @@ export default function SignInPage() {
 								        disabled={pending}
 								        loading={pending}
 								        className="w-full">
-									{pending ? "Signing in..." : "Sign In"}
+									{pending ? "Updating..." : "Update Password"}
 								</Button>
-							</div>
-
-							<div className="text-center">
-								<Link href="/sign-in/forgot-password"
-								      className="text-sm text-text-gray hover:text-callout-accent transition-colors duration-300">
-									Forgot your password?
-								</Link>
 							</div>
 						</div>
 					</form>

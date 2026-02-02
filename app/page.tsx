@@ -41,8 +41,11 @@ export default function Home() {
 						           style={{ textTransform: 'none' }}>
 							GemsLab<i>é</i>
 						</motion.h1>
-						<motion.div className="relative inline-block w-full"
+						<motion.div className="relative flex w-full items-center justify-center mb-10"
 						            variants={fadeInUp}>
+							<div className="">
+								<DiamondWireframe/>
+							</div>
 							<p className="text-sm sm:text-base text-text-gray italic">
 								/ˈdʒemzləˈbeɪ/
 							</p>

@@ -2,8 +2,6 @@
 
 import {useState, useEffect, Suspense} from "react";
 import {useSearchParams} from "next/navigation";
-import {motion} from "framer-motion";
-import {fadeInUp, staggerContainer, staggerItem} from "../lib/animations";
 import {Input} from "../components/Input";
 import {TextArea} from "../components/TextArea";
 import {Select} from "../components/Select";
@@ -79,10 +77,7 @@ function ContactForm() {
 				     backgroundRepeat: "repeat",
 			     }} />
 
-			<motion.section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10"
-			                initial="hidden"
-			                animate="visible"
-			                variants={fadeInUp}>
+			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-2xl mx-auto">
 					<h1 className="text-center mb-4">
 						I&apos;d Love to Hear From You
@@ -134,12 +129,9 @@ function ContactForm() {
 					</div>
 
 					{status === "success" ? (
-						<motion.div className="text-center py-12"
-						            initial="hidden"
-						            animate="visible"
-						            variants={fadeInUp}
-						            role="alert"
-						            aria-live="polite">
+						<div className="text-center py-12"
+						     role="alert"
+						     aria-live="polite">
 							<p className="text-xl text-foreground mb-4">
 								Thank you for your message!
 							</p>
@@ -153,14 +145,11 @@ function ContactForm() {
 									Send Another Message
 								</Button>
 							</div>
-						</motion.div>
+						</div>
 					) : (
-						<motion.form onSubmit={handleSubmit}
-						             variants={staggerContainer}
-						             initial="hidden"
-						             animate="visible">
+						<form onSubmit={handleSubmit}>
 							<div className="flex flex-col gap-5">
-								<motion.div variants={staggerItem}>
+								<div>
 									<Input label="Name"
 									       id="name-input"
 									       size="md"
@@ -170,9 +159,9 @@ function ContactForm() {
 										       setFormData({...formData, name: e.target.value})
 									       }
 									       required />
-								</motion.div>
+								</div>
 
-								<motion.div variants={staggerItem}>
+								<div>
 									<Input label="Email"
 									       id="email-input"
 									       size="md"
@@ -184,9 +173,9 @@ function ContactForm() {
 									       }
 									       aria-describedby={status === "error" ? "error-message" : undefined}
 									       required />
-								</motion.div>
+								</div>
 
-								<motion.div variants={staggerItem}>
+								<div>
 									<Select label="Interested In"
 									        id="service-select"
 									        size="md"
@@ -196,9 +185,9 @@ function ContactForm() {
 									        onChange={(e) =>
 										        setFormData({...formData, chosen_service: e.target.value})
 									        } />
-								</motion.div>
+								</div>
 
-								<motion.div variants={staggerItem}>
+								<div>
 									<TextArea label="Message"
 									          id="message-input"
 									          size="md"
@@ -209,32 +198,31 @@ function ContactForm() {
 									          }
 									          rows={6}
 									          required />
-								</motion.div>
+								</div>
 
 								{status === "error" && (
-									<motion.div variants={staggerItem}
-									            role="alert"
-									            aria-live="polite">
+									<div role="alert"
+									     aria-live="polite">
 										<p id="error-message"
 										   className="text-sm text-red-500">
 											{errorMessage}
 										</p>
-									</motion.div>
+									</div>
 								)}
 
-								<motion.div variants={staggerItem}>
+								<div>
 									<Button type="submit"
 									        size="md"
 									        disabled={status === "loading"}
 									        loading={status === "loading"}>
 										{status === "loading" ? "Sending..." : "Send Message"}
 									</Button>
-								</motion.div>
+								</div>
 							</div>
-						</motion.form>
+						</form>
 					)}
 				</div>
-			</motion.section>
+			</section>
 		</div>
 	);
 }

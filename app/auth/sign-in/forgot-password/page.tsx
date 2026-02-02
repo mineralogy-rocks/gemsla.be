@@ -2,9 +2,9 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { Input } from "../../components/Input";
-import { Button } from "../../components/Button";
-import { resetPassword } from "../../actions/auth";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
+import { resetPassword } from "../../../actions/auth";
 
 const initialState = { error: null as string | null, success: false };
 
@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
 							<p className="text-text-gray mb-8">
 								Check your email for a password reset link. If you don&apos;t see it, check your spam folder.
 							</p>
-							<Link href="/sign-in"
+							<Link href="/auth/sign-in"
 							      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
 								Back to Sign In
 							</Link>
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
 									</div>
 
 									<div className="text-center">
-										<Link href="/sign-in"
+										<Link href="/auth/sign-in"
 										      className="text-sm text-text-gray hover:text-callout-accent transition-colors duration-300">
 											Back to Sign In
 										</Link>

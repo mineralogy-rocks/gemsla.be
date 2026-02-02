@@ -7,7 +7,7 @@ Gemological services website for Olena Rybnikova. Single-page marketing site wit
 - **Tailwind CSS 4** (custom theme in `globals.css`)
 - **Framer Motion** (animations)
 - **Three.js / React Three Fiber** (3D diamond wireframe)
-- **Supabase** (contact form storage)
+- **Supabase** (RESTful API, database, auth, storage)
 - **Resend** (transactional email)
 
 ## Project Structure
@@ -15,18 +15,41 @@ Gemological services website for Olena Rybnikova. Single-page marketing site wit
 ```
 app/
 ├── api/contact/route.ts    # POST endpoint for contact form
+├── about/                  # About page
+├── actions/                # Server actions
+├── auth/                   # Auth callback handling
 ├── components/             # UI components
 ├── contact/page.tsx        # Contact form page
-├── pricing/page.tsx        # Pricing tiers page
+├── dashboard/              # Dashboard (protected)
+├── error/                  # Error page
 ├── lib/animations.ts       # Framer Motion variants
+├── pricing/page.tsx        # Pricing tiers page
+├── sign-in/                # Sign-in page
 ├── layout.tsx              # Root layout with metadata
 ├── page.tsx                # Homepage
+├── sitemap.ts              # Dynamic sitemap
+├── manifest.ts             # PWA manifest
 └── globals.css             # Theme variables + base styles
 lib/
 └── supabase/
     ├── client.ts           # Browser client
+    ├── middleware.ts       # Auth middleware helpers
     └── server.ts           # Server client (cookies)
+supabase/
+├── config.toml             # Supabase local config
+├── migrations/             # Database migrations
+├── seed.sql                # Database seed data
+└── snippets/               # SQL snippets
+middleware.ts               # Next.js middleware (auth)
 ```
+
+## Supabase
+
+The `supabase/` folder contains Supabase CLI configuration for local development and migrations.
+
+- **config.toml** - Local Supabase configuration
+- **migrations/** - Database schema migrations
+- **seed.sql** - Seed data for development
 
 ## Development
 

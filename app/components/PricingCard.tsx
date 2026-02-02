@@ -2,8 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import {motion} from "framer-motion";
-import {staggerItem} from "../lib/animations";
 
 interface PricingCardProps {
 	title: string;
@@ -26,13 +24,11 @@ export function PricingCard({
 }: PricingCardProps) {
 	const contactHref = serviceParam ? `/contact?service=${serviceParam}` : "/contact";
 	return (
-		<motion.div className={`relative bg-callout-bg rounded-lg p-5 sm:p-6 h-full flex flex-col transition-shadow duration-300 ${
+		<div className={`relative bg-callout-bg rounded-lg p-5 sm:p-6 h-full flex flex-col transition-shadow duration-300 ${
 			isHighlighted
 				? "border-2 border-foreground shadow-lg shadow-foreground/10 md:scale-105 md:z-10"
 				: "border-2 border-foreground hover:shadow-md"
-		}`}
-		            variants={staggerItem}
-		            whileHover={!isHighlighted ? {y: -4, transition: {duration: 0.25, ease: [0.22, 1, 0.36, 1]}} : undefined}>
+		}`}>
 			{isHighlighted && (
 				<div className="absolute -top-3 left-1/2 -translate-x-1/2">
 					<span className="bg-foreground text-background text-xs font-medium px-4 py-1.5 rounded-full shadow-sm">
@@ -89,7 +85,7 @@ export function PricingCard({
 			      }`}>
 				Get Started
 			</Link>
-		</motion.div>
+		</div>
 	);
 }
 
