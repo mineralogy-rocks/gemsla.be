@@ -66,6 +66,7 @@ export default async function RootLayout({
 }>) {
 	const supabase = await createClient();
 	const { data: { user } } = await supabase.auth.getUser();
+	const isAdmin = user?.app_metadata?.role === "admin";
 
 	const structuredData = {
 		"@context": "https://schema.org",
@@ -95,7 +96,7 @@ export default async function RootLayout({
 				<script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(structuredData)}} />
 			</head>
 			<body className={`${lora.variable} ${lora.className} antialiased`}>
-				<Header user={user} />
+				<Header user={user} isAdmin={isAdmin} />
 				{children}
 				<Footer />
 			</body>

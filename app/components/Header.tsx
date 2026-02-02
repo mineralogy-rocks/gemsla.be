@@ -7,9 +7,10 @@ import type {User} from "@supabase/supabase-js";
 
 interface HeaderProps {
 	user: User | null;
+	isAdmin?: boolean;
 }
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, isAdmin = false }: HeaderProps) {
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [signOutState, signOutAction, signOutPending] = useActionState(
 		async () => {
@@ -61,6 +62,12 @@ export function Header({ user }: HeaderProps) {
 						</Link>
 						{user ? (
 							<>
+								{isAdmin && (
+									<Link href="/reports"
+									      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
+										Reports
+									</Link>
+								)}
 								<Link href="/dashboard"
 								      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
 									Dashboard
