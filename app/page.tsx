@@ -36,16 +36,17 @@ export default function Home() {
 					            initial="hidden"
 					            animate="visible"
 					            variants={staggerContainer}>
-						<motion.h1 className="mb-2"
-						           variants={fadeInUp}
-						           style={{ textTransform: 'none' }}>
-							GemsLab<i>é</i>
-						</motion.h1>
-						<motion.div className="relative flex w-full items-center justify-center mb-10"
+						<motion.div className="flex items-center justify-end gap-2 sm:gap-1 mb-2"
 						            variants={fadeInUp}>
-							<div className="">
-								<DiamondWireframe/>
+							<div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 mt-4 sm:mt-6">
+								<DiamondWireframe />
 							</div>
+							<h1 style={{ textTransform: 'none', marginBottom: 0 }}>
+								GemsLab<i>é</i>
+							</h1>
+						</motion.div>
+						<motion.div className="relative flex w-full items-center justify-end mb-10"
+						            variants={fadeInUp}>
 							<p className="text-sm sm:text-base text-text-gray italic">
 								/ˈdʒemzləˈbeɪ/
 							</p>
@@ -93,9 +94,7 @@ export default function Home() {
 							I hold a <strong>PhD in Mineralogy</strong> and certifications from the <strong>Gemological Institute of America (GIA)</strong> in colored stones, diamond grading, and jewelry essentials. My research on beryl and chrysoberyl has been published in peer-reviewed journals&mdash;but my real passion is translating that science into practical guidance for collectors, jewelers, and anyone curious about gems.
 						</motion.p>
 
-						<div className="my-16 sm:my-24">
-							<DiamondWireframe />
-						</div>
+						<hr className="my-16 sm:my-24 border-t border-secondary" />
 
 						<motion.p className="text-lg text-foreground leading-relaxed mb-8"
 						          variants={paragraphReveal}

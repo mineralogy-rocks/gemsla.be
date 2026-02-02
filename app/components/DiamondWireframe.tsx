@@ -145,13 +145,13 @@ function Gem({position, scale, rotationSpeed, initialRotation}: GemProps) {
 
 export function DiamondWireframe() {
 	return (
-		<div className="flex items-center justify-center">
-			<Canvas camera={{position: [0, 0, 6], fov: 50}}
+		<div className="w-full h-full">
+			<Canvas camera={{position: [0, 0, 5], fov: 50}}
 			        style={{background: "transparent"}}>
 				<ambientLight intensity={0.5} />
-				<Gem position={[0, 1, 1]}
+				<Gem position={[0, 0.6, 0.5]}
 				     scale={0.95}
-				     rotationSpeed={0.008}
+				     rotationSpeed={0.01}
 				     initialRotation={[0.3, 0, 0]} />
 			</Canvas>
 		</div>
