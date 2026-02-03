@@ -51,10 +51,11 @@ The `supabase/` folder contains Supabase CLI configuration for local development
 - **migrations/** - Database schema migrations
 - **seed.sql** - Seed data for development
 
-## Development
+## Local Development
 
+Execute all commands using the docker container:
 ```bash
-cd ../main && docker-compose up -d gems-labe
+docker-compose -f ./main/docker-compose.yaml exec -it gems-labe bash
 ```
 
 ## Environment Variables

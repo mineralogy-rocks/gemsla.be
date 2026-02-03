@@ -164,7 +164,7 @@ export function ReportsListClient() {
 							</p>
 						</div>
 						<Link href="/reports/add">
-							<Button variant="primary" size="md">
+							<Button variant="primary" size="sm">
 								<svg className="h-5 w-5 mr-1"
 								     fill="none"
 								     viewBox="0 0 24 24"

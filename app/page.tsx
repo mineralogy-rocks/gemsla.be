@@ -38,7 +38,7 @@ export default function Home() {
 					            variants={staggerContainer}>
 						<motion.div className="flex items-center justify-end gap-2 sm:gap-1 mb-2"
 						            variants={fadeInUp}>
-							<div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 mt-4 sm:mt-6">
+							<div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 mt-4 sm:mt-7">
 								<DiamondWireframe />
 							</div>
 							<h1 style={{ textTransform: 'none', marginBottom: 0 }}>
