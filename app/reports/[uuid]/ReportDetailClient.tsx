@@ -24,10 +24,14 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 	const [report, setReport] = useState(initialReport);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
-	const [isTogglingPublic, setIsTogglingPublic] = useState(false);
 
 	const handleTogglePublic = async () => {
-		setIsTogglingPublic(true);
+		// Store previous state for rollback
+		const previousReport = report;
+
+		// Optimistic update - update UI immediately
+		setReport({ ...report, public: !report.public });
+
 		try {
 			const response = await fetch(`/api/reports/${report.id}/toggle-public`, {
 				method: "PATCH",
@@ -37,12 +41,13 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 				throw new Error("Failed to toggle public status");
 			}
 
+			// Update with server response (in case of any server-side changes)
 			const updatedReport = await response.json();
 			setReport(updatedReport);
 		} catch (error) {
+			// Rollback on error
+			setReport(previousReport);
 			console.error("Error toggling public status:", error);
-		} finally {
-			setIsTogglingPublic(false);
 		}
 	};
 
@@ -124,9 +129,7 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 								<div className="flex flex-wrap gap-2">
 									<Button variant="outline"
 									        size="sm"
-									        onClick={handleTogglePublic}
-									        loading={isTogglingPublic}
-									        disabled={isTogglingPublic}>
+									        onClick={handleTogglePublic}>
 										{report.public ? "Make Private" : "Make Public"}
 									</Button>
 									<Link href={`/reports/${report.id}/edit`}>

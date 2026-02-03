@@ -104,7 +104,7 @@ export function ReportsListClient() {
 
 	const debouncedSearch = useDebounce(search, 300);
 
-	const fetchReports = useCallback(async () => {
+	const fetchReports = useCallback(async (signal: AbortSignal) => {
 		setLoading(true);
 		setError(null);
 
@@ -118,7 +118,11 @@ export function ReportsListClient() {
 				params.set("search", debouncedSearch);
 			}
 
-			const response = await fetch(`/api/reports?${params}`);
+			const response = await fetch(`/api/reports?${params}`, { signal });
+
+			// Don't update state if request was aborted
+			if (signal.aborted) return;
+
 			const data: PaginatedReportsResponse = await response.json();
 
 			if (!response.ok) {
@@ -129,14 +133,23 @@ export function ReportsListClient() {
 			setTotalPages(data.totalPages);
 			setTotal(data.total);
 		} catch (err) {
+			// Ignore abort errors
+			if (err instanceof Error && err.name === "AbortError") return;
 			setError(err instanceof Error ? err.message : "Failed to fetch reports");
 		} finally {
-			setLoading(false);
+			if (!signal.aborted) {
+				setLoading(false);
+			}
 		}
 	}, [page, filter, debouncedSearch]);
 
 	useEffect(() => {
-		fetchReports();
+		const controller = new AbortController();
+		fetchReports(controller.signal);
+
+		return () => {
+			controller.abort();
+		};
 	}, [fetchReports]);
 
 	// Reset page when search or filter changes
@@ -235,7 +248,7 @@ export function ReportsListClient() {
 					) : error ? (
 						<div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
 							<p className="text-red-600">{error}</p>
-							<button onClick={fetchReports}
+							<button onClick={() => fetchReports(new AbortController().signal)}
 							        className="mt-4 text-sm font-medium text-red-600 hover:underline">
 								Try again
 							</button>

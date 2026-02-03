@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
@@ -8,20 +9,34 @@ interface PageProps {
 	params: Promise<{ uuid: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps) {
-	const { uuid } = await params;
+// Cached query - runs once per request even if called multiple times
+const getReport = cache(async (uuid: string) => {
 	const supabase = await createClient();
-
-	const { data: report } = await supabase
+	const { data: report, error } = await supabase
 		.from("reports")
-		.select("title, first_name, last_name")
+		.select("*, report_images(*)")
 		.eq("id", uuid)
 		.single();
 
+	if (error || !report) return null;
+
+	// Sort images by display_order
+	if (report.report_images) {
+		report.report_images.sort(
+			(a: { display_order: number }, b: { display_order: number }) =>
+				a.display_order - b.display_order
+		);
+	}
+
+	return report as Report;
+});
+
+export async function generateMetadata({ params }: PageProps) {
+	const { uuid } = await params;
+	const report = await getReport(uuid);
+
 	if (!report) {
-		return {
-			title: "Report Not Found | GemsLaBe",
-		};
+		return { title: "Report Not Found | GemsLaBe" };
 	}
 
 	return {
@@ -32,36 +47,12 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function ReportDetailPage({ params }: PageProps) {
 	const { uuid } = await params;
+	if (!uuid) notFound();
 
-	if (!uuid) {
-		notFound();
-	}
+	const [report, admin] = await Promise.all([getReport(uuid), isAdmin()]);
 
-	const supabase = await createClient();
-	const admin = await isAdmin();
+	if (!report) notFound();
+	if (!report.public && !admin) notFound();
 
-	// Fetch report with images
-	const { data: report, error } = await supabase
-		.from("reports")
-		.select("*, report_images(*)")
-		.eq("id", uuid)
-		.single();
-
-	if (error || !report) {
-		notFound();
-	}
-
-	// Check access: admin can view all, public can only view public reports
-	if (!report.public && !admin) {
-		notFound();
-	}
-
-	// Sort images by display_order
-	if (report.report_images) {
-		report.report_images.sort((a: { display_order: number }, b: { display_order: number }) =>
-			a.display_order - b.display_order
-		);
-	}
-
-	return <ReportDetailClient report={report as Report} isAdmin={admin} />;
+	return <ReportDetailClient report={report} isAdmin={admin} />;
 }
