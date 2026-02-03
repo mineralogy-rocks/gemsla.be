@@ -51,3 +51,23 @@ export interface PaginatedReportsResponse {
 	limit: number;
 	totalPages: number;
 }
+
+// Slimmed-down type for list view (only fields ReportCard needs)
+export interface ReportListItem {
+	id: string;
+	title: string;
+	first_name: string;
+	last_name: string;
+	public: boolean;
+	description: string | null;
+	created_at: string;
+	imageCount: number; // Computed - avoids serializing full images array
+}
+
+export interface PaginatedReportListResponse {
+	data: ReportListItem[];
+	total: number;
+	page: number;
+	limit: number;
+	totalPages: number;
+}
