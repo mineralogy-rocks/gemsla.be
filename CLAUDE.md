@@ -53,6 +53,7 @@ The `supabase/` folder contains Supabase CLI configuration for local development
 
 ## Local Development and debugging
 
+Assume that docker container is already running when you work on any task.
 Execute all commands ONLY through docker container:
 
 ```bash

@@ -12,7 +12,7 @@ interface PageProps {
 	searchParams: Promise<{
 		page?: string;
 		filter?: string;
-		search?: string;
+		q?: string;
 	}>;
 }
 
@@ -28,9 +28,9 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 	const filter = (["all", "public", "private"].includes(params.filter || "")
 		? params.filter
 		: "all") as FilterType;
-	const search = params.search || "";
+	const q = params.q || "";
 
-	const initialData = await fetchReportsList({ page, filter, search, limit: 12 });
+	const initialData = await fetchReportsList({ page, filter, q, limit: 12 });
 
 	return <ReportsListClient initialData={initialData} />;
 }

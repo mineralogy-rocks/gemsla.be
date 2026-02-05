@@ -7,7 +7,7 @@ export type FilterType = "all" | "public" | "private";
 interface FetchReportsListParams {
 	page?: number;
 	limit?: number;
-	search?: string;
+	q?: string;
 	filter?: FilterType;
 }
 
@@ -15,7 +15,7 @@ interface FetchReportsListParams {
 export const fetchReportsList = cache(async ({
 	page = 1,
 	limit = 12,
-	search = "",
+	q = "",
 	filter = "all",
 }: FetchReportsListParams): Promise<PaginatedReportListResponse> => {
 	const supabase = await createClient();
@@ -24,9 +24,9 @@ export const fetchReportsList = cache(async ({
 		.from("reports")
 		.select("id, title, first_name, last_name, public, description, created_at, report_images(id)", { count: "exact" });
 
-	if (search) {
+	if (q) {
 		query = query.or(
-			`title.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,owner_email.ilike.%${search}%`
+			`title.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%,owner_email.ilike.%${q}%`
 		);
 	}
 

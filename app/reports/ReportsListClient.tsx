@@ -47,22 +47,18 @@ function useDebounce<T>(value: T, delay: number): T {
 
 function ReportCard({ report }: { report: ReportListItem }) {
 	return (
-		<motion.div variants={staggerItem}>
+		<motion.div variants={staggerItem}
+		            className="h-full">
 			<Link href={`/reports/${report.id}`}
-			      className="group block h-full rounded-lg border border-border bg-background p-5 transition-all hover:border-callout-accent hover:shadow-md">
+			      className="group flex h-full flex-col rounded-lg border border-border bg-background p-5 transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-gold hover:shadow-[0_4px_16px_rgba(196,167,125,0.15),0_1px_4px_rgba(0,0,0,0.05)]">
 				<div className="flex items-start justify-between gap-3">
-					<div className="min-w-0 flex-1">
-						<h3 className="truncate text-lg font-medium text-foreground group-hover:text-callout-accent-hover transition-colors">
-							{report.title}
-						</h3>
-						<p className="mt-1 text-sm text-text-gray">
-							{report.first_name} {report.last_name}
-						</p>
-					</div>
+					<h3 className="min-w-0 flex-1 text-lg font-medium text-foreground transition-colors group-hover:text-foreground-muted">
+						{report.title}
+					</h3>
 					<span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
 						report.public
-							? "bg-green-100 text-green-800"
-							: "bg-gray-100 text-gray-800"
+							? "border border-gold/60 bg-gold/10 text-foreground-muted"
+							: "border border-border bg-background-creme text-text-gray"
 					}`}>
 						{report.public ? "Public" : "Private"}
 					</span>
@@ -74,22 +70,27 @@ function ReportCard({ report }: { report: ReportListItem }) {
 					</p>
 				)}
 
-				<div className="mt-4 flex items-center gap-4 text-xs text-text-gray">
-					<span className="flex items-center gap-1">
-						<svg className="h-4 w-4"
-						     fill="none"
-						     viewBox="0 0 24 24"
-						     stroke="currentColor">
-							<path strokeLinecap="round"
-							      strokeLinejoin="round"
-							      strokeWidth={1.5}
-							      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-						</svg>
-						{report.imageCount} {report.imageCount === 1 ? "image" : "images"}
+				<div className="mt-auto flex items-center justify-between gap-4 pt-4 text-xs text-text-gray">
+					<span className="truncate">
+						{report.first_name} {report.last_name}
 					</span>
-					<span>
-						{new Date(report.created_at).toLocaleDateString()}
-					</span>
+					<div className="flex shrink-0 items-center gap-4">
+						<span className="flex items-center gap-1">
+							<svg className="h-4 w-4"
+							     fill="none"
+							     viewBox="0 0 24 24"
+							     stroke="currentColor">
+								<path strokeLinecap="round"
+								      strokeLinejoin="round"
+								      strokeWidth={1.5}
+								      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+							</svg>
+							{report.imageCount} {report.imageCount === 1 ? "image" : "images"}
+						</span>
+						<span>
+							{new Date(report.created_at).toLocaleDateString()}
+						</span>
+					</div>
 				</div>
 			</Link>
 		</motion.div>
@@ -103,7 +104,7 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 
 	const currentFilter = (searchParams.get("filter") as FilterType) || "all";
 	const currentPage = parseInt(searchParams.get("page") || "1", 10);
-	const currentSearch = searchParams.get("search") || "";
+	const currentSearch = searchParams.get("q") || "";
 
 	const [search, setSearch] = useState(currentSearch);
 	const debouncedSearch = useDebounce(search, 300);
@@ -122,7 +123,7 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 
 	useEffect(() => {
 		if (debouncedSearch !== currentSearch) {
-			const query = createQueryString({ search: debouncedSearch, page: 1 });
+			const query = createQueryString({ q: debouncedSearch, page: 1 });
 			router.push(`${pathname}${query ? `?${query}` : ""}`);
 		}
 	}, [debouncedSearch, currentSearch, createQueryString, pathname, router]);
