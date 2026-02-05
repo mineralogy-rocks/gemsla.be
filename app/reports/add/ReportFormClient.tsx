@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Input } from "../../components/Input";
 import { TextArea } from "../../components/TextArea";
 import { Button } from "../../components/Button";
+import { PageHeader } from "../../components/PageHeader";
 import { ImageUpload, type UploadedImage } from "../../components/ImageUpload";
 import type { Report } from "../../api/reports/types";
 
@@ -160,19 +161,8 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 					</Link>
 
 					{/* Header */}
-					<motion.div className="mb-8"
-					            variants={fadeInUp}
-					            initial="hidden"
-					            animate="show">
-						<h1 className="mb-2">
-							{mode === "create" ? "New Report" : "Edit Report"}
-						</h1>
-						<p className="text-text-gray">
-							{mode === "create"
-								? "Create a new gem lab report"
-								: "Update the report details"}
-						</p>
-					</motion.div>
+					<PageHeader title={mode === "create" ? "New Report" : "Edit Report"}
+					            subtitle={mode === "create" ? "Create a new gem lab report" : "Update the report details"} />
 
 					{/* Form */}
 					<motion.form onSubmit={handleSubmit}

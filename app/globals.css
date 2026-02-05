@@ -17,6 +17,7 @@
 	--callout-accent-text: #3d3d3d;
 	--callout-bg: rgba(248, 244, 238, 0.85);
 	--quote-mark: #d4cec4;
+	--page-header-accent: #c4a77d;
 }
 
 @theme inline {
@@ -37,6 +38,7 @@
 	--color-callout-bg: var(--callout-bg);
 	--color-quote-mark: var(--quote-mark);
 	--color-gold: #c4a77d;
+	--color-page-header-accent: var(--page-header-accent);
 	--color-background-warm: #f0ebe3;
 	--font-heading: var(--font-lora);
 	--font-body: var(--font-lora);

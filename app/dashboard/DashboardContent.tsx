@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "../components/Button";
+import { PageHeader } from "../components/PageHeader";
 import type { User } from "@supabase/supabase-js";
 
 interface DashboardContentProps {
@@ -19,14 +20,8 @@ export function DashboardContent({ user }: DashboardContentProps) {
 
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-4xl mx-auto">
-					<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-						<div>
-							<h1 className="mb-2">Dashboard</h1>
-							<p className="text-text-gray">
-								Welcome back, {user.email}.
-							</p>
-						</div>
-					</div>
+					<PageHeader title="Dashboard"
+						           subtitle={`Welcome back, ${user.email}.`} />
 
 					<div className="border border-border rounded-lg p-6 bg-background">
 						<h2 className="text-lg font-medium mb-4">

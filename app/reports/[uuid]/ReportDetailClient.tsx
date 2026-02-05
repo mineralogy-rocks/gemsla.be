@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "../../components/Button";
+import { PageHeader } from "../../components/PageHeader";
 import { DeleteDialog } from "../../components/DeleteDialog";
 import { ImageGallery } from "../../components/ImageGallery";
 import type { Report } from "../../api/reports/types";
@@ -104,49 +105,41 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 					)}
 
 					{/* Header */}
-					<motion.div className="mb-8"
-					            variants={fadeInUp}
-					            initial="hidden"
-					            animate="show">
-						<div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-							<div>
-								<div className="flex items-center gap-3 mb-2">
-									<h1>{report.title}</h1>
-									<span className={`rounded-full px-3 py-1 text-sm font-medium ${
-										report.public
-											? "bg-green-100 text-green-800"
-											: "bg-gray-100 text-gray-800"
-									}`}>
-										{report.public ? "Public" : "Private"}
-									</span>
-								</div>
-								<p className="text-text-gray">
-									Report for {report.first_name} {report.last_name}
-								</p>
+					<PageHeader
+						title={
+							<span className="flex items-center gap-3">
+								{report.title}
+								<span className={`rounded-full px-3 py-1 text-sm font-medium ${
+									report.public
+										? "bg-green-100 text-green-800"
+										: "bg-gray-100 text-gray-800"
+								}`}>
+									{report.public ? "Public" : "Private"}
+								</span>
+							</span>
+						}
+						subtitle={`Report for ${report.first_name} ${report.last_name}`}
+						actions={isAdmin ? (
+							<div className="flex flex-wrap gap-2">
+								<Button variant="outline"
+								        size="sm"
+								        onClick={handleTogglePublic}>
+									{report.public ? "Make Private" : "Make Public"}
+								</Button>
+								<Link href={`/reports/${report.id}/edit`}>
+									<Button variant="secondary" size="sm">
+										Edit
+									</Button>
+								</Link>
+								<Button variant="outline"
+								        size="sm"
+								        onClick={() => setDeleteDialogOpen(true)}
+								        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
+									Delete
+								</Button>
 							</div>
-
-							{isAdmin && (
-								<div className="flex flex-wrap gap-2">
-									<Button variant="outline"
-									        size="sm"
-									        onClick={handleTogglePublic}>
-										{report.public ? "Make Private" : "Make Public"}
-									</Button>
-									<Link href={`/reports/${report.id}/edit`}>
-										<Button variant="secondary" size="sm">
-											Edit
-										</Button>
-									</Link>
-									<Button variant="outline"
-									        size="sm"
-									        onClick={() => setDeleteDialogOpen(true)}
-									        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
-										Delete
-									</Button>
-								</div>
-							)}
-						</div>
-					</motion.div>
+						) : undefined}
+					/>
 
 					{/* Report Details */}
 					<motion.div className="space-y-8"

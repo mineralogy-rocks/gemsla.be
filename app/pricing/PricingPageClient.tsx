@@ -2,6 +2,7 @@
 
 import {Button3D} from "../components/Button3D";
 import {PricingCard} from "../components/PricingCard";
+import {PageHeader} from "../components/PageHeader";
 
 const pricingTiers = [
 	{
@@ -61,15 +62,11 @@ export function PricingPageClient() {
 
 			{/* Header Section */}
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
-				<div className="max-w-5xl mx-auto text-center">
-					<h1 className="mb-4">
-						Services & Pricing
-					</h1>
-					<p className="text-lg text-text-gray max-w-2xl mx-auto leading-relaxed">
-						I believe quality gemological services should be accessible to everyone.
-						Whether you have a single treasured stone or an entire collection,
-						I offer transparent pricing and personalized attention for every analysis.
-					</p>
+				<div className="max-w-5xl mx-auto">
+					<PageHeader layout="centered"
+					            title="Services & Pricing"
+					            subtitle="I believe quality gemological services should be accessible to everyone. Whether you have a single treasured stone or an entire collection, I offer transparent pricing and personalized attention for every analysis."
+					            subtitleClassName="text-lg max-w-2xl mx-auto" />
 				</div>
 			</section>
 

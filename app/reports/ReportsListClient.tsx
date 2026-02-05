@@ -5,6 +5,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "../components/Button";
+import { PageHeader } from "../components/PageHeader";
 import type { ReportListItem, PaginatedReportListResponse } from "../api/reports/types";
 
 type FilterType = "all" | "public" | "private";
@@ -152,28 +153,24 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-6xl mx-auto">
 					{/* Header */}
-					<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-						<div>
-							<h1 className="mb-2">Reports</h1>
-							<p className="text-text-gray">
-								Manage gem lab reports ({total} total)
-							</p>
-						</div>
-						<Link href="/reports/add">
-							<Button variant="primary" size="sm">
-								<svg className="h-3 w-3 mr-0.5"
-								     fill="none"
-								     viewBox="0 0 24 24"
-								     stroke="currentColor">
-									<path strokeLinecap="round"
-									      strokeLinejoin="round"
-									      strokeWidth={2}
-									      d="M12 4v16m8-8H4" />
-								</svg>
-								New Report
-							</Button>
-						</Link>
-					</div>
+					<PageHeader title="Reports"
+					            subtitle={`Manage gem lab reports (${total} total)`}
+					            actions={
+						            <Link href="/reports/add">
+							            <Button variant="primary" size="sm">
+								            <svg className="h-3 w-3 mr-0.5"
+								                 fill="none"
+								                 viewBox="0 0 24 24"
+								                 stroke="currentColor">
+									            <path strokeLinecap="round"
+									                  strokeLinejoin="round"
+									                  strokeWidth={2}
+									                  d="M12 4v16m8-8H4" />
+								            </svg>
+								            New Report
+							            </Button>
+						            </Link>
+					            } />
 
 					{/* Search and Filter */}
 					<div className="flex flex-col sm:flex-row gap-4 mb-6">

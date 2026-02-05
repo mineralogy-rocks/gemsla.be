@@ -6,6 +6,7 @@ import {Input} from "../components/Input";
 import {TextArea} from "../components/TextArea";
 import {Select} from "../components/Select";
 import {Button} from "../components/Button";
+import {PageHeader} from "../components/PageHeader";
 
 const serviceOptions = [
 	{ value: "initial_consultation", label: "Initial Consultation (€90)" },
@@ -79,13 +80,10 @@ function ContactForm() {
 
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-2xl mx-auto">
-					<h1 className="text-center mb-4">
-						I&apos;d Love to Hear From You
-					</h1>
-					<p className="text-center text-text-gray mb-8 max-w-lg mx-auto">
-						Whether you have a question about gemstones, need a consultation,
-						or just want to say hello — I&apos;m here and happy to help.
-					</p>
+					<PageHeader layout="centered"
+						           title={<>I&apos;d Love to Hear From You</>}
+						           subtitle="Whether you have a question about gemstones, need a consultation, or just want to say hello — I'm here and happy to help."
+						           subtitleClassName="max-w-lg mx-auto" />
 
 					<div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mb-12">
 						<a href="https://instagram.com/olena_rybnikova"
