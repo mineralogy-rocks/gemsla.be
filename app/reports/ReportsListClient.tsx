@@ -100,16 +100,13 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
-	// Read current state from URL
 	const currentFilter = (searchParams.get("filter") as FilterType) || "all";
 	const currentPage = parseInt(searchParams.get("page") || "1", 10);
 	const currentSearch = searchParams.get("search") || "";
 
-	// Local search state for controlled input (synced to URL via debounce)
 	const [search, setSearch] = useState(currentSearch);
 	const debouncedSearch = useDebounce(search, 300);
 
-	// Build query string helper
 	const createQueryString = useCallback((params: Record<string, string | number>) => {
 		const urlParams = new URLSearchParams(searchParams.toString());
 		Object.entries(params).forEach(([key, value]) => {
@@ -122,7 +119,6 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 		return urlParams.toString();
 	}, [searchParams]);
 
-	// Sync debounced search to URL
 	useEffect(() => {
 		if (debouncedSearch !== currentSearch) {
 			const query = createQueryString({ search: debouncedSearch, page: 1 });
@@ -130,14 +126,12 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 		}
 	}, [debouncedSearch, currentSearch, createQueryString, pathname, router]);
 
-	// Handle filter change
 	const handleFilterChange = (newFilter: FilterType) => {
 		setSearch("");
 		const query = createQueryString({ filter: newFilter, search: "", page: 1 });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
-	// Handle pagination
 	const handlePageChange = (newPage: number) => {
 		const query = createQueryString({ page: newPage });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);

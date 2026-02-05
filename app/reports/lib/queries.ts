@@ -11,10 +11,7 @@ interface FetchReportsListParams {
 	filter?: FilterType;
 }
 
-/**
- * Server-side cached query for fetching reports list
- * Uses React.cache() for request deduplication
- */
+
 export const fetchReportsList = cache(async ({
 	page = 1,
 	limit = 12,
@@ -23,26 +20,22 @@ export const fetchReportsList = cache(async ({
 }: FetchReportsListParams): Promise<PaginatedReportListResponse> => {
 	const supabase = await createClient();
 
-	// Build query - only select needed fields plus count images
 	let query = supabase
 		.from("reports")
 		.select("id, title, first_name, last_name, public, description, created_at, report_images(id)", { count: "exact" });
 
-	// Apply search filter
 	if (search) {
 		query = query.or(
 			`title.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,owner_email.ilike.%${search}%`
 		);
 	}
 
-	// Apply public/private filter
 	if (filter === "public") {
 		query = query.eq("public", true);
 	} else if (filter === "private") {
 		query = query.eq("public", false);
 	}
 
-	// Get total count and paginated data
 	const offset = (page - 1) * limit;
 	const { data, count, error } = await query
 		.order("created_at", { ascending: false })
@@ -59,7 +52,6 @@ export const fetchReportsList = cache(async ({
 		};
 	}
 
-	// Transform to ReportListItem with computed imageCount
 	const reportListItems: ReportListItem[] = (data || []).map((report) => ({
 		id: report.id,
 		title: report.title,
