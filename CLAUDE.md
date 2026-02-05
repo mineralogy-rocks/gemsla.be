@@ -51,9 +51,10 @@ The `supabase/` folder contains Supabase CLI configuration for local development
 - **migrations/** - Database schema migrations
 - **seed.sql** - Seed data for development
 
-## Local Development
+## Local Development and debugging
 
-Execute all commands using the docker container:
+Execute all commands ONLY through docker container:
+
 ```bash
 docker-compose -f ./main/docker-compose.yaml exec -it gems-labe bash
 ```
@@ -113,6 +114,6 @@ Accepts `{ name, email, message }`. Stores in Supabase `contact_submissions` tab
 - Dynamic imports with `ssr: false` for Three.js components
 - Accessibility: skip links, ARIA attributes, reduced-motion support
 
-## Debugging
+## Testing
 
-- we are running Next.js in docker container using docker-compose from `main` folder, so you can use `cd ../main && docker-compose exec -it gems-labe bash` to get into container
+- we are not using tests for this application, so skip tests

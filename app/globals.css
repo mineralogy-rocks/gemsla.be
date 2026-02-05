@@ -36,6 +36,8 @@
 	--color-callout-accent-text: var(--callout-accent-text);
 	--color-callout-bg: var(--callout-bg);
 	--color-quote-mark: var(--quote-mark);
+	--color-gold: #c4a77d;
+	--color-background-warm: #f0ebe3;
 	--font-heading: var(--font-lora);
 	--font-body: var(--font-lora);
 }
@@ -91,32 +93,6 @@ h3, h4, h5, h6 {
 @media (min-width: 1024px) {
 	h1 {
 		font-size: 4rem;
-	}
-}
-
-/* Button Underline Animation */
-.button-underline {
-	position: relative;
-}
-
-.button-underline::after {
-	content: '';
-	position: absolute;
-	bottom: 0.625rem;
-	left: 1.5rem;
-	width: 0;
-	height: 2px;
-	background-color: currentColor;
-	transition: width 0.3s ease;
-}
-
-.button-underline:hover::after {
-	width: calc(100% - 3rem);
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.button-underline::after {
-		transition: none;
 	}
 }
 

@@ -1,13 +1,13 @@
 "use client";
 
 import React, { forwardRef } from "react";
-import { motion, type HTMLMotionProps } from "framer-motion";
+import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import { type ButtonProps, type ButtonVariant, type ButtonSize } from "./Button.types";
 
 const variantClasses: Record<ButtonVariant, string> = {
-	primary: "bg-foreground text-background hover:opacity-90",
-	secondary: "bg-background-creme text-foreground border-2 border-foreground hover:bg-border-light",
-	outline: "border border-foreground text-foreground hover:bg-foreground hover:text-background",
+	primary: "bg-foreground text-background hover:shadow-[0_4px_16px_rgba(0,0,0,0.15),0_1px_4px_rgba(0,0,0,0.1)] hover:opacity-[0.92]",
+	secondary: "bg-background-creme text-foreground border-2 border-foreground hover:border-gold hover:bg-background-warm hover:shadow-[0_4px_16px_rgba(196,167,125,0.18),0_1px_4px_rgba(0,0,0,0.06)]",
+	outline: "border border-foreground text-foreground hover:border-gold hover:shadow-[0_4px_16px_rgba(196,167,125,0.15),0_1px_4px_rgba(0,0,0,0.05)]",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -38,17 +38,16 @@ type MotionButtonProps = HTMLMotionProps<"button"> & ButtonProps;
 export const Button = forwardRef<HTMLButtonElement, MotionButtonProps>(
 	({ variant = "primary", size = "md", loading = false, disabled, className = "", children, ...props }, ref) => {
 		const isDisabled = disabled || loading;
+		const prefersReducedMotion = useReducedMotion();
 
-		const baseClasses = "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all duration-200";
+		const baseClasses = "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
 		const disabledClasses = isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer";
-		const underlineClass = !isDisabled ? "button-underline" : "";
 
 		return (
 			<motion.button ref={ref}
 			               disabled={isDisabled}
-			               className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${underlineClass} ${className}`}
-			               whileTap={isDisabled ? undefined : { scale: 0.98 }}
-			               transition={{ duration: 0.15 }}
+			               className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${className}`}
+			               whileTap={isDisabled || prefersReducedMotion ? undefined : { scale: 0.98 }}
 			               {...props}>
 				{loading && <Spinner />}
 				{children}

@@ -161,7 +161,7 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 						</div>
 						<Link href="/reports/add">
 							<Button variant="primary" size="sm">
-								<svg className="h-5 w-5 mr-1"
+								<svg className="h-3 w-3 mr-0.5"
 								     fill="none"
 								     viewBox="0 0 24 24"
 								     stroke="currentColor">
