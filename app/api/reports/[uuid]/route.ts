@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
 import { updateReportSchema } from "../types";
+import { moveImagesToReportFolder } from "../storage-utils";
 
 interface RouteParams {
 	params: Promise<{ uuid: string }>;
@@ -157,6 +158,27 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
 				if (insertImagesError) {
 					console.error("Error inserting images:", insertImagesError);
+				}
+
+				// Move images from temp/ to report folder
+				const tempImageUrls = images
+					.map((img) => img.image_url)
+					.filter((url) => url.includes("/temp/"));
+
+				if (tempImageUrls.length > 0) {
+					const urlMap = await moveImagesToReportFolder(
+						supabase,
+						uuid,
+						tempImageUrls
+					);
+
+					for (const [oldUrl, newUrl] of urlMap) {
+						await supabase
+							.from("report_images")
+							.update({ image_url: newUrl })
+							.eq("report_id", uuid)
+							.eq("image_url", oldUrl);
+					}
 				}
 			}
 		}

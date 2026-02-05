@@ -5,7 +5,10 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "../components/Button";
+import { Checkbox } from "../components/Checkbox";
 import { PageHeader } from "../components/PageHeader";
+import { Pagination } from "../components/Pagination";
+import { SearchInput } from "../components/SearchInput";
 import type { ReportListItem, PaginatedReportListResponse } from "../api/reports/types";
 
 type FilterType = "all" | "public" | "private";
@@ -174,38 +177,22 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 					            } />
 
 					{/* Search and Filter */}
-					<div className="flex flex-col sm:flex-row gap-4 mb-6">
-						{/* Search */}
-						<div className="relative flex-1">
-							<svg className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-text-gray"
-							     fill="none"
-							     viewBox="0 0 24 24"
-							     stroke="currentColor">
-								<path strokeLinecap="round"
-								      strokeLinejoin="round"
-								      strokeWidth={1.5}
-								      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-							</svg>
-							<input type="text"
-							       value={search}
-							       onChange={(e) => setSearch(e.target.value)}
-							       placeholder="Search by title, name, or email..."
-							       className="w-full rounded-md border border-border bg-background py-2.5 pl-10 pr-4 text-foreground placeholder:text-text-gray focus:border-callout-accent focus:outline-none focus:ring-2 focus:ring-callout-accent" />
-						</div>
+					<div className="flex flex-col gap-4 mb-6">
+						<SearchInput value={search}
+						             onChange={(e) => setSearch(e.target.value)}
+						             onClear={() => setSearch("")}
+						             placeholder="Search by title, name, or email..." />
 
-						{/* Filter */}
-						<div className="flex gap-2">
-							{(["all", "public", "private"] as FilterType[]).map((f) => (
-								<button key={f}
-								        onClick={() => handleFilterChange(f)}
-								        className={`rounded-md px-4 py-2.5 text-sm font-medium capitalize transition-colors ${
-									        currentFilter === f
-										        ? "bg-foreground text-background"
-										        : "border border-border bg-background text-foreground hover:bg-border-light"
-								        }`}>
-									{f}
-								</button>
-							))}
+						<div className="flex gap-4">
+							<Checkbox label="All"
+							          checked={currentFilter === "all"}
+							          onChange={() => handleFilterChange("all")} />
+							<Checkbox label="Public"
+							          checked={currentFilter === "public"}
+							          onChange={() => handleFilterChange("public")} />
+							<Checkbox label="Private"
+							          checked={currentFilter === "private"}
+							          onChange={() => handleFilterChange("private")} />
 						</div>
 					</div>
 
@@ -245,23 +232,11 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 								))}
 							</motion.div>
 
-							{/* Pagination */}
 							{showPagination && (
-								<div className="mt-8 flex items-center justify-center gap-2">
-									<button onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-									        disabled={currentPage === 1}
-									        className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-border-light disabled:opacity-50 disabled:cursor-not-allowed">
-										Previous
-									</button>
-									<span className="px-4 text-sm text-text-gray">
-										Page {currentPage} of {totalPages}
-									</span>
-									<button onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-									        disabled={currentPage === totalPages}
-									        className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-border-light disabled:opacity-50 disabled:cursor-not-allowed">
-										Next
-									</button>
-								</div>
+								<Pagination currentPage={currentPage}
+								            totalPages={totalPages}
+								            onPageChange={handlePageChange}
+								            className="mt-8" />
 							)}
 						</>
 					)}
