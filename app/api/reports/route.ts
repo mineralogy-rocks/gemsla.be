@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
 import { createReportSchema, type PaginatedReportsResponse } from "./types";
-import { moveImagesToReportFolder } from "./storage-utils";
+import { moveImagesToReportFolder, generateSignedImageUrls } from "./storage-utils";
 
 /**
  * GET /api/reports
@@ -143,23 +143,23 @@ export async function POST(request: NextRequest) {
 			}
 
 			// Move images from temp/ to report folder
-			const tempImageUrls = images
+			const tempPaths = images
 				.map((img) => img.image_url)
-				.filter((url) => url.includes("/temp/"));
+				.filter((path) => path.startsWith("temp/"));
 
-			if (tempImageUrls.length > 0) {
-				const urlMap = await moveImagesToReportFolder(
+			if (tempPaths.length > 0) {
+				const pathMap = await moveImagesToReportFolder(
 					supabase,
 					report.id,
-					tempImageUrls
+					tempPaths
 				);
 
-				for (const [oldUrl, newUrl] of urlMap) {
+				for (const [oldPath, newPath] of pathMap) {
 					await supabase
 						.from("report_images")
-						.update({ image_url: newUrl })
+						.update({ image_url: newPath })
 						.eq("report_id", report.id)
-						.eq("image_url", oldUrl);
+						.eq("image_url", oldPath);
 				}
 			}
 		}
@@ -173,6 +173,20 @@ export async function POST(request: NextRequest) {
 
 		if (fetchError) {
 			return NextResponse.json(report, { status: 201 });
+		}
+
+		// Generate signed URLs for response
+		if (completeReport.report_images?.length > 0) {
+			const paths = completeReport.report_images.map(
+				(img: { image_url: string }) => img.image_url
+			);
+			const signedUrls = await generateSignedImageUrls(supabase, paths);
+			completeReport.report_images = completeReport.report_images.map(
+				(img: { image_url: string }) => ({
+					...img,
+					signed_url: signedUrls.get(img.image_url) || null,
+				})
+			);
 		}
 
 		return NextResponse.json(completeReport, { status: 201 });

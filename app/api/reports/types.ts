@@ -10,7 +10,7 @@ export const createReportSchema = z.object({
 	owner_email: z.string().email("Invalid email format"),
 	public: z.boolean().default(false),
 	images: z.array(z.object({
-		image_url: z.string().url("Invalid image URL"),
+		image_url: z.string().min(1, "Image path is required"),
 		display_order: z.number().int().min(0).default(0),
 	})).optional().default([]),
 });
@@ -27,6 +27,7 @@ export interface ReportImage {
 	image_url: string;
 	display_order: number;
 	created_at: string;
+	signed_url?: string;
 }
 
 export interface Report {

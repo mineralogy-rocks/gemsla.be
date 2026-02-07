@@ -56,7 +56,8 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 		if (initialData?.report_images) {
 			return initialData.report_images.map((img) => ({
 				id: img.id,
-				url: img.image_url,
+				url: img.signed_url || img.image_url,
+				path: img.image_url,
 				name: "Existing image",
 				display_order: img.display_order,
 			}));
@@ -103,7 +104,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 				description: formData.description || null,
 				note: formData.note || null,
 				images: images.map((img, index) => ({
-					image_url: img.url,
+					image_url: img.path || img.url,
 					display_order: index,
 				})),
 			};

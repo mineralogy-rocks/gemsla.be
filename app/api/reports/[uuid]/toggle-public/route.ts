@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
+import { generateSignedImageUrls } from "../../storage-utils";
 
 interface RouteParams {
 	params: Promise<{ uuid: string }>;
@@ -63,10 +64,21 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 			);
 		}
 
-		// Sort images by display_order
+		// Sort images by display_order and generate signed URLs
 		if (updatedReport.report_images) {
 			updatedReport.report_images.sort((a: { display_order: number }, b: { display_order: number }) =>
 				a.display_order - b.display_order
+			);
+
+			const paths = updatedReport.report_images.map(
+				(img: { image_url: string }) => img.image_url
+			);
+			const signedUrls = await generateSignedImageUrls(supabase, paths);
+			updatedReport.report_images = updatedReport.report_images.map(
+				(img: { image_url: string }) => ({
+					...img,
+					signed_url: signedUrls.get(img.image_url) || null,
+				})
 			);
 		}
 

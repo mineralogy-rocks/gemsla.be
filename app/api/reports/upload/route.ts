@@ -73,25 +73,79 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Get public URL
-		const { data: { publicUrl } } = supabase.storage
+		// Generate signed URL for preview
+		const { data: signedUrlData, error: signError } = await supabase.storage
 			.from("reports")
-			.getPublicUrl(data.path);
+			.createSignedUrl(data.path, 3600);
 
-		// Replace host.docker.internal with localhost for browser access
-		const browserAccessibleUrl = publicUrl.replace(
+		if (signError || !signedUrlData?.signedUrl) {
+			console.error("Signed URL error:", signError);
+			return NextResponse.json(
+				{ error: "Failed to generate signed URL" },
+				{ status: 500 }
+			);
+		}
+
+		const browserUrl = signedUrlData.signedUrl.replace(
 			"host.docker.internal",
 			"localhost"
 		);
 
 		return NextResponse.json({
-			url: browserAccessibleUrl,
+			url: browserUrl,
 			path: data.path,
 		});
 	} catch (error) {
 		console.error("Upload error:", error);
 		return NextResponse.json(
 			{ error: "Failed to upload file" },
+			{ status: 500 }
+		);
+	}
+}
+
+/**
+ * DELETE /api/reports/upload
+ * Delete a temp image from storage (admin only)
+ */
+export async function DELETE(request: NextRequest) {
+	try {
+		const admin = await isAdmin();
+		if (!admin) {
+			return NextResponse.json(
+				{ error: "Unauthorized" },
+				{ status: 401 }
+			);
+		}
+
+		const { path } = await request.json();
+
+		if (!path || !path.startsWith("temp/")) {
+			return NextResponse.json(
+				{ error: "Only temp files can be deleted via this endpoint" },
+				{ status: 400 }
+			);
+		}
+
+		const supabase = await createClient();
+
+		const { error } = await supabase.storage
+			.from("reports")
+			.remove([path]);
+
+		if (error) {
+			console.error("Delete error:", error);
+			return NextResponse.json(
+				{ error: error.message },
+				{ status: 500 }
+			);
+		}
+
+		return NextResponse.json({ success: true });
+	} catch (error) {
+		console.error("Delete error:", error);
+		return NextResponse.json(
+			{ error: "Failed to delete file" },
 			{ status: 500 }
 		);
 	}

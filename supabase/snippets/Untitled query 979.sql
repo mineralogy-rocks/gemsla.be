@@ -1,3 +1,2 @@
-UPDATE auth.users                                                                                                                                                                                                                                                               
-  SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || '{"role": "admin"}'::jsonb                                                                                                                                                                                  
-  WHERE email = 'liubomyr.gavryliv@gmail.com'; 
+UPDATE auth.users                                    
+  SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || '{"role": "admin"}'::jsonb                                                                                                                                                                                  WHERE email = 'liubomyr.gavryliv@gmail.com'; 

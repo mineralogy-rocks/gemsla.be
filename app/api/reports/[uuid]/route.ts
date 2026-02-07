@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
 import { updateReportSchema } from "../types";
-import { moveImagesToReportFolder } from "../storage-utils";
+import { moveImagesToReportFolder, generateSignedImageUrls } from "../storage-utils";
 
 interface RouteParams {
 	params: Promise<{ uuid: string }>;
@@ -52,6 +52,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		if (report.report_images) {
 			report.report_images.sort((a: { display_order: number }, b: { display_order: number }) =>
 				a.display_order - b.display_order
+			);
+
+			// Generate signed URLs
+			const paths = report.report_images.map(
+				(img: { image_url: string }) => img.image_url
+			);
+			const signedUrls = await generateSignedImageUrls(supabase, paths);
+			report.report_images = report.report_images.map(
+				(img: { image_url: string }) => ({
+					...img,
+					signed_url: signedUrls.get(img.image_url) || null,
+				})
 			);
 		}
 
@@ -161,23 +173,23 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 				}
 
 				// Move images from temp/ to report folder
-				const tempImageUrls = images
+				const tempPaths = images
 					.map((img) => img.image_url)
-					.filter((url) => url.includes("/temp/"));
+					.filter((path) => path.startsWith("temp/"));
 
-				if (tempImageUrls.length > 0) {
-					const urlMap = await moveImagesToReportFolder(
+				if (tempPaths.length > 0) {
+					const pathMap = await moveImagesToReportFolder(
 						supabase,
 						uuid,
-						tempImageUrls
+						tempPaths
 					);
 
-					for (const [oldUrl, newUrl] of urlMap) {
+					for (const [oldPath, newPath] of pathMap) {
 						await supabase
 							.from("report_images")
-							.update({ image_url: newUrl })
+							.update({ image_url: newPath })
 							.eq("report_id", uuid)
-							.eq("image_url", oldUrl);
+							.eq("image_url", oldPath);
 					}
 				}
 			}
@@ -197,10 +209,21 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 			);
 		}
 
-		// Sort images by display_order
+		// Sort images by display_order and generate signed URLs
 		if (updatedReport.report_images) {
 			updatedReport.report_images.sort((a: { display_order: number }, b: { display_order: number }) =>
 				a.display_order - b.display_order
+			);
+
+			const paths = updatedReport.report_images.map(
+				(img: { image_url: string }) => img.image_url
+			);
+			const signedUrls = await generateSignedImageUrls(supabase, paths);
+			updatedReport.report_images = updatedReport.report_images.map(
+				(img: { image_url: string }) => ({
+					...img,
+					signed_url: signedUrls.get(img.image_url) || null,
+				})
 			);
 		}
 
@@ -253,15 +276,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 			);
 		}
 
-		// Delete storage files for images
+		// Delete storage files for images (image_url is now a storage path)
 		if (report.report_images && report.report_images.length > 0) {
 			const filePaths = report.report_images
-				.map((img: { image_url: string }) => {
-					// Extract path from full URL
-					const url = new URL(img.image_url);
-					const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/reports\/(.+)/);
-					return pathMatch ? pathMatch[1] : null;
-				})
+				.map((img: { image_url: string }) => img.image_url)
 				.filter(Boolean);
 
 			if (filePaths.length > 0) {
@@ -271,7 +289,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
 				if (storageError) {
 					console.error("Error deleting storage files:", storageError);
-					// Continue with report deletion even if storage cleanup fails
 				}
 			}
 		}

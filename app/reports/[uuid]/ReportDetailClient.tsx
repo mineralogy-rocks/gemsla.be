@@ -72,7 +72,7 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 
 	const galleryImages = (report.report_images || []).map((img) => ({
 		id: img.id,
-		url: img.image_url,
+		url: img.signed_url || img.image_url,
 		alt: `${report.title} image`,
 	}));
 

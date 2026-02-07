@@ -1,39 +1,60 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+const SIGNED_URL_EXPIRY = 3600; // 1 hour
+
+function toBrowserUrl(url: string): string {
+	return url.replace("host.docker.internal", "localhost");
+}
+
+export async function generateSignedImageUrls(
+	supabase: SupabaseClient,
+	paths: string[]
+): Promise<Map<string, string>> {
+	const urlMap = new Map<string, string>();
+	if (paths.length === 0) return urlMap;
+
+	const { data, error } = await supabase.storage
+		.from("reports")
+		.createSignedUrls(paths, SIGNED_URL_EXPIRY);
+
+	if (error) {
+		console.error("Failed to generate signed URLs:", error);
+		return urlMap;
+	}
+
+	for (const item of data) {
+		if (item.signedUrl && item.path) {
+			urlMap.set(item.path, toBrowserUrl(item.signedUrl));
+		}
+	}
+
+	return urlMap;
+}
+
 export async function moveImagesToReportFolder(
 	supabase: SupabaseClient,
 	reportId: string,
-	imageUrls: string[]
+	paths: string[]
 ): Promise<Map<string, string>> {
-	const urlMap = new Map<string, string>();
+	const pathMap = new Map<string, string>();
 
-	for (const imageUrl of imageUrls) {
-		const pathMatch = imageUrl.match(
-			/\/storage\/v1\/object\/public\/reports\/(.+)/
-		);
-		if (!pathMatch) continue;
+	for (const path of paths) {
+		if (!path.startsWith("temp/")) continue;
 
-		const storagePath = pathMatch[1];
-		if (!storagePath.startsWith("temp/")) continue;
-
-		const filename = storagePath.replace("temp/", "");
+		const filename = path.replace("temp/", "");
 		const newPath = `${reportId}/${filename}`;
 
 		const { error } = await supabase.storage
 			.from("reports")
-			.move(storagePath, newPath);
+			.move(path, newPath);
 
 		if (error) {
-			console.error(`Failed to move ${storagePath} → ${newPath}:`, error);
+			console.error(`Failed to move ${path} → ${newPath}:`, error);
 			continue;
 		}
 
-		const newUrl = imageUrl.replace(
-			`/temp/${filename}`,
-			`/${reportId}/${filename}`
-		);
-		urlMap.set(imageUrl, newUrl);
+		pathMap.set(path, newPath);
 	}
 
-	return urlMap;
+	return pathMap;
 }

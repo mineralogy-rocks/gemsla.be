@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export interface UploadedImage {
 	id: string;
 	url: string;
+	path?: string;
 	name: string;
 	display_order: number;
 }
@@ -54,6 +55,7 @@ export function ImageUpload({
 		return {
 			id: generateTempId(),
 			url: data.url,
+			path: data.path,
 			name: file.name,
 			display_order: images.length,
 		};
@@ -123,11 +125,19 @@ export function ImageUpload({
 	}, []);
 
 	const handleRemove = useCallback((imageToRemove: UploadedImage) => {
-		// Update state - storage cleanup happens server-side when report is saved/deleted
 		const newImages = images
 			.filter((img) => img.id !== imageToRemove.id)
 			.map((img, index) => ({ ...img, display_order: index }));
 		onImagesChange(newImages);
+
+		// Delete temp files from storage immediately
+		if (imageToRemove.path?.startsWith("temp/")) {
+			fetch("/api/reports/upload", {
+				method: "DELETE",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ path: imageToRemove.path }),
+			}).catch((err) => console.error("Failed to delete temp file:", err));
+		}
 	}, [images, onImagesChange]);
 
 	const handleReorder = useCallback((dragIndex: number, dropIndex: number) => {
