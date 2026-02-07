@@ -158,23 +158,24 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 				<div className="max-w-6xl mx-auto">
 					{/* Header */}
 					<PageHeader title="Reports"
-					            subtitle={`Manage gem lab reports (${total} total)`}
-					            actions={
-						            <Link href="/reports/add">
-							            <Button variant="primary" size="sm">
-								            <svg className="h-3 w-3 mr-0.5"
-								                 fill="none"
-								                 viewBox="0 0 24 24"
-								                 stroke="currentColor">
-									            <path strokeLinecap="round"
-									                  strokeLinejoin="round"
-									                  strokeWidth={2}
-									                  d="M12 4v16m8-8H4" />
-								            </svg>
-								            New Report
-							            </Button>
-						            </Link>
-					            } />
+					            subtitle={`Manage gem lab reports (${total} total)`} />
+
+					<div className="flex flex-wrap gap-2 justify-end my-6">
+						<Link href="/reports/add">
+							<Button variant="primary" size="sm">
+								<svg className="h-3 w-3 mr-0.5"
+								     fill="none"
+								     viewBox="0 0 24 24"
+								     stroke="currentColor">
+									<path strokeLinecap="round"
+									      strokeLinejoin="round"
+									      strokeWidth={2}
+									      d="M12 4v16m8-8H4" />
+								</svg>
+								New Report
+							</Button>
+						</Link>
+					</div>
 
 					{/* Search and Filter */}
 					<div className="flex flex-col gap-4 mb-6">

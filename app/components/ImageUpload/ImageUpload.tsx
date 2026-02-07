@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+
 import { motion, AnimatePresence } from "framer-motion";
+import {TextArea} from "@/app/components/TextArea";
+import {Input} from "@/app/components/Input";
 
 export interface UploadedImage {
 	id: string;
@@ -9,11 +12,14 @@ export interface UploadedImage {
 	path?: string;
 	name: string;
 	display_order: number;
+	title?: string;
+	caption?: string;
 }
 
 interface ImageUploadProps {
 	images: UploadedImage[];
 	onImagesChange: (images: UploadedImage[]) => void;
+	onImageFieldChange?: (imageId: string, field: "title" | "caption", value: string) => void;
 	reportId?: string;
 	maxImages?: number;
 	disabled?: boolean;
@@ -22,6 +28,7 @@ interface ImageUploadProps {
 export function ImageUpload({
 	images,
 	onImagesChange,
+	onImageFieldChange,
 	reportId,
 	maxImages = 10,
 	disabled = false,
@@ -130,7 +137,6 @@ export function ImageUpload({
 			.map((img, index) => ({ ...img, display_order: index }));
 		onImagesChange(newImages);
 
-		// Delete temp files from storage immediately
 		if (imageToRemove.path?.startsWith("temp/")) {
 			fetch("/api/reports/upload", {
 				method: "DELETE",
@@ -147,7 +153,6 @@ export function ImageUpload({
 		const [draggedImage] = newImages.splice(dragIndex, 1);
 		newImages.splice(dropIndex, 0, draggedImage);
 
-		// Update display_order
 		const reorderedImages = newImages.map((img, index) => ({
 			...img,
 			display_order: index,
@@ -158,9 +163,8 @@ export function ImageUpload({
 
 	return (
 		<div className="flex flex-col gap-4">
-			{/* Drop zone */}
 			<div className={`
-				relative rounded-lg border-2 border-dashed p-8 text-center transition-colors
+				relative rounded-lg border-2 border-dashed p-6 text-center transition-colors
 				${isDragging ? "border-callout-accent bg-callout-accent/10" : "border-border"}
 				${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-callout-accent"}
 			`}
@@ -216,7 +220,6 @@ export function ImageUpload({
 				</div>
 			</div>
 
-			{/* Error message */}
 			{error && (
 				<p className="text-sm text-red-500" role="alert">
 					{error}
@@ -226,13 +229,13 @@ export function ImageUpload({
 			{/* Image previews */}
 			<AnimatePresence>
 				{images.length > 0 && (
-					<motion.div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4"
+					<motion.div className="flex flex-col gap-4"
 					            initial={{ opacity: 0, height: 0 }}
 					            animate={{ opacity: 1, height: "auto" }}
 					            exit={{ opacity: 0, height: 0 }}>
 						{images.map((image, index) => (
 							<motion.div key={image.id}
-							            className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-background-creme"
+							            className="group relative overflow-hidden rounded-lg border border-border bg-background-creme"
 							            initial={{ opacity: 0, scale: 0.9 }}
 							            animate={{ opacity: 1, scale: 1 }}
 							            exit={{ opacity: 0, scale: 0.9 }}
@@ -248,32 +251,52 @@ export function ImageUpload({
 								            const dragIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
 								            handleReorder(dragIndex, index);
 							            }}>
-								{/* eslint-disable-next-line @next/next/no-img-element */}
-								<img src={image.url}
-								     alt={image.name}
-								     className="h-full w-full object-cover" />
+								<div className="flex flex-col">
+									<div className="relative w-full aspect-video">
+										<img src={image.url}
+										     alt={image.name}
+										     loading="lazy"
+										     className="h-full w-full object-cover" />
 
-								{/* Remove button */}
-								{!disabled && (
-									<button type="button"
-									        onClick={() => handleRemove(image)}
-									        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-foreground/80 text-background opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-									        aria-label={`Remove ${image.name}`}>
-										<svg className="h-4 w-4"
-										     fill="none"
-										     viewBox="0 0 24 24"
-										     stroke="currentColor">
-											<path strokeLinecap="round"
-											      strokeLinejoin="round"
-											      strokeWidth={2}
-											      d="M6 18L18 6M6 6l12 12" />
-										</svg>
-									</button>
-								)}
+										{!disabled && (
+											<button type="button"
+											        onClick={() => handleRemove(image)}
+											        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-foreground/80 text-background opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100 cursor-pointer"
+											        aria-label={`Remove ${image.name}`}>
+												<svg className="h-4 w-4"
+												     fill="none"
+												     viewBox="0 0 24 24"
+												     stroke="currentColor">
+													<path strokeLinecap="round"
+													      strokeLinejoin="round"
+													      strokeWidth={2}
+													      d="M6 18L18 6M6 6l12 12" />
+												</svg>
+											</button>
+										)}
 
-								{/* Order indicator */}
-								<div className="absolute bottom-2 left-2 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/80 text-xs text-background">
-									{index + 1}
+										<div className="absolute bottom-2 left-2 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/80 text-xs text-background">
+											{index + 1}
+										</div>
+									</div>
+
+									{onImageFieldChange && (
+										<div className="flex-1 p-4 space-y-3">
+											<Input label="Title"
+											       value={image.title || ""}
+											       onChange={(e) => onImageFieldChange(image.id, "title", e.target.value)}
+											       placeholder="Image title"
+											       disabled={disabled}
+											       className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-text-gray focus:outline-none focus:ring-1 focus:ring-callout-accent" />
+											<TextArea label="Caption"
+															  value={image.caption || ""}
+											          onChange={(e) => onImageFieldChange(image.id, "caption", e.target.value)}
+											          placeholder="Image caption"
+											          disabled={disabled}
+											          rows={4}
+											          className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-text-gray focus:outline-none focus:ring-1 focus:ring-callout-accent resize-none" />
+									</div>
+									)}
 								</div>
 							</motion.div>
 						))}

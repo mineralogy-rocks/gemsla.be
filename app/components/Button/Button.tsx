@@ -6,8 +6,9 @@ import { type ButtonProps, type ButtonVariant, type ButtonSize } from "./Button.
 
 const variantClasses: Record<ButtonVariant, string> = {
 	primary: "bg-foreground text-background hover:shadow-[0_4px_16px_rgba(0,0,0,0.15),0_1px_4px_rgba(0,0,0,0.1)] hover:opacity-[0.92]",
-	secondary: "bg-background-creme text-foreground border-2 border-foreground hover:border-gold hover:bg-background-warm hover:shadow-[0_4px_16px_rgba(196,167,125,0.18),0_1px_4px_rgba(0,0,0,0.06)]",
+	secondary: "bg-background-creme text-foreground border border-foreground hover:border-gold hover:bg-background-warm hover:shadow-[0_4px_16px_rgba(196,167,125,0.18),0_1px_4px_rgba(0,0,0,0.06)]",
 	outline: "border border-foreground text-foreground hover:border-gold hover:shadow-[0_4px_16px_rgba(196,167,125,0.15),0_1px_4px_rgba(0,0,0,0.05)]",
+	accent: "bg-red-600 text-background hover:shadow-[0_4px_16px_rgba(0,0,0,0.15),0_1px_4px_rgba(0,0,0,0.1)] hover:opacity-[0.92]",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

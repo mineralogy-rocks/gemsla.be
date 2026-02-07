@@ -8,6 +8,8 @@ interface GalleryImage {
 	id: string;
 	url: string;
 	alt?: string;
+	title?: string;
+	caption?: string;
 }
 
 interface ImageGalleryProps {
@@ -68,6 +70,8 @@ export function ImageGallery({
 	const lightboxImages: LightboxImage[] = images.map((img) => ({
 		url: img.url,
 		alt: img.alt,
+		title: img.title,
+		caption: img.caption,
 	}));
 
 	return (
@@ -77,30 +81,42 @@ export function ImageGallery({
 			            initial="hidden"
 			            animate="show">
 				{images.map((image, index) => (
-					<motion.button key={image.id}
-					               type="button"
-					               className="group relative aspect-square overflow-hidden rounded-lg bg-background-creme focus:outline-none focus:ring-2 focus:ring-callout-accent focus:ring-offset-2"
-					               variants={staggerItem}
-					               onClick={() => openLightbox(index)}
-					               aria-label={`View ${image.alt || `image ${index + 1}`} in fullscreen`}>
-						{/* eslint-disable-next-line @next/next/no-img-element */}
-						<img src={image.url}
-						     alt={image.alt || `Gallery image ${index + 1}`}
-						     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+					<motion.div key={image.id}
+					            variants={staggerItem}>
+						<button type="button"
+						        className="group relative aspect-square w-full overflow-hidden rounded-lg bg-background-creme focus:outline-none focus:ring-2 focus:ring-callout-accent focus:ring-offset-2"
+						        onClick={() => openLightbox(index)}
+						        aria-label={`View ${image.alt || `image ${index + 1}`} in fullscreen`}>
+							{/* eslint-disable-next-line @next/next/no-img-element */}
+							<img src={image.url}
+							     alt={image.alt || `Gallery image ${index + 1}`}
+							     loading="lazy"
+							     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
 
-						{/* Hover overlay */}
-						<div className="absolute inset-0 flex items-center justify-center bg-foreground/0 transition-colors duration-300 group-hover:bg-foreground/20">
-							<svg className="h-8 w-8 text-background opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-							     fill="none"
-							     viewBox="0 0 24 24"
-							     stroke="currentColor">
-								<path strokeLinecap="round"
-								      strokeLinejoin="round"
-								      strokeWidth={2}
-								      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-							</svg>
-						</div>
-					</motion.button>
+							{/* Hover overlay */}
+							<div className="absolute inset-0 flex items-center justify-center bg-foreground/0 transition-colors duration-300 group-hover:bg-foreground/20">
+								<svg className="h-8 w-8 text-background opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+								     fill="none"
+								     viewBox="0 0 24 24"
+								     stroke="currentColor">
+									<path strokeLinecap="round"
+									      strokeLinejoin="round"
+									      strokeWidth={2}
+									      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+								</svg>
+							</div>
+						</button>
+						{(image.title || image.caption) && (
+							<div className="mt-2">
+								{image.title && (
+									<p className="text-sm font-medium text-foreground">{image.title}</p>
+								)}
+								{image.caption && (
+									<p className="text-xs text-text-gray mt-0.5">{image.caption}</p>
+								)}
+							</div>
+						)}
+					</motion.div>
 				))}
 			</motion.div>
 

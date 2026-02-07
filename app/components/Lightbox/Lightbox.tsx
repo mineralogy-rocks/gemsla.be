@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 export interface LightboxImage {
 	url: string;
 	alt?: string;
+	title?: string;
+	caption?: string;
 }
 
 interface LightboxProps {
@@ -129,6 +131,18 @@ export function Lightbox({
 						<img src={currentImage.url}
 						     alt={currentImage.alt || `Image ${currentIndex + 1}`}
 						     className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain" />
+
+						{/* Title/Caption overlay */}
+						{(currentImage.title || currentImage.caption) && (
+							<div className="absolute bottom-0 left-0 right-0 rounded-b-lg bg-gradient-to-t from-black/70 to-transparent px-4 pb-4 pt-8">
+								{currentImage.title && (
+									<p className="text-sm font-medium text-white">{currentImage.title}</p>
+								)}
+								{currentImage.caption && (
+									<p className="text-xs text-white/80 mt-0.5">{currentImage.caption}</p>
+								)}
+							</div>
+						)}
 					</motion.div>
 
 					{/* Next button */}

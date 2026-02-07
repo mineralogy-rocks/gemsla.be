@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
-import { updateReportSchema } from "../types";
+import { updateReportSchema, ADMIN_ONLY_FIELDS } from "../types";
 import { moveImagesToReportFolder, generateSignedImageUrls } from "../storage-utils";
 
 interface RouteParams {
@@ -67,6 +67,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			);
 		}
 
+		// Strip admin-only fields for non-admin users
+		if (!admin) {
+			for (const field of ADMIN_ONLY_FIELDS) {
+				delete report[field];
+			}
+		}
+
 		return NextResponse.json(report);
 	} catch (error) {
 		console.error("Report GET error:", error);
@@ -128,6 +135,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 			);
 		}
 
+		// Resolve owner_id if owner_email is being updated
+		if (reportData.owner_email) {
+			const { data: userId } = await supabase.rpc("get_user_id_by_email", {
+				lookup_email: reportData.owner_email,
+			});
+			(reportData as Record<string, unknown>).owner_id = userId || null;
+		}
+
 		// Update report if there are fields to update
 		if (Object.keys(reportData).length > 0) {
 			const { error: updateError } = await supabase
@@ -162,6 +177,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 					report_id: uuid,
 					image_url: img.image_url,
 					display_order: img.display_order ?? index,
+					title: img.title || null,
+					caption: img.caption || null,
 				}));
 
 				const { error: insertImagesError } = await supabase

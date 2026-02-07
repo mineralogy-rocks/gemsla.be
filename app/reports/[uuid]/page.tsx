@@ -5,6 +5,7 @@ import { isAdmin } from "@/lib/supabase/admin";
 import { generateSignedImageUrls } from "../../api/reports/storage-utils";
 import { ReportDetailClient } from "./ReportDetailClient";
 import type { Report } from "../../api/reports/types";
+import { ADMIN_ONLY_FIELDS } from "../../api/reports/types";
 
 interface PageProps {
 	params: Promise<{ uuid: string }>;
@@ -64,5 +65,15 @@ export default async function ReportDetailPage({ params }: PageProps) {
 	if (!report) notFound();
 	if (!report.public && !admin) notFound();
 
-	return <ReportDetailClient report={report} isAdmin={admin} />;
+	const sanitizedReport = admin
+		? report
+		: (() => {
+			const r = { ...report };
+			for (const field of ADMIN_ONLY_FIELDS) {
+				(r as Record<string, unknown>)[field] = null;
+			}
+			return r;
+		})();
+
+	return <ReportDetailClient report={sanitizedReport} isAdmin={admin} />;
 }

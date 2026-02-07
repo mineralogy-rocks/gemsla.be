@@ -105,15 +105,21 @@ export async function POST(request: NextRequest) {
 
 		const supabase = await createClient();
 
-		// Get current user ID
-		const { data: { user } } = await supabase.auth.getUser();
+		// Resolve owner_id from email
+		let ownerId: string | null = null;
+		if (reportData.owner_email) {
+			const { data: userId } = await supabase.rpc("get_user_id_by_email", {
+				lookup_email: reportData.owner_email,
+			});
+			ownerId = userId || null;
+		}
 
 		// Create report
 		const { data: report, error: reportError } = await supabase
 			.from("reports")
 			.insert({
 				...reportData,
-				owner_id: user?.id || null,
+				owner_id: ownerId,
 			})
 			.select()
 			.single();
@@ -132,6 +138,8 @@ export async function POST(request: NextRequest) {
 				report_id: report.id,
 				image_url: img.image_url,
 				display_order: img.display_order ?? index,
+				title: img.title || null,
+				caption: img.caption || null,
 			}));
 
 			const { error: imagesError } = await supabase
