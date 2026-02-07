@@ -62,12 +62,6 @@ export function Header({ user, isAdmin = false }: HeaderProps) {
 						</Link>
 						{user ? (
 							<>
-								{isAdmin && (
-									<Link href="/reports"
-									      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
-										Reports
-									</Link>
-								)}
 								<Link href="/dashboard"
 								      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
 									Dashboard

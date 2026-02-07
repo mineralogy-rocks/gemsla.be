@@ -11,5 +11,7 @@ export default async function DashboardPage() {
 		redirect("/auth/sign-in");
 	}
 
-	return <DashboardContent user={user} />;
+	const isAdmin = user.app_metadata?.role === "admin";
+
+	return <DashboardContent user={user} isAdmin={isAdmin} />;
 }
