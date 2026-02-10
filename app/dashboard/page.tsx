@@ -8,8 +8,10 @@ export default async function DashboardPage() {
 	const { data: { user }, error } = await supabase.auth.getUser();
 
 	if (error || !user) {
-		redirect("/sign-in");
+		redirect("/auth/sign-in");
 	}
 
-	return <DashboardContent user={user} />;
+	const isAdmin = user.app_metadata?.role === "admin";
+
+	return <DashboardContent user={user} isAdmin={isAdmin} />;
 }

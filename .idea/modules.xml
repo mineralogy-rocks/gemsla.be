@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/olena-gem.iml" filepath="$PROJECT_DIR$/.idea/olena-gem.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/gems-labe.iml" filepath="$PROJECT_DIR$/.idea/gems-labe.iml" />
     </modules>
   </component>
 </project>

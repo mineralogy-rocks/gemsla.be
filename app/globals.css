@@ -17,6 +17,7 @@
 	--callout-accent-text: #3d3d3d;
 	--callout-bg: rgba(248, 244, 238, 0.85);
 	--quote-mark: #d4cec4;
+	--page-header-accent: #c4a77d;
 }
 
 @theme inline {
@@ -36,6 +37,9 @@
 	--color-callout-accent-text: var(--callout-accent-text);
 	--color-callout-bg: var(--callout-bg);
 	--color-quote-mark: var(--quote-mark);
+	--color-gold: #c4a77d;
+	--color-page-header-accent: var(--page-header-accent);
+	--color-background-warm: #f0ebe3;
 	--font-heading: var(--font-lora);
 	--font-body: var(--font-lora);
 }
@@ -72,10 +76,10 @@ h3, h4, h5, h6 {
 
 @media (min-width: 640px) {
 	h1 {
-		font-size: 3rem;
+		font-size: 2.5rem;
 	}
 	h2 {
-		font-size: 2.5rem;
+		font-size: 2rem;
 	}
 }
 
@@ -84,39 +88,13 @@ h3, h4, h5, h6 {
 		font-size: 3.75rem;
 	}
 	h2 {
-		font-size: 3rem;
+		font-size: 2rem;
 	}
 }
 
 @media (min-width: 1024px) {
 	h1 {
 		font-size: 4rem;
-	}
-}
-
-/* Button Underline Animation */
-.button-underline {
-	position: relative;
-}
-
-.button-underline::after {
-	content: '';
-	position: absolute;
-	bottom: 0.625rem;
-	left: 1.5rem;
-	width: 0;
-	height: 2px;
-	background-color: currentColor;
-	transition: width 0.3s ease;
-}
-
-.button-underline:hover::after {
-	width: calc(100% - 3rem);
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.button-underline::after {
-		transition: none;
 	}
 }
 

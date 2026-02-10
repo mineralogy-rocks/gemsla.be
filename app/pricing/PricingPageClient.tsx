@@ -1,9 +1,8 @@
 "use client";
 
-import {motion} from "framer-motion";
-import {fadeInUp, staggerContainer, paragraphReveal} from "../lib/animations";
 import {Button3D} from "../components/Button3D";
 import {PricingCard} from "../components/PricingCard";
+import {PageHeader} from "../components/PageHeader";
 
 const pricingTiers = [
 	{
@@ -62,27 +61,17 @@ export function PricingPageClient() {
 			     }} />
 
 			{/* Header Section */}
-			<motion.section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10"
-			                initial="hidden"
-			                animate="visible"
-			                variants={fadeInUp}>
-				<div className="max-w-5xl mx-auto text-center">
-					<h1 className="mb-4">
-						Services & Pricing
-					</h1>
-					<p className="text-lg text-text-gray max-w-2xl mx-auto leading-relaxed">
-						I believe quality gemological services should be accessible to everyone.
-						Whether you have a single treasured stone or an entire collection,
-						I offer transparent pricing and personalized attention for every analysis.
-					</p>
+			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
+				<div className="max-w-5xl mx-auto">
+					<PageHeader layout="centered"
+					            title="Services & Pricing"
+					            subtitle="I believe quality gemological services should be accessible to everyone. Whether you have a single treasured stone or an entire collection, I offer transparent pricing and personalized attention for every analysis."
+					            subtitleClassName="text-lg max-w-2xl mx-auto" />
 				</div>
-			</motion.section>
+			</section>
 
 			{/* Pricing Cards Section */}
-			<motion.section className="relative py-8 md:py-12 px-4 sm:px-6 lg:px-8 z-10"
-			                variants={staggerContainer}
-			                initial="hidden"
-			                animate="visible">
+			<section className="relative py-8 md:py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-5xl mx-auto">
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 lg:gap-8 items-stretch md:py-4">
 						{pricingTiers.map((tier) => (
@@ -97,13 +86,9 @@ export function PricingPageClient() {
 						))}
 					</div>
 				</div>
-			</motion.section>
+			</section>
 
-			<motion.section className="relative py-4 px-4 sm:px-6 lg:px-8 z-10"
-			                variants={paragraphReveal}
-			                initial="hidden"
-			                whileInView="visible"
-			                viewport={{once: true, margin: "-50px"}}>
+			<section className="relative py-4 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-5xl mx-auto">
 					<p className="text-sm text-text-gray text-center leading-relaxed">
 						<span className="text-foreground font-medium">Per-stone pricing</span>
@@ -113,13 +98,9 @@ export function PricingPageClient() {
 						<span className="text-foreground font-medium">Detailed certificates</span> included
 					</p>
 				</div>
-			</motion.section>
+			</section>
 
-			<motion.section className="relative py-8 px-4 sm:px-6 lg:px-8 z-10"
-			                variants={paragraphReveal}
-			                initial="hidden"
-			                whileInView="visible"
-			                viewport={{once: true, margin: "-50px"}}>
+			<section className="relative py-8 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-3xl mx-auto">
 					<div className="border-t border-border-light pt-6">
 						<p className="text-sm text-text-gray text-center leading-relaxed">
@@ -133,14 +114,10 @@ export function PricingPageClient() {
 						</p>
 					</div>
 				</div>
-			</motion.section>
+			</section>
 
 			{/* CTA Section */}
-			<motion.section className="relative py-16 px-4 sm:px-6 lg:px-8 z-10"
-			                variants={paragraphReveal}
-			                initial="hidden"
-			                whileInView="visible"
-			                viewport={{once: true, margin: "-50px"}}>
+			<section className="relative py-16 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-2xl mx-auto text-center">
 					<p className="text-lg text-foreground leading-relaxed mb-2">
 						Not sure which service is right for you?
@@ -155,7 +132,7 @@ export function PricingPageClient() {
 						<span className="font-medium">Ask a Question</span>
 					</Button3D>
 				</div>
-			</motion.section>
+			</section>
 		</div>
 	);
 }

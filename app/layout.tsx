@@ -43,8 +43,12 @@ export const metadata: Metadata = {
 		images: ['/og-image.png'],
 	},
 	icons: {
-		icon: '/icon.png',
-		apple: '/apple-icon.png',
+		icon: [
+			{ url: '/favicon.ico', sizes: 'any' },
+			{ url: '/favicon.svg', type: 'image/svg+xml' },
+			{ url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+		],
+		apple: '/apple-touch-icon.png',
 	},
 	robots: {
 		index: true,
@@ -66,6 +70,7 @@ export default async function RootLayout({
 }>) {
 	const supabase = await createClient();
 	const { data: { user } } = await supabase.auth.getUser();
+	const isAdmin = user?.app_metadata?.role === "admin";
 
 	const structuredData = {
 		"@context": "https://schema.org",
@@ -95,7 +100,7 @@ export default async function RootLayout({
 				<script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(structuredData)}} />
 			</head>
 			<body className={`${lora.variable} ${lora.className} antialiased`}>
-				<Header user={user} />
+				<Header user={user} isAdmin={isAdmin} />
 				{children}
 				<Footer />
 			</body>

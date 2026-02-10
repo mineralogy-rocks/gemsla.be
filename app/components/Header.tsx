@@ -7,9 +7,10 @@ import type {User} from "@supabase/supabase-js";
 
 interface HeaderProps {
 	user: User | null;
+	isAdmin?: boolean;
 }
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, isAdmin = false }: HeaderProps) {
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [signOutState, signOutAction, signOutPending] = useActionState(
 		async () => {
@@ -47,6 +48,10 @@ export function Header({ user }: HeaderProps) {
 					</Link>
 
 					<div className="flex items-center gap-6 sm:gap-8">
+						<Link href="/about"
+						      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
+							About
+						</Link>
 						<Link href="/pricing"
 						      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
 							Pricing
