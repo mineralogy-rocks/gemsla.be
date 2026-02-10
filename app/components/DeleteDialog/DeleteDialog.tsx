@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/app/components/Button";
+import { Input } from "@/app/components/Input";
 
 interface DeleteDialogProps {
 	isOpen: boolean;
@@ -108,7 +110,7 @@ export function DeleteDialog({
 											<p className="mt-4 text-sm text-text-gray">
 												Type <span className="font-semibold text-foreground">DELETE</span> to confirm:
 											</p>
-											<input type="text"
+											<Input size="sm"
 											       value={confirmInput}
 											       onChange={(e) => setConfirmInput(e.target.value)}
 											       onKeyDown={(e) => {
@@ -118,7 +120,7 @@ export function DeleteDialog({
 											       }}
 											       placeholder="DELETE"
 											       disabled={isPending}
-											       className="mt-2 block w-full rounded-md border border-border bg-background px-3 py-2 text-foreground placeholder:text-text-gray focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:opacity-50"
+											       className="mt-2 disabled:opacity-50"
 											       autoFocus
 											       aria-label="Type DELETE to confirm" />
 										</div>
@@ -127,18 +129,21 @@ export function DeleteDialog({
 							</div>
 
 							<div className="flex flex-col-reverse gap-3 border-t border-border bg-background-creme px-6 py-4 sm:flex-row sm:justify-end">
-								<button type="button"
+								<Button variant="outline"
+								        size="sm"
 								        onClick={handleClose}
 								        disabled={isPending}
-								        className="inline-flex w-full justify-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-border-light focus:outline-none focus:ring-2 focus:ring-callout-accent focus:ring-offset-2 disabled:opacity-50 sm:w-auto">
+								        className="w-full sm:w-auto">
 									Cancel
-								</button>
-								<button type="button"
+								</Button>
+								<Button variant="accent"
+								        size="sm"
 								        onClick={handleConfirm}
 								        disabled={confirmInput !== "DELETE" || isPending}
-								        className="inline-flex w-full justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto">
-									{isPending ? "Deleting..." : confirmText}
-								</button>
+								        loading={isPending}
+								        className="w-full sm:w-auto">
+									{confirmText}
+								</Button>
 							</div>
 						</motion.div>
 					</div>

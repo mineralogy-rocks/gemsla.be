@@ -239,18 +239,20 @@ export function ImageUpload({
 							            initial={{ opacity: 0, scale: 0.9 }}
 							            animate={{ opacity: 1, scale: 1 }}
 							            exit={{ opacity: 0, scale: 0.9 }}
-							            draggable={!disabled}
-							            onDragStart={(e: React.DragEvent<HTMLDivElement>) => {
-								            e.dataTransfer.setData("text/plain", index.toString());
-							            }}
-							            onDragOver={(e: React.DragEvent<HTMLDivElement>) => {
-								            e.preventDefault();
-							            }}
-							            onDrop={(e: React.DragEvent<HTMLDivElement>) => {
-								            e.preventDefault();
-								            const dragIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
-								            handleReorder(dragIndex, index);
-							            }}>
+							            {...{
+								            draggable: !disabled,
+								            onDragStart: (e: React.DragEvent<HTMLDivElement>) => {
+									            e.dataTransfer.setData("text/plain", index.toString());
+								            },
+								            onDragOver: (e: React.DragEvent<HTMLDivElement>) => {
+									            e.preventDefault();
+								            },
+								            onDrop: (e: React.DragEvent<HTMLDivElement>) => {
+									            e.preventDefault();
+									            const dragIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
+									            handleReorder(dragIndex, index);
+								            },
+							            } as any}>
 								<div className="flex flex-col">
 									<div className="relative w-full aspect-video">
 										<img src={image.url}

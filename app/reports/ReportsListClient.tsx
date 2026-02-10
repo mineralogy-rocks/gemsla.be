@@ -53,15 +53,15 @@ function ReportCard({ report }: { report: ReportListItem }) {
 		<motion.div variants={staggerItem}
 		            className="h-full">
 			<Link href={`/reports/${report.id}`}
-			      className="group flex h-full flex-col rounded-lg border border-border bg-background p-5 transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-gold hover:shadow-[0_4px_16px_rgba(196,167,125,0.15),0_1px_4px_rgba(0,0,0,0.05)]">
+			      className="group flex h-full flex-col rounded-lg border border-border bg-background p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)] transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-gold hover:shadow-[0_4px_16px_rgba(196,167,125,0.15),0_1px_4px_rgba(0,0,0,0.05)]">
 				<div className="flex items-start justify-between gap-3">
 					<h3 className="min-w-0 flex-1 text-lg font-medium text-foreground transition-colors group-hover:text-foreground-muted">
 						{report.title}
 					</h3>
 					<span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
 						report.public
-							? "border border-gold/60 bg-gold/10 text-foreground-muted"
-							: "border border-border bg-background-creme text-text-gray"
+							? "bg-green-100 text-green-800 border"
+							: "bg-gray-100 text-gray-800 border"
 					}`}>
 						{report.public ? "Public" : "Private"}
 					</span>

@@ -232,12 +232,14 @@ export function AboutPageClient() {
 							<p className="text-lg text-foreground leading-relaxed mb-8">
 								Have a gemstone you&apos;d like examined, or questions about buying one? I&apos;d love to help.
 							</p>
-							<Button3D as={Link}
-							          href="/contact"
-							          variant="secondary"
-							          size="md">
-								<span className="font-medium">Get in Touch</span>
-							</Button3D>
+							<Link href="/contact" passHref legacyBehavior>
+								<Button3D as="a"
+								          href="/contact"
+								          variant="secondary"
+								          size="md">
+									<span className="font-medium">Get in Touch</span>
+								</Button3D>
+							</Link>
 						</div>
 					</div>
 				</section>

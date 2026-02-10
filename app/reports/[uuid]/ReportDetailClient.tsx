@@ -148,10 +148,10 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 						title={
 							<span className="flex items-center gap-3">
 								{report.title}
-								<span className={`rounded-full px-3 py-1 text-sm font-medium ${
+								<span className={`rounded-full px-3 py-1 text-xs font-medium ${
 									report.public
-										? "bg-green-100 text-green-800"
-										: "bg-gray-100 text-gray-800"
+										? "bg-green-100 text-green-800 border"
+										: "bg-gray-100 text-gray-800 border"
 								}`}>
 									{report.public ? "Public" : "Private"}
 								</span>

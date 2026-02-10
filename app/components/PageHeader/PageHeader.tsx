@@ -86,7 +86,6 @@ export function PageHeader({
 					>
 						<div
 							className="h-0.5 w-12 bg-page-header-accent rounded-full"
-							style={{ originX: 0.5 }}
 						/>
 					</MotionChild>
 					{subtitle && (
