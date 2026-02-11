@@ -36,8 +36,8 @@ jobs:
           context: .
           file: ./.deploy/live.Dockerfile
           tags: |
-            registry.gitlab.com/mineralogy-rocks/gemsla.be/frontend:${{ github.sha }}
-            registry.gitlab.com/mineralogy-rocks/gemsla.be/frontend:latest
+            registry.gitlab.com/mineralogy.rocks/gemsla.be/frontend:${{ github.sha }}
+            registry.gitlab.com/mineralogy.rocks/gemsla.be/frontend:latest
           build-args: |
               RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
               NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}

@@ -12,11 +12,11 @@ git pull
 
 
 echo 'Tagging current latest image with `prev` tag...'
-docker tag registry.gitlab.com/mineralogy-rocks/gemsla.be/frontend:latest registry.gitlab.com/mineralogy-rocks/gemsla.be/frontend:prev
+docker tag registry.gitlab.com/mineralogy.rocks/gemsla.be/frontend:latest registry.gitlab.com/mineralogy-rocks/gemsla.be/frontend:prev
 
 
 echo 'Pulling new images...'
-docker pull registry.gitlab.com/mineralogy-rocks/gemsla.be/frontend:latest
+docker pull registry.gitlab.com/mineralogy.rocks/gemsla.be/frontend:latest
 
 
 echo 'Removing dangling images...'
