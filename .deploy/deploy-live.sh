@@ -28,11 +28,11 @@ sudo cp ./crontab/config /etc/cron.d/gemsla.be
 
 
 echo 'Restarting containers...'
-docker-compose up -d --no-deps frontend
+docker compose up -d --no-deps frontend
 
 
 echo 'Restarting nginx...'
-docker-compose restart nginx
+docker compose restart nginx
 
 
 export COMPOSE_INTERACTIVE_NO_CLI=0
