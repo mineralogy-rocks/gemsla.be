@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+
+  nginx:
+    image: nginx:1.17.9
+    platform: linux/amd64
+    container_name: gems-labe-nginx
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    command: /bin/bash -c "envsubst '$${DOMAIN}' < /etc/nginx/nginx.template > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"
+    environment:
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - ./services/nginx/nginx.template:/etc/nginx/nginx.template:ro
+
+      # Generate key on HOST: openssl dhparam -out ./services/nginx/dhparam.pem 4096
+      - ./services/nginx/dhparam.pem:/etc/nginx/dhparam.pem:ro
+
+      # Generate key on HOST: sudo htpasswd -c ./services/nginx/.htpasswd dev password
+      - ./services/nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+
+      - ../../_data/certbot:/etc/letsencrypt:ro
+      - ../../_data/nginx/log:/var/log/nginx
+      - ../../_data/nginx/static:/var/www/static
+      - ../../_data/nginx/well-known:/var/www/well-known
+
+
+  frontend:
+    image: registry.gitlab.com/mineralogy.rocks/gemsla.be/frontend:latest
+    platform: linux/amd64
+    container_name: gems-labe
+    restart: always
+    links:
+      - 'nginx:${DOMAIN}'
+    volumes:
+      - ../../_data/nginx/static:/var/www/static

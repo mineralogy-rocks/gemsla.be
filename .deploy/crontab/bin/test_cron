@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -e
+
+cd /home/ubuntu/webapp/gemsla.be/.deploy
+echo "This is a test job"

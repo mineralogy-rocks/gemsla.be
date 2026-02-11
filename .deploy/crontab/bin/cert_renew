@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -e
+
+cd /home/ubuntu/webapp/gemsla.be/.deploy
+/usr/local/bin/docker-compose -f docker-compose.utils.yml run --rm --no-deps certbot-renew
