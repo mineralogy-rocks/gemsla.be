@@ -55,7 +55,7 @@ jobs:
 
       - name: Prepare SSH Key
         run: |
-          echo ${{ secrets.SSH_KEY }} | base64 -d > github_actions.key
+          echo "${{ secrets.SSH_KEY }}" | base64 -d > github_actions.key
           chmod 400 github_actions.key
 
       - name: Deploy Application
