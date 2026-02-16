@@ -20,10 +20,12 @@ const education = [
 ];
 
 const certifications = [
-	{name: "Applied Jewelry Professional", issued: "2021"},
+	{name: "Gem Identification", issued: "Aug 2025 - ongoing"},
+	{name: "Gem Identification Lab", issued: "Nov 2023"},
 	{name: "Colored Stones", issued: "Sep 2022"},
 	{name: "Diamonds & Diamond Grading", issued: "Aug 2022"},
 	{name: "Graduate Diamonds", issued: "Aug 2022"},
+	{name: "Applied Jewelry Professional", issued: "2021"},
 	{name: "Diamond Essentials Certificate", issued: "Mar 2021"},
 	{name: "Colored Stone Essentials Certificate", issued: "Feb 2021"},
 	{name: "Jewelry Essentials Certificate", issued: "Feb 2021"},
@@ -35,6 +37,12 @@ const publications = [
 		journal: "Scientific Reports",
 		date: "Dec 2025",
 		url: "https://www.nature.com/articles/s41598-025-33599-y",
+	},
+	{
+		title: "Characterization of chrysoberyl and its gemmological varieties by Raman spectroscopy",
+		journal: "Journal of Raman Spectroscopy",
+		date: "Jun 2023",
+		url: "https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/jrs.6566",
 	},
 	{
 		title: "Chrysoberyl and associated beryllium minerals resulting from metamorphic overprint of the Maršíkov-Schinderhübel-III pegmatite, Czech Republic",
@@ -60,12 +68,6 @@ const publications = [
 		date: "Jun 2022",
 		url: "https://www.researchgate.net/publication/361593998_Apatite_from_Slovakia",
 	},
-	{
-		title: "Raman spectroscopy study of synthetic beryl crystals",
-		journal: "Journal of Raman Spectroscopy",
-		date: "2024",
-		url: "https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/jrs.6566",
-	},
 ];
 
 export function AboutPageClient() {
@@ -87,7 +89,8 @@ export function AboutPageClient() {
 								<Image src="/images/olena-portrait.jpg"
 								       alt="Olena Rybnikova - Gemologist and Researcher"
 								       fill
-								       className="object-cover object-top"
+								       className="object-cover"
+								       style={{ objectPosition: 'center 45%' }}
 								       priority
 								       sizes="(max-width: 640px) 192px, 256px" />
 							</div>
