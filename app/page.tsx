@@ -86,14 +86,6 @@ export default function Home() {
 							      className="text-foreground hover:text-callout-accent underline underline-offset-2 transition-colors">Learn more about me</Link>.
 						</motion.p>
 
-						<motion.p className="text-lg text-foreground leading-relaxed mb-10"
-						          variants={paragraphReveal}
-						          initial="hidden"
-						          whileInView="visible"
-						          viewport={{once: true, margin: "-50px"}}>
-							I hold a <strong>PhD in Mineralogy</strong> and certifications from the <strong>Gemological Institute of America (GIA)</strong> in colored stones, diamond grading, and jewelry essentials. My research on beryl and chrysoberyl has been published in peer-reviewed journals&mdash;but my real passion is translating that science into practical guidance for collectors, jewelers, and anyone curious about gems.
-						</motion.p>
-
 						<hr className="my-16 sm:my-24 border-t border-secondary" />
 
 						<motion.p className="text-lg text-foreground leading-relaxed mb-8"
@@ -116,12 +108,12 @@ export default function Home() {
 							<div className="space-y-6 mb-12">
 								<CalloutCard variant="service"
 								             title="Consulting">
-									Need guidance on buying, selling, or understanding gemstones? I offer personalized advice on stone selection, quality assessment, and investment potential&mdash;whether you&apos;re a first-time buyer or a seasoned collector.
+									Need guidance on buying, selling, or advertising gemstones? I offer personalized advice on stone selection, quality assessment, and investment potential, whether you&apos;re a first-time buyer or a seasoned collector.
 								</CalloutCard>
 
 								<CalloutCard variant="service"
 								             title="Examination">
-									Get a clear picture of what you have. I provide detailed analysis of your gemstone&apos;s identity, quality, and any treatments&mdash;backed by a formal certificate you can use for insurance, resale, or peace of mind. See current <Link href="/pricing" className="text-foreground hover:text-callout-accent underline underline-offset-2 transition-colors">pricing and service tiers</Link>.
+									Get a clear picture of what you have. I provide detailed analysis of your gemstone&apos;s identity, quality, and any treatments, backed by a formal certificate you can use for insurance, resale, or peace of mind. See current <Link href="/pricing" className="text-foreground hover:text-callout-accent underline underline-offset-2 transition-colors">pricing and service tiers</Link>.
 								</CalloutCard>
 							</div>
 
@@ -136,7 +128,7 @@ export default function Home() {
 							<div className="mb-12">
 								<CalloutCard variant="service"
 								             title="Analytical Methods">
-									My toolkit includes <strong>Raman Spectroscopy</strong> and X-ray Diffraction for structural analysis, NMR Spectroscopy for molecular insights, <strong>Fluorescence Spectroscopy</strong> for detecting treatments, Electrochemical Analysis for composition studies, and Optical Analysis for visual evaluation.
+									In addition to classical gemological equipment such as a microscope, polariscope, and refractometer, my toolkit includes advanced analytical instruments: Raman spectroscopy, Fourier Transform Infrared (FTIR) spectroscopy, X-ray Fluorescence (XRF) spectroscopy, and UV-Vis-NIR spectroscopy, enabling comprehensive gemstone analysis.
 								</CalloutCard>
 							</div>
 
@@ -146,6 +138,7 @@ export default function Home() {
 							          whileInView="visible"
 							          viewport={{once: true, margin: "-50px"}}>
 								Beyond lab work, I write about gemology for academic journals and the International Gem Society.
+								I invite you to visit <Link href="/blog" className="text-foreground hover:text-callout-accent underline underline-offset-2 transition-colors">my blog</Link>, where I share my thoughts and insights on the latest news and trends in gemology!
 							</motion.p>
 
 							<CalloutCard variant="service"
@@ -157,7 +150,7 @@ export default function Home() {
 										   target="_blank"
 										   rel="noopener noreferrer"
 										   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
-											Raman spectroscopy study of synthetic beryl crystals
+											Characterization of chrysoberyl and its gemmological varieties by Raman spectroscopy
 										</a>
 										<span className="text-text-gray"> - Journal of Raman Spectroscopy</span>
 									</li>
@@ -166,7 +159,16 @@ export default function Home() {
 										   target="_blank"
 										   rel="noopener noreferrer"
 										   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
-											Chrysoberyl and associated beryllium minerals
+											Chrysoberyl and associated beryllium minerals resulting from metamorphic overprinting of the Maršíkov–Schinderhübel III pegmatite, Czech Republic
+										</a>
+										<span className="text-text-gray"> - Mineralogical Magazine</span>
+									</li>
+									<li>
+										<a href="https://www.nature.com/articles/s41598-025-33599-y"
+										   target="_blank"
+										   rel="noopener noreferrer"
+										   className="text-foreground hover:text-callout-accent transition-colors duration-300 underline underline-offset-2">
+											Forensic gemmological investigation based on optical and crystal-chemical changes in topaz from Ouro Preto and Caraí, Brazil, induced by heat treatment
 										</a>
 										<span className="text-text-gray"> - Mineralogical Magazine</span>
 									</li>

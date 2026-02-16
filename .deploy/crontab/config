@@ -1,0 +1,3 @@
+# * * * * * ubuntu /home/ubuntu/webapp/gemsla.be/.deploy/crontab/bin/test_cron 2>&1 | /usr/bin/logger -t gems-labe-test-cron
+
+0 5 * * 1 ubuntu /home/ubuntu/webapp/gemsla.be/.deploy/crontab/bin/cert_renew 2>&1 | /usr/bin/logger -t gems-labe-cert-renew

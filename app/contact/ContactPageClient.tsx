@@ -82,14 +82,14 @@ function ContactForm() {
 				<div className="max-w-2xl mx-auto">
 					<PageHeader layout="centered"
 						           title={<>I&apos;d Love to Hear From You</>}
-						           subtitle="Whether you have a question about gemstones, need a consultation, or just want to say hello — I'm here and happy to help."
+						           subtitle="Whether you have a question about gemstones, need a consultation, or just want to say hello, I'm here and happy to help."
 						           subtitleClassName="max-w-lg mx-auto" />
 
 					<div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mb-12">
 						<a href="https://instagram.com/olena_rybnikova"
 						   target="_blank"
 						   rel="noopener noreferrer"
-						   className="flex items-center justify-center gap-2 min-h-[44px] min-w-[44px] px-4 py-2 -mx-4 -my-2 text-foreground hover:text-callout-accent transition-colors duration-300">
+						   className="flex items-center justify-center gap-2 min-h-11 min-w-11 px-4 py-2 -mx-4 -my-2 text-foreground hover:text-callout-accent transition-colors duration-300">
 							<svg xmlns="http://www.w3.org/2000/svg"
 							     width="22"
 							     height="22"
