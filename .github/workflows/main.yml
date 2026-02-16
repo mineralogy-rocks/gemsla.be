@@ -27,7 +27,6 @@ jobs:
       - uses: docker/setup-buildx-action@v2
         with:
           install: true
-          version: v0.9.1
 
       - name: Build Container
         uses: docker/build-push-action@v4
