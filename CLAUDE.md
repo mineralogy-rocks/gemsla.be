@@ -9,6 +9,7 @@ Gemological services website for Olena Rybnikova. Single-page marketing site wit
 - **Three.js / React Three Fiber** (3D diamond wireframe)
 - **Supabase** (RESTful API, database, auth, storage)
 - **Resend** (transactional email)
+- **bun** as a package manager
 
 ## Project Structure
 

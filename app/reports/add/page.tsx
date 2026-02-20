@@ -3,7 +3,7 @@ import { getAdminUser } from "@/lib/supabase/admin";
 import { ReportFormClient } from "./ReportFormClient";
 
 export const metadata = {
-	title: "New Report | GemsLaBe",
+	title: "New Report",
 	description: "Create a new gem lab report",
 };
 

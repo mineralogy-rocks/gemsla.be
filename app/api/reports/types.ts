@@ -5,9 +5,9 @@ export const createReportSchema = z.object({
 	title: z.string().min(1, "Title is required").max(255),
 	description: z.string().optional().nullable(),
 	note: z.string().optional().nullable(),
-	first_name: z.string().min(1, "First name is required").max(100),
-	last_name: z.string().min(1, "Last name is required").max(100),
-	owner_email: z.string().email("Invalid email format"),
+	first_name: z.string().max(100).optional().nullable(),
+	last_name: z.string().max(100).optional().nullable(),
+	owner_email: z.string().email("Invalid email format").optional().nullable(),
 	public: z.boolean().default(false),
 	images: z.array(z.object({
 		image_url: z.string().min(1, "Image path is required"),
@@ -59,9 +59,9 @@ export interface Report {
 	description: string | null;
 	note: string | null;
 	owner_id: string | null;
-	first_name: string;
-	last_name: string;
-	owner_email: string;
+	first_name: string | null;
+	last_name: string | null;
+	owner_email: string | null;
 	public: boolean;
 	created_at: string;
 	updated_at: string;
@@ -98,8 +98,8 @@ export interface PaginatedReportsResponse {
 export interface ReportListItem {
 	id: string;
 	title: string;
-	first_name: string;
-	last_name: string;
+	first_name: string | null;
+	last_name: string | null;
 	public: boolean;
 	description: string | null;
 	created_at: string;
