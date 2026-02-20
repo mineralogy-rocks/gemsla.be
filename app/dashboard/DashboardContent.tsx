@@ -66,25 +66,6 @@ export function DashboardContent({ user, isAdmin }: DashboardContentProps) {
 									<p className="mt-1 text-sm text-text-gray">View and manage gemological reports</p>
 								</Link>
 							</motion.div>
-
-							<motion.div variants={staggerItem}>
-								<div className="flex flex-col rounded-lg border border-border-light bg-background-creme/50 p-6 opacity-60 cursor-default">
-									<div className="flex items-center justify-between mb-3">
-										<div className="w-10 h-10 rounded-lg bg-border-light/30 flex items-center justify-center">
-											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-gray">
-												<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-												<line x1="3" x2="21" y1="6" y2="6" />
-												<path d="M16 10a4 4 0 0 1-8 0" />
-											</svg>
-										</div>
-										<span className="text-xs px-2.5 py-0.5 rounded-full border border-border-light text-text-gray">
-											Coming Soon
-										</span>
-									</div>
-									<h3 className="text-lg font-medium text-foreground">Shop</h3>
-									<p className="mt-1 text-sm text-text-gray">Browse gemological instruments and tools</p>
-								</div>
-							</motion.div>
 						</motion.div>
 					)}
 

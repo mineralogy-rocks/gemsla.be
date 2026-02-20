@@ -47,11 +47,11 @@ export async function generateMetadata({ params }: PageProps) {
 	const report = await getReport(uuid);
 
 	if (!report) {
-		return { title: "Report Not Found | GemsLaBe" };
+		return { title: "Report Not Found" };
 	}
 
 	return {
-		title: `${report.title} | GemsLaBe`,
+		title: `${report.title}`,
 		description: `Gem report for ${report.first_name} ${report.last_name}`,
 	};
 }

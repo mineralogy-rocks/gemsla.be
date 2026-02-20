@@ -17,9 +17,9 @@ const reportFormSchema = z.object({
 	title: z.string().min(1, "Title is required").max(255, "Title is too long"),
 	description: z.string().max(5000, "Description is too long").optional(),
 	note: z.string().max(5000, "Note is too long").optional(),
-	first_name: z.string().min(1, "First name is required").max(100, "First name is too long"),
-	last_name: z.string().min(1, "Last name is required").max(100, "Last name is too long"),
-	owner_email: z.string().email("Invalid email format"),
+	first_name: z.string().max(100, "First name is too long").optional(),
+	last_name: z.string().max(100, "Last name is too long").optional(),
+	owner_email: z.string().email("Invalid email format").optional().or(z.literal("")),
 	public: z.boolean(),
 	shape_cutting_style: z.string().optional(),
 	measurements: z.string().optional(),
@@ -155,9 +155,9 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 				title: formData.title,
 				description: formData.description || null,
 				note: formData.note || null,
-				first_name: formData.first_name,
-				last_name: formData.last_name,
-				owner_email: formData.owner_email,
+				first_name: formData.first_name || null,
+				last_name: formData.last_name || null,
+				owner_email: formData.owner_email || null,
 				public: formData.public,
 				shape_cutting_style: formData.shape_cutting_style || null,
 				measurements: formData.measurements || null,
@@ -260,7 +260,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 								       onChange={(e) => handleChange("title", e.target.value)}
 								       placeholder="e.g., Diamond Authentication Report"
 								       error={errors.title}
-								       required />
+								       />
 
 								<TextArea label="Description"
 								          id="description"
@@ -401,7 +401,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 									       onChange={(e) => handleChange("first_name", e.target.value)}
 									       placeholder="John"
 									       error={errors.first_name}
-									       required />
+									       />
 
 									<Input label="Last Name"
 									       id="last_name"
@@ -409,7 +409,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 									       onChange={(e) => handleChange("last_name", e.target.value)}
 									       placeholder="Doe"
 									       error={errors.last_name}
-									       required />
+									       />
 								</div>
 
 								<Input label="Email"
@@ -419,7 +419,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 								       onChange={(e) => handleChange("owner_email", e.target.value)}
 								       placeholder="john.doe@example.com"
 								       error={errors.owner_email}
-								       required />
+								       />
 							</div>
 						</div>
 

@@ -74,9 +74,11 @@ function ReportCard({ report }: { report: ReportListItem }) {
 				)}
 
 				<div className="mt-auto flex items-center justify-between gap-4 pt-4 text-xs text-text-gray">
-					<span className="truncate">
-						{report.first_name} {report.last_name}
-					</span>
+					{(report.first_name || report.last_name) ? (
+						<span className="truncate">
+							{[report.first_name, report.last_name].filter(Boolean).join(" ")}
+						</span>
+					) : <span />}
 					<div className="flex shrink-0 items-center gap-4">
 						<span className="flex items-center gap-1">
 							<svg className="h-4 w-4"

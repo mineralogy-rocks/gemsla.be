@@ -60,6 +60,10 @@ export function Header({ user, isAdmin = false }: HeaderProps) {
 						      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
 							Contact
 						</Link>
+						<Link href="/blog"
+						      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
+							Blog
+						</Link>
 						{user ? (
 							<>
 								<Link href="/dashboard"
