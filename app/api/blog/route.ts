@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
 import { createBlogPostSchema, type PaginatedBlogPostsResponse, type BlogTag } from "./types";
+import { stripContentImageUrls } from "@/app/blog/lib/content-images";
 
 export async function GET(request: NextRequest) {
 	try {
@@ -121,6 +122,10 @@ export async function POST(request: NextRequest) {
 
 		const { tag_ids, ...postData } = validation.data;
 
+		if (postData.content) {
+			postData.content = stripContentImageUrls(postData.content as Record<string, unknown>);
+		}
+
 		const supabase = await createClient();
 
 		const { data: { user } } = await supabase.auth.getUser();
@@ -129,10 +134,6 @@ export async function POST(request: NextRequest) {
 			...postData,
 			author_id: user?.id || null,
 		};
-
-		if (postData.is_published) {
-			insertData.published_at = new Date().toISOString();
-		}
 
 		const { data: post, error: postError } = await supabase
 			.from("blog_posts")

@@ -41,17 +41,26 @@ function BlogPostRow({
 
 	return (
 		<motion.article variants={staggerItem} className="group py-8 border-b border-border-light">
-			{isAdmin && (
-				<div className="flex justify-end mb-2">
-					<span className={`text-xs px-2 py-0.5 rounded-full border ${
-						post.is_published
-							? "border-green-300 text-green-700 bg-green-50"
-							: "border-border-light text-text-gray bg-background-creme"
-					}`}>
-						{post.is_published ? "Published" : "Draft"}
-					</span>
-				</div>
-			)}
+			{isAdmin && (() => {
+				const isScheduled = post.is_published && post.published_at && new Date(post.published_at) > new Date();
+				const label = !post.is_published
+					? "Draft"
+					: isScheduled
+						? `Scheduled for ${new Date(post.published_at!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+						: "Published";
+				const style = !post.is_published
+					? "border-border-light text-text-gray bg-background-creme"
+					: isScheduled
+						? "border-amber-300 text-amber-700 bg-amber-50"
+						: "border-green-300 text-green-700 bg-green-50";
+				return (
+					<div className="flex justify-end mb-2">
+						<span className={`text-xs px-2 py-0.5 rounded-full border ${style}`}>
+							{label}
+						</span>
+					</div>
+				);
+			})()}
 
 			<Link href={`/blog/${post.slug}`}>
 				<h3 className="text-xl sm:text-2xl font-medium text-foreground group-hover:text-gold transition-colors duration-200 mb-3">

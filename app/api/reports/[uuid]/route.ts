@@ -179,6 +179,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 					display_order: img.display_order ?? index,
 					title: img.title || null,
 					caption: img.caption || null,
+					is_headline: img.is_headline || false,
 				}));
 
 				const { error: insertImagesError } = await supabase

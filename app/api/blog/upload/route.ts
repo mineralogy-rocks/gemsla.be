@@ -63,16 +63,24 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const { data: publicUrlData } = supabase.storage
+		const { data: signedUrlData, error: signedUrlError } = await supabase.storage
 			.from("blog-images")
-			.getPublicUrl(data.path);
+			.createSignedUrl(data.path, 3600);
 
-		const url = publicUrlData.publicUrl.replace(
+		if (signedUrlError || !signedUrlData?.signedUrl) {
+			console.error("Signed URL error:", signedUrlError);
+			return NextResponse.json(
+				{ error: "Failed to generate signed URL" },
+				{ status: 500 }
+			);
+		}
+
+		const signedUrl = signedUrlData.signedUrl.replace(
 			"host.docker.internal",
 			"localhost"
 		);
 
-		return NextResponse.json({ url, path: data.path });
+		return NextResponse.json({ signedUrl, path: data.path });
 	} catch (error) {
 		console.error("Upload error:", error);
 		return NextResponse.json(

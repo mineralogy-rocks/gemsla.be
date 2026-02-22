@@ -36,12 +36,26 @@ export function BlogPostForm({ mode, initialData, availableTags }: BlogPostFormP
 		(initialData?.content as JSONContent) || {}
 	);
 	const [isPublished, setIsPublished] = useState(initialData?.is_published || false);
+	const [publishedAt, setPublishedAt] = useState(() => {
+		if (initialData?.published_at) {
+			const dt = new Date(initialData.published_at);
+			const offset = dt.getTimezoneOffset();
+			const local = new Date(dt.getTime() - offset * 60000);
+			return local.toISOString().slice(0, 16);
+		}
+		return "";
+	});
 	const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
 		initialData?.blog_post_tags?.map((pt) => pt.blog_tags.id) || []
 	);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState("");
 	const [slugManuallyEdited, setSlugManuallyEdited] = useState(mode === "edit");
+	const [tags, setTags] = useState<BlogTag[]>(availableTags);
+	const [showNewTag, setShowNewTag] = useState(false);
+	const [newTagName, setNewTagName] = useState("");
+	const [creatingTag, setCreatingTag] = useState(false);
+	const [tagError, setTagError] = useState("");
 
 	const handleTitleChange = (value: string) => {
 		setTitle(value);
@@ -63,6 +77,39 @@ export function BlogPostForm({ mode, initialData, availableTags }: BlogPostFormP
 		);
 	};
 
+	const handleCreateTag = async () => {
+		const name = newTagName.trim();
+		if (!name) return;
+
+		setCreatingTag(true);
+		setTagError("");
+
+		try {
+			const res = await fetch("/api/blog/tags", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ name, slug: slugify(name) }),
+			});
+
+			if (!res.ok) {
+				const data = await res.json();
+				setTagError(data.error || "Failed to create tag.");
+				setCreatingTag(false);
+				return;
+			}
+
+			const newTag: BlogTag = await res.json();
+			setTags((prev) => [...prev, newTag]);
+			setSelectedTagIds((prev) => [...prev, newTag.id]);
+			setNewTagName("");
+			setShowNewTag(false);
+		} catch {
+			setTagError("An unexpected error occurred.");
+		} finally {
+			setCreatingTag(false);
+		}
+	};
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!title.trim() || !slug.trim()) {
@@ -79,6 +126,9 @@ export function BlogPostForm({ mode, initialData, availableTags }: BlogPostFormP
 			content,
 			excerpt: excerpt.trim() || null,
 			is_published: isPublished,
+			published_at: isPublished && publishedAt
+				? new Date(publishedAt).toISOString()
+				: null,
 			tag_ids: selectedTagIds,
 		};
 
@@ -168,25 +218,64 @@ export function BlogPostForm({ mode, initialData, availableTags }: BlogPostFormP
 														placeholder="Write your post content here..." />
 						</div>
 
-						{availableTags.length > 0 && (
-							<div className="flex flex-col gap-2">
-								<label className="text-sm font-medium text-foreground">
-									Tags
-								</label>
+						<div className="flex flex-col gap-2">
+							<label className="text-sm font-medium text-foreground">
+								Tags
+							</label>
+							{tags.length > 0 && (
 								<div className="flex flex-wrap gap-3">
-									{availableTags.map((tag) => (
+									{tags.map((tag) => (
 										<Checkbox key={tag.id}
 											label={tag.name}
 											checked={selectedTagIds.includes(tag.id)}
 											onChange={() => toggleTag(tag.id)} />
 									))}
 								</div>
-							</div>
-						)}
+							)}
+							{!showNewTag ? (
+								<button type="button"
+									onClick={() => { setShowNewTag(true); setTagError(""); }}
+									className="text-sm text-callout-accent hover:underline self-start cursor-pointer">
+									+ New tag
+								</button>
+							) : (
+								<div className="flex flex-col gap-2">
+									<div className="flex gap-2 items-end">
+										<Input label=""
+											value={newTagName}
+											onChange={(e) => setNewTagName(e.target.value)}
+											placeholder="Tag name"
+											onKeyDown={(e) => {
+												if (e.key === "Enter") {
+													e.preventDefault();
+													handleCreateTag();
+												}
+											}} />
+										<Button variant="outline"
+											size="sm"
+											type="button"
+											loading={creatingTag}
+											onClick={handleCreateTag}>
+											Create
+										</Button>
+									</div>
+									{tagError && (
+										<p className="text-sm text-red-600">{tagError}</p>
+									)}
+								</div>
+							)}
+						</div>
 
 						<Checkbox label="Publish this post"
 							checked={isPublished}
 							onChange={() => setIsPublished(!isPublished)} />
+
+						{isPublished && (
+							<Input label="Publish date"
+								type="datetime-local"
+								value={publishedAt}
+								onChange={(e) => setPublishedAt(e.target.value)} />
+						)}
 
 						<div className="flex justify-end pt-4 border-t border-border">
 							<Button variant="primary"

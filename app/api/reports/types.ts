@@ -3,6 +3,7 @@ import { z } from "zod";
 // Validation schemas
 export const createReportSchema = z.object({
 	title: z.string().min(1, "Title is required").max(255),
+	stone: z.string().min(1, "Stone is required").max(200),
 	description: z.string().optional().nullable(),
 	note: z.string().optional().nullable(),
 	first_name: z.string().max(100).optional().nullable(),
@@ -14,6 +15,7 @@ export const createReportSchema = z.object({
 		display_order: z.number().int().min(0).default(0),
 		title: z.string().optional().nullable(),
 		caption: z.string().optional().nullable(),
+		is_headline: z.boolean().optional().default(false),
 	})).optional().default([]),
 	// Gemological fields
 	shape_cutting_style: z.string().optional().nullable(),
@@ -49,6 +51,7 @@ export interface ReportImage {
 	display_order: number;
 	title: string | null;
 	caption: string | null;
+	is_headline: boolean;
 	created_at: string;
 	signed_url?: string;
 }
@@ -56,6 +59,7 @@ export interface ReportImage {
 export interface Report {
 	id: string;
 	title: string;
+	stone: string;
 	description: string | null;
 	note: string | null;
 	owner_id: string | null;
@@ -98,6 +102,7 @@ export interface PaginatedReportsResponse {
 export interface ReportListItem {
 	id: string;
 	title: string;
+	stone: string;
 	first_name: string | null;
 	last_name: string | null;
 	public: boolean;

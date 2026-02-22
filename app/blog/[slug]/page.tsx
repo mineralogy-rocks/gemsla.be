@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
 import { fetchPostBySlug } from "../lib/queries";
+import { resolveContentImageUrls } from "../lib/content-images";
 import { BlogPostDetailClient } from "./BlogPostDetailClient";
 
 interface BlogPostPageProps {
@@ -35,5 +37,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 		notFound();
 	}
 
-	return <BlogPostDetailClient post={post} isAdmin={admin} />;
+	let resolvedPost = post;
+	if (post.content) {
+		const supabase = await createClient();
+		const content = await resolveContentImageUrls(supabase, post.content as Record<string, unknown>);
+		resolvedPost = { ...post, content } as typeof post;
+	}
+
+	return <BlogPostDetailClient post={resolvedPost} isAdmin={admin} />;
 }

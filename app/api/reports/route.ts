@@ -140,6 +140,7 @@ export async function POST(request: NextRequest) {
 				display_order: img.display_order ?? index,
 				title: img.title || null,
 				caption: img.caption || null,
+				is_headline: img.is_headline || false,
 			}));
 
 			const { error: imagesError } = await supabase

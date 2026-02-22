@@ -14,12 +14,14 @@ export interface UploadedImage {
 	display_order: number;
 	title?: string;
 	caption?: string;
+	is_headline?: boolean;
 }
 
 interface ImageUploadProps {
 	images: UploadedImage[];
 	onImagesChange: (images: UploadedImage[]) => void;
 	onImageFieldChange?: (imageId: string, field: "title" | "caption", value: string) => void;
+	onHeadlineChange?: (imageId: string, isHeadline: boolean) => void;
 	reportId?: string;
 	maxImages?: number;
 	disabled?: boolean;
@@ -29,6 +31,7 @@ export function ImageUpload({
 	images,
 	onImagesChange,
 	onImageFieldChange,
+	onHeadlineChange,
 	reportId,
 	maxImages = 10,
 	disabled = false,
@@ -282,8 +285,20 @@ export function ImageUpload({
 										</div>
 									</div>
 
-									{onImageFieldChange && (
+									{(onImageFieldChange || onHeadlineChange) && (
 										<div className="flex-1 p-4 space-y-3">
+											{onHeadlineChange && (
+												<label className="flex items-center gap-2 cursor-pointer">
+													<input type="checkbox"
+													       checked={image.is_headline || false}
+													       onChange={(e) => onHeadlineChange(image.id, e.target.checked)}
+													       disabled={disabled}
+													       className="h-4 w-4 rounded border-border text-callout-accent focus:ring-callout-accent" />
+													<span className="text-sm text-foreground">Set as headline</span>
+												</label>
+											)}
+											{onImageFieldChange && (
+											<>
 											<Input label="Title"
 											       value={image.title || ""}
 											       onChange={(e) => onImageFieldChange(image.id, "title", e.target.value)}
@@ -291,12 +306,14 @@ export function ImageUpload({
 											       disabled={disabled}
 											       className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-text-gray focus:outline-none focus:ring-1 focus:ring-callout-accent" />
 											<TextArea label="Caption"
-															  value={image.caption || ""}
+											          value={image.caption || ""}
 											          onChange={(e) => onImageFieldChange(image.id, "caption", e.target.value)}
 											          placeholder="Image caption"
 											          disabled={disabled}
 											          rows={4}
 											          className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-text-gray focus:outline-none focus:ring-1 focus:ring-callout-accent resize-none" />
+											</>
+										)}
 									</div>
 									)}
 								</div>

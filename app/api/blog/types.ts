@@ -6,6 +6,7 @@ export const createBlogPostSchema = z.object({
 	content: z.any().default({}),
 	excerpt: z.string().optional().nullable(),
 	is_published: z.boolean().default(false),
+	published_at: z.string().datetime({ offset: true }).optional().nullable(),
 	tag_ids: z.array(z.string().uuid()).optional().default([]),
 });
 
@@ -15,6 +16,7 @@ export const updateBlogPostSchema = z.object({
 	content: z.any().optional(),
 	excerpt: z.string().optional().nullable(),
 	is_published: z.boolean().optional(),
+	published_at: z.string().datetime({ offset: true }).optional().nullable(),
 	tag_ids: z.array(z.string().uuid()).optional(),
 });
 

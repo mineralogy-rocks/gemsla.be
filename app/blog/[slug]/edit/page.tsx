@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { getAdminUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { fetchAllTags } from "@/app/blog/lib/queries";
+import { resolveContentImageUrls } from "@/app/blog/lib/content-images";
 import { BlogPostForm } from "../../admin/BlogPostForm";
 import type { BlogPost } from "@/app/api/blog/types";
 
@@ -33,11 +34,17 @@ export default async function EditBlogPostPage({ params }: EditBlogPostPageProps
 		notFound();
 	}
 
+	let resolvedPost = post;
+	if (post.content) {
+		const content = await resolveContentImageUrls(supabase, post.content as Record<string, unknown>);
+		resolvedPost = { ...post, content } as typeof post;
+	}
+
 	const tags = await fetchAllTags();
 
 	return (
 		<BlogPostForm mode="edit"
-									initialData={post as BlogPost}
+									initialData={resolvedPost as BlogPost}
 									availableTags={tags} />
 	);
 }
