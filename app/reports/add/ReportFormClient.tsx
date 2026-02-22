@@ -273,16 +273,14 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 								       value={formData.title}
 								       onChange={(e) => handleChange("title", e.target.value)}
 								       placeholder="e.g., Diamond Authentication Report"
-								       error={errors.title}
-								       />
+								       error={errors.title} />
 
 								<Input label="Stone"
 								       id="stone"
 								       value={formData.stone}
 								       onChange={(e) => handleChange("stone", e.target.value)}
 								       placeholder="e.g., Ruby, Sapphire, Emerald"
-								       error={errors.stone}
-								       />
+								       error={errors.stone} />
 
 								<TextArea label="Description"
 								          id="description"

@@ -10,7 +10,7 @@ const sizeClasses: Record<SelectSize, string> = {
 };
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-	({ label, error, size = "md", className = "", id, options, placeholder, ...props }, ref) => {
+	({ label, error, size = "sm", className = "", id, options, placeholder, ...props }, ref) => {
 		const generatedId = useId();
 		const selectId = id || generatedId;
 
