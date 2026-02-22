@@ -83,13 +83,14 @@ export function Lightbox({
 				            initial={{ opacity: 0 }}
 				            animate={{ opacity: 1 }}
 				            exit={{ opacity: 0 }}
+				            onClick={onClose}
 				            role="dialog"
 				            aria-modal="true"
 				            aria-label="Image lightbox">
 					{/* Close button */}
 					<button type="button"
 					        onClick={onClose}
-					        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/10 text-background transition-colors hover:bg-background/20"
+					        className="absolute right-4 top-20 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background/20 text-background transition-colors hover:bg-background/30"
 					        aria-label="Close lightbox">
 						<svg className="h-6 w-6"
 						     fill="none"
@@ -105,7 +106,7 @@ export function Lightbox({
 					{/* Previous button */}
 					{images.length > 1 && (
 						<button type="button"
-						        onClick={goToPrevious}
+						        onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
 						        className="absolute left-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background/10 text-background transition-colors hover:bg-background/20"
 						        aria-label="Previous image">
 							<svg className="h-8 w-8"
@@ -122,6 +123,7 @@ export function Lightbox({
 
 					{/* Image */}
 					<motion.div className="relative max-h-[90vh] max-w-[90vw]"
+					            onClick={(e) => e.stopPropagation()}
 					            key={currentIndex}
 					            initial={{ opacity: 0, scale: 0.95 }}
 					            animate={{ opacity: 1, scale: 1 }}
@@ -148,7 +150,7 @@ export function Lightbox({
 					{/* Next button */}
 					{images.length > 1 && (
 						<button type="button"
-						        onClick={goToNext}
+						        onClick={(e) => { e.stopPropagation(); goToNext(); }}
 						        className="absolute right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background/10 text-background transition-colors hover:bg-background/20"
 						        aria-label="Next image">
 							<svg className="h-8 w-8"
@@ -176,7 +178,7 @@ export function Lightbox({
 							{images.map((image, index) => (
 								<button key={index}
 								        type="button"
-								        onClick={() => setCurrentIndex(index)}
+								        onClick={(e) => { e.stopPropagation(); setCurrentIndex(index); }}
 								        className={`h-12 w-12 overflow-hidden rounded-md border-2 transition-all ${
 									        index === currentIndex
 										        ? "border-background opacity-100"

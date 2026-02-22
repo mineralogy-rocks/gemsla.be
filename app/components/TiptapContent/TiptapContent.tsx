@@ -17,6 +17,14 @@ const AlignableImage = Image.extend({
 					return { "data-align": attributes["data-align"] };
 				},
 			},
+			"data-storage-path": {
+				default: null,
+				parseHTML: (element: HTMLElement) => element.getAttribute("data-storage-path"),
+				renderHTML: (attributes: Record<string, string | null>) => {
+					if (!attributes["data-storage-path"]) return {};
+					return { "data-storage-path": attributes["data-storage-path"] };
+				},
+			},
 		};
 	},
 });

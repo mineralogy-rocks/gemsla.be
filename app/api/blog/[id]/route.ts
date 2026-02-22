@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
 import { updateBlogPostSchema } from "../types";
+import { stripContentImageUrls } from "@/app/blog/lib/content-images";
 
 interface RouteParams {
 	params: Promise<{ id: string }>;
@@ -66,6 +67,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 		}
 
 		const { tag_ids, ...postData } = validation.data;
+
+		if (postData.content) {
+			postData.content = stripContentImageUrls(postData.content as Record<string, unknown>);
+		}
 
 		const supabase = await createClient();
 

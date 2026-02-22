@@ -15,6 +15,7 @@ import type { Report } from "../../api/reports/types";
 
 const reportFormSchema = z.object({
 	title: z.string().min(1, "Title is required").max(255, "Title is too long"),
+	stone: z.string().min(1, "Stone is required").max(200, "Stone name is too long"),
 	description: z.string().max(5000, "Description is too long").optional(),
 	note: z.string().max(5000, "Note is too long").optional(),
 	first_name: z.string().max(100, "First name is too long").optional(),
@@ -67,6 +68,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 
 	const [formData, setFormData] = useState<FormData>({
 		title: initialData?.title || "",
+		stone: initialData?.stone || "",
 		description: initialData?.description || "",
 		note: initialData?.note || "",
 		first_name: initialData?.first_name || "",
@@ -102,6 +104,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 				display_order: img.display_order,
 				title: img.title || "",
 				caption: img.caption || "",
+				is_headline: img.is_headline || false,
 			}));
 		}
 		return [];
@@ -112,6 +115,15 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 		if (errors[field]) {
 			setErrors((prev) => ({ ...prev, [field]: undefined }));
 		}
+	};
+
+	const handleHeadlineChange = (imageId: string, isHeadline: boolean) => {
+		setImages((prev) =>
+			prev.map((img) => ({
+				...img,
+				is_headline: img.id === imageId ? isHeadline : false,
+			}))
+		);
 	};
 
 	const handleImageFieldChange = (imageId: string, field: "title" | "caption", value: string) => {
@@ -153,6 +165,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 
 			const payload = {
 				title: formData.title,
+				stone: formData.stone,
 				description: formData.description || null,
 				note: formData.note || null,
 				first_name: formData.first_name || null,
@@ -181,6 +194,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 					display_order: index,
 					title: img.title || null,
 					caption: img.caption || null,
+					is_headline: img.is_headline || false,
 				})),
 			};
 
@@ -260,6 +274,14 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 								       onChange={(e) => handleChange("title", e.target.value)}
 								       placeholder="e.g., Diamond Authentication Report"
 								       error={errors.title}
+								       />
+
+								<Input label="Stone"
+								       id="stone"
+								       value={formData.stone}
+								       onChange={(e) => handleChange("stone", e.target.value)}
+								       placeholder="e.g., Ruby, Sapphire, Emerald"
+								       error={errors.stone}
 								       />
 
 								<TextArea label="Description"
@@ -471,6 +493,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 								<ImageUpload images={images}
 								             onImagesChange={setImages}
 								             onImageFieldChange={handleImageFieldChange}
+								             onHeadlineChange={handleHeadlineChange}
 								             reportId={initialData?.id}
 								             maxImages={10}
 								             disabled={isSubmitting} />

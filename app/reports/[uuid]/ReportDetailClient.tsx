@@ -28,9 +28,9 @@ interface FieldDisplayProps {
 function FieldDisplay({ label, value, suffix }: FieldDisplayProps) {
 	if (value == null || value === "") return null;
 	return (
-		<div className="flex items-baseline justify-between py-2">
+		<div className="py-2">
 			<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">{label}</dt>
-			<dd className="text-sm text-foreground text-right">
+			<dd className="mt-1 text-sm text-foreground">
 				{value}{suffix && <span className="text-text-gray ml-1">{suffix}</span>}
 			</dd>
 		</div>
@@ -61,7 +61,7 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 			ctx!.fillRect(0, 0, size, size);
 			ctx!.drawImage(img, 0, 0, size, size);
 			const a = document.createElement("a");
-			a.download = `report-${report.id}-qr.png`;
+			a.download = `${report.title.toLowerCase().replace(/\s+/g, "-")}-qr.png`;
 			a.href = canvas.toDataURL("image/png");
 			a.click();
 		};
@@ -177,16 +177,14 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 						            {report.public ? "Public" : "Private"}
 					            </span>
 				            </>}
-				            subtitle={`${[report.first_name, report.last_name].filter(Boolean).join(" ")}${(report.first_name || report.last_name) ? " · " : ""}${new Date(report.created_at).toLocaleDateString("en-US", {
-					            year: "numeric",
-					            month: "long",
-					            day: "numeric",
-				            })}`} />
+				            subtitle={<>
+					            <span className="block font-bold text-foreground text-lg mb-1">{report.stone}</span>
+				            </>} />
 
 					{(isAdmin || report.public) && (
 						<div className="flex flex-wrap items-center gap-2 -mt-4 mb-8">
 							{isAdmin && (
-								<Button variant="outline"
+								<Button variant="ghost"
 								        size="sm"
 								        onClick={async () => {
 									        try {
@@ -219,23 +217,14 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 								</Button>
 							)}
 							{report.public && (
-								<Button variant="outline"
+								<Button variant="ghost"
 								        size="sm"
 								        onClick={downloadQR}>
-									<svg className="h-4 w-4 mr-1.5"
-									     fill="none"
-									     viewBox="0 0 24 24"
-									     stroke="currentColor">
-										<path strokeLinecap="round"
-										      strokeLinejoin="round"
-										      strokeWidth={1.5}
-										      d="M3 10h2v4H3zm6-6h2v2H9zm0 14h2v2H9zm6-14h2v2h-2zm0 14h2v2h-2zm6-8h2v4h-2zM3 4h4v4H5V6H3zm0 12h4v4H5v-2H3zm14-12h4v4h-2V6h-2zm0 12h4v4h-2v-2h-2zM9 8h6v2H9zm0 6h6v2H9z" />
-									</svg>
-									Generate QR
+									Download QR
 								</Button>
 							)}
 							{isAdmin && (
-								<>
+								<div className="ml-auto flex flex-wrap items-center gap-2">
 									<Button variant="outline"
 									        size="sm"
 									        onClick={handleTogglePublic}>
@@ -249,7 +238,7 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 									        onClick={() => setDeleteDialogOpen(true)}>
 										Delete
 									</Button>
-								</>
+								</div>
 							)}
 						</div>
 					)}
@@ -264,17 +253,92 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 								<h2 className="font-medium">Report Information</h2>
 							</div>
 							<div className="p-6">
-								<dl className="grid gap-y-3 sm:grid-cols-2 gap-x-12">
+								{(() => {
+									const headlineImage = (report.report_images || []).find((img) => img.is_headline);
+									return headlineImage?.signed_url ? (
+										<div className="flex flex-col sm:flex-row gap-6">
+											<div className="flex-1">
+												<dl className="grid gap-y-3">
+													<div className="py-2">
+														<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Stone</dt>
+														<dd className="mt-1 text-sm text-foreground">{report.stone}</dd>
+													</div>
+													{(report.first_name || report.last_name) && (
+														<div className="py-2">
+															<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Client</dt>
+															<dd className="mt-1 text-sm text-foreground">{[report.first_name, report.last_name].filter(Boolean).join(" ")}</dd>
+														</div>
+													)}
+													{report.owner_email && (
+														<div className="py-2">
+															<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Email</dt>
+															<dd className="mt-1 text-sm text-foreground">
+																<a href={`mailto:${report.owner_email}`}
+																   className="text-callout-accent hover:underline">
+																	{report.owner_email}
+																</a>
+															</dd>
+														</div>
+													)}
+													{report.description && (
+														<div className="py-2">
+															<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Description</dt>
+															<dd className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.description}</dd>
+														</div>
+													)}
+													{report.note && isAdmin && (
+														<div className="py-2 pl-3 border-l-2 border-page-header-accent">
+															<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Internal Note</dt>
+															<dd className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.note}</dd>
+														</div>
+													)}
+													<div className="grid sm:grid-cols-2 gap-x-12">
+														<div className="py-2">
+															<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Created</dt>
+															<dd className="mt-1 text-sm text-foreground">
+																{new Date(report.created_at).toLocaleDateString("en-US", {
+																	year: "numeric",
+																	month: "long",
+																	day: "numeric",
+																})}
+															</dd>
+														</div>
+														<div className="py-2">
+															<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Updated</dt>
+															<dd className="mt-1 text-sm text-foreground">
+																{new Date(report.updated_at).toLocaleDateString("en-US", {
+																	year: "numeric",
+																	month: "long",
+																	day: "numeric",
+																})}
+															</dd>
+														</div>
+													</div>
+												</dl>
+											</div>
+											<div className="sm:w-48 md:w-56 shrink-0">
+												<img src={headlineImage.signed_url}
+												     alt={`${report.title} headline`}
+												     className="w-full rounded-lg object-cover aspect-square" />
+											</div>
+										</div>
+									) : null;
+								})()}
+								<dl className={`grid gap-y-3 ${(report.report_images || []).some((img) => img.is_headline && img.signed_url) ? "hidden" : ""}`}>
+									<div className="py-2">
+										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Stone</dt>
+										<dd className="mt-1 text-sm text-foreground">{report.stone}</dd>
+									</div>
 									{(report.first_name || report.last_name) && (
-										<div className="flex items-baseline justify-between py-2">
+										<div className="py-2">
 											<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Client</dt>
-											<dd className="text-sm text-foreground">{[report.first_name, report.last_name].filter(Boolean).join(" ")}</dd>
+											<dd className="mt-1 text-sm text-foreground">{[report.first_name, report.last_name].filter(Boolean).join(" ")}</dd>
 										</div>
 									)}
 									{report.owner_email && (
-										<div className="flex items-baseline justify-between py-2">
+										<div className="py-2">
 											<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Email</dt>
-											<dd className="text-sm text-foreground">
+											<dd className="mt-1 text-sm text-foreground">
 												<a href={`mailto:${report.owner_email}`}
 												   className="text-callout-accent hover:underline">
 													{report.owner_email}
@@ -282,41 +346,41 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 											</dd>
 										</div>
 									)}
-									<div className="flex items-baseline justify-between py-2">
-										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Created</dt>
-										<dd className="text-sm text-foreground">
-											{new Date(report.created_at).toLocaleDateString("en-US", {
-												year: "numeric",
-												month: "long",
-												day: "numeric",
-											})}
-										</dd>
-									</div>
-									<div className="flex items-baseline justify-between py-2">
-										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Updated</dt>
-										<dd className="text-sm text-foreground">
-											{new Date(report.updated_at).toLocaleDateString("en-US", {
-												year: "numeric",
-												month: "long",
-												day: "numeric",
-											})}
-										</dd>
+									{report.description && (
+										<div className="py-2">
+											<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Description</dt>
+											<dd className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.description}</dd>
+										</div>
+									)}
+									{report.note && isAdmin && (
+										<div className="py-2 pl-3 border-l-2 border-page-header-accent">
+											<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Internal Note</dt>
+											<dd className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.note}</dd>
+										</div>
+									)}
+									<div className="grid sm:grid-cols-2 gap-x-12">
+										<div className="py-2">
+											<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Created</dt>
+											<dd className="mt-1 text-sm text-foreground">
+												{new Date(report.created_at).toLocaleDateString("en-US", {
+													year: "numeric",
+													month: "long",
+													day: "numeric",
+												})}
+											</dd>
+										</div>
+										<div className="py-2">
+											<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Updated</dt>
+											<dd className="mt-1 text-sm text-foreground">
+												{new Date(report.updated_at).toLocaleDateString("en-US", {
+													year: "numeric",
+													month: "long",
+													day: "numeric",
+												})}
+											</dd>
+										</div>
 									</div>
 								</dl>
-
-								{report.description && (
-									<div className="mt-5">
-										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Description</dt>
-										<dd className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.description}</dd>
-									</div>
-								)}
-
-								{report.note && isAdmin && (
-									<div className="mt-5 pl-3 border-l-2 border-page-header-accent">
-										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Internal Note</dt>
-										<dd className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.note}</dd>
-									</div>
-								)}
 							</div>
 						</div>
 
@@ -333,9 +397,9 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 											if (field.label === "Carat Weight") {
 												return (
 													<div key={field.label}
-													     className="flex items-baseline justify-between py-2">
+													     className="py-2">
 														<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">{field.label}</dt>
-														<dd className="text-sm text-foreground text-right">
+														<dd className="mt-1 text-sm text-foreground">
 															{field.value} {field.suffix}
 														</dd>
 													</div>
@@ -365,9 +429,9 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 								<div className="p-6">
 									<dl className="grid sm:grid-cols-2 gap-x-12">
 										{report.owner_telephone && (
-											<div className="flex items-baseline justify-between py-2">
+											<div className="py-2">
 												<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Telephone</dt>
-												<dd className="text-sm text-foreground">
+												<dd className="mt-1 text-sm text-foreground">
 													<a href={`tel:${report.owner_telephone}`}
 													   className="text-callout-accent hover:underline">
 														{report.owner_telephone}
@@ -376,9 +440,9 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 											</div>
 										)}
 										{report.price != null && (
-											<div className="flex items-baseline justify-between py-2">
+											<div className="py-2">
 												<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Price</dt>
-												<dd className="text-sm text-foreground">{report.price} {report.currency || ""}</dd>
+												<dd className="mt-1 text-sm text-foreground">{report.price} {report.currency || ""}</dd>
 											</div>
 										)}
 									</dl>

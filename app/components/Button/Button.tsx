@@ -9,6 +9,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 	secondary: "bg-background-creme text-foreground border border-border hover:border-gold hover:bg-background-warm hover:shadow-[0_4px_16px_rgba(196,167,125,0.18),0_1px_4px_rgba(0,0,0,0.06)]",
 	outline: "border border-border text-foreground hover:border-gold hover:bg-background-creme/50 hover:shadow-[0_4px_16px_rgba(196,167,125,0.15),0_1px_4px_rgba(0,0,0,0.05)]",
 	accent: "bg-[#8B3A3A] text-background hover:bg-[#7A3030] hover:shadow-[0_4px_16px_rgba(139,58,58,0.3),0_1px_4px_rgba(0,0,0,0.1)]",
+	ghost: "text-text-gray hover:text-gold hover:bg-background-creme/50",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

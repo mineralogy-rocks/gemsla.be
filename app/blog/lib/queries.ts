@@ -117,3 +117,22 @@ export const fetchAllTags = cache(async (): Promise<BlogTag[]> => {
 
 	return data || [];
 });
+
+export const fetchTagsWithPosts = cache(async (): Promise<BlogTag[]> => {
+	const supabase = await createClient();
+
+	const { data, error } = await supabase
+		.from("blog_tags")
+		.select("*, blog_post_tags(post_id)")
+		.order("name", { ascending: true });
+
+	if (error) {
+		console.error("Error fetching tags:", error);
+		return [];
+	}
+
+	const tags = (data || []) as Array<BlogTag & { blog_post_tags: unknown[] }>;
+	return tags
+		.filter((tag) => tag.blog_post_tags.length > 0)
+		.map(({ blog_post_tags, ...tag }) => tag);
+});

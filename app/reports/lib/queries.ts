@@ -22,7 +22,7 @@ export const fetchReportsList = cache(async ({
 
 	let query = supabase
 		.from("reports")
-		.select("id, title, first_name, last_name, public, description, created_at, report_images(id)", { count: "exact" });
+		.select("id, title, stone, first_name, last_name, public, description, created_at, report_images(id)", { count: "exact" });
 
 	if (q) {
 		query = query.or(
@@ -55,6 +55,7 @@ export const fetchReportsList = cache(async ({
 	const reportListItems: ReportListItem[] = (data || []).map((report) => ({
 		id: report.id,
 		title: report.title,
+		stone: report.stone,
 		first_name: report.first_name,
 		last_name: report.last_name,
 		public: report.public,

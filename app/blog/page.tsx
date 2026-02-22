@@ -1,5 +1,5 @@
 import { isAdmin } from "@/lib/supabase/admin";
-import { fetchPosts, fetchAllTags } from "./lib/queries";
+import { fetchPosts, fetchTagsWithPosts } from "./lib/queries";
 import { BlogListClient } from "./BlogListClient";
 
 interface BlogPageProps {
@@ -21,7 +21,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
 	const [postsResponse, tags] = await Promise.all([
 		fetchPosts({ page, q, tag, includeUnpublished: admin }),
-		fetchAllTags(),
+		fetchTagsWithPosts(),
 	]);
 
 	return (
