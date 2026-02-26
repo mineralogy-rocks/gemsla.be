@@ -74,6 +74,7 @@ export async function GET(request: Request) {
 					<div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 						<div
 							style={{
+								display: "flex",
 								fontSize: 60,
 								fontWeight: 700,
 								color: "#000",
@@ -88,6 +89,7 @@ export async function GET(request: Request) {
 						{post.excerpt && (
 							<div
 								style={{
+									display: "flex",
 									fontSize: 28,
 									color: "#5c5c5c",
 									lineHeight: 1.5,
@@ -107,6 +109,7 @@ export async function GET(request: Request) {
 									<div
 										key={tag}
 										style={{
+											display: "flex",
 											fontSize: 20,
 											color: "#5c5c5c",
 											backgroundColor: "#e6e0d6",
@@ -130,6 +133,7 @@ export async function GET(request: Request) {
 						<div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
 							<div
 								style={{
+									display: "flex",
 									fontSize: 32,
 									fontWeight: 600,
 									color: "#c4a77d",
@@ -137,7 +141,9 @@ export async function GET(request: Request) {
 							>
 								GemsLabé
 							</div>
-							<div style={{ fontSize: 18, color: "#5c5c5c" }}>gemsla.be</div>
+							<div style={{ display: "flex", fontSize: 18, color: "#5c5c5c" }}>
+								gemsla.be
+							</div>
 						</div>
 						<div
 							style={{
