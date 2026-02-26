@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
 import { createClient } from "@supabase/supabase-js";
-import type { BlogPost } from "@/app/api/blog/types";
 
 export const runtime = "edge";
 
@@ -54,10 +53,11 @@ export async function GET(request: Request) {
 			return fallbackImage();
 		}
 
+		const postTags = post.blog_post_tags as
+			| { blog_tags: { name: string } | null }[]
+			| null;
 		const tags = (
-			(post as BlogPost).blog_post_tags
-				?.map((pt) => pt.blog_tags?.name)
-				.filter(Boolean) || []
+			postTags?.map((pt) => pt.blog_tags?.name).filter(Boolean) || []
 		).slice(0, 4);
 
 		return new ImageResponse(
