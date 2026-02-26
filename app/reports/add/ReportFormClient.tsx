@@ -306,6 +306,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 								<h2 className="font-medium">Gemological Properties</h2>
 							</div>
 							<div className="p-6 space-y-5">
+								<h3 className="text-sm font-medium text-text-gray">Physical Properties</h3>
 								<div className="grid gap-5 sm:grid-cols-2">
 									<Input label="Shape / Cutting Style"
 									       id="shape_cutting_style"
@@ -337,6 +338,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 									       placeholder="e.g., 3.52" />
 								</div>
 
+								<h3 className="text-sm font-medium text-text-gray pt-2">Optical Properties</h3>
 								<div className="grid gap-5 sm:grid-cols-2">
 									<Input label="Refractive Index"
 									       id="refractive_index"
@@ -371,6 +373,14 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 								       onChange={(e) => handleChange("chelsea_color_filter", e.target.value)}
 								       placeholder="e.g., No reaction" />
 
+								<TextArea label="Microscope"
+								          id="microscope"
+								          value={formData.microscope || ""}
+								          onChange={(e) => handleChange("microscope", e.target.value)}
+								          placeholder="Microscope observations..."
+								          rows={3} />
+
+								<h3 className="text-sm font-medium text-text-gray pt-2">Fluorescence</h3>
 								<div className="grid gap-5 sm:grid-cols-2">
 									<Input label="Fluorescence SW"
 									       id="fluorescence_sw"
@@ -385,13 +395,7 @@ export function ReportFormClient({ mode, initialData }: ReportFormClientProps) {
 									       placeholder="e.g., Strong Blue" />
 								</div>
 
-								<TextArea label="Microscope"
-								          id="microscope"
-								          value={formData.microscope || ""}
-								          onChange={(e) => handleChange("microscope", e.target.value)}
-								          placeholder="Microscope observations..."
-								          rows={3} />
-
+								<h3 className="text-sm font-medium text-text-gray pt-2">Determination</h3>
 								<div className="grid gap-5 sm:grid-cols-2">
 									<Input label="Treatment"
 									       id="treatment"

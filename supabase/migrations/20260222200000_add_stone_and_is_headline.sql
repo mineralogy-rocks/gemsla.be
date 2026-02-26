@@ -1,0 +1,5 @@
+ALTER TABLE public.reports
+    ADD COLUMN IF NOT EXISTS stone TEXT;
+
+ALTER TABLE public.report_images
+    ADD COLUMN IF NOT EXISTS is_headline BOOLEAN NOT NULL DEFAULT FALSE;

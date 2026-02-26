@@ -101,6 +101,11 @@ export function BlogPostDetailClient({ post, isAdmin }: BlogPostDetailClientProp
 						animate="visible">
 						<TiptapContent content={post.content} />
 					</motion.div>
+
+					<div className="mt-12 pt-8 border-t border-border-light text-center">
+						<p className="text-sm text-callout-accent">Olena Rybnikova | GemsLabé</p>
+						<p className="text-sm text-text-gray">Gemological Expertise and Consultancy</p>
+					</div>
 				</div>
 			</article>
 		</div>
