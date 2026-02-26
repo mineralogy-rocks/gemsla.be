@@ -116,28 +116,50 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 		caption: img.caption || undefined,
 	}));
 
-	const gemologicalFields: FieldDisplayProps[] = [
-		{ label: "Shape / Cutting Style", value: report.shape_cutting_style },
-		{ label: "Measurements", value: report.measurements },
+	const gemologicalGroups = [
 		{
-			label: "Carat Weight",
-			value: report.carat_weight,
-			suffix: report.carat_weight != null ? `ct (${(report.carat_weight * 0.2).toFixed(4)} g)` : undefined,
+			label: "Physical Properties",
+			fields: [
+				{ label: "Shape / Cutting Style", value: report.shape_cutting_style },
+				{ label: "Measurements", value: report.measurements },
+				{
+					label: "Carat Weight",
+					value: report.carat_weight,
+					suffix: report.carat_weight != null ? `ct (${(report.carat_weight * 0.2).toFixed(4)} g)` : undefined,
+				},
+				{ label: "Specific Gravity", value: report.specific_gravity, suffix: report.specific_gravity ? "(hydrostatic weight)" : undefined },
+			],
 		},
-		{ label: "Specific Gravity", value: report.specific_gravity, suffix: report.specific_gravity ? "(hydrostatic weight)" : undefined },
-		{ label: "Refractive Index", value: report.refractive_index },
-		{ label: "Double Refraction", value: report.double_refraction },
-		{ label: "Polariscope", value: report.polariscope },
-		{ label: "Pleochroism", value: report.pleochroism },
-		{ label: "Chelsea Color Filter", value: report.chelsea_color_filter },
-		{ label: "Fluorescence SW", value: report.fluorescence_sw },
-		{ label: "Fluorescence LW", value: report.fluorescence_lw },
-		{ label: "Microscope", value: report.microscope },
-		{ label: "Treatment", value: report.treatment },
-		{ label: "Origin", value: report.origin },
+		{
+			label: "Optical Properties",
+			fields: [
+				{ label: "Refractive Index", value: report.refractive_index },
+				{ label: "Double Refraction", value: report.double_refraction },
+				{ label: "Polariscope", value: report.polariscope },
+				{ label: "Pleochroism", value: report.pleochroism },
+				{ label: "Chelsea Color Filter", value: report.chelsea_color_filter },
+				{ label: "Microscope", value: report.microscope },
+			],
+		},
+		{
+			label: "Fluorescence",
+			fields: [
+				{ label: "Fluorescence SW", value: report.fluorescence_sw },
+				{ label: "Fluorescence LW", value: report.fluorescence_lw },
+			],
+		},
+		{
+			label: "Determination",
+			fields: [
+				{ label: "Treatment", value: report.treatment },
+				{ label: "Origin", value: report.origin },
+			],
+		},
 	];
 
-	const hasGemologicalData = gemologicalFields.some((f) => f.value != null && f.value !== "");
+	const hasGemologicalData = gemologicalGroups.some((g) =>
+		g.fields.some((f) => f.value != null && f.value !== "")
+	);
 
 
 	return (
@@ -177,9 +199,10 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 						            {report.public ? "Public" : "Private"}
 					            </span>
 				            </>}
-				            subtitle={<>
-					            <span className="block font-bold text-foreground text-lg mb-1">{report.stone}</span>
-				            </>} />
+				            />
+					<p className="text-2xl font-semibold text-callout-accent tracking-wide -mt-4 mb-6">
+						{report.stone}
+					</p>
 
 					{(isAdmin || report.public) && (
 						<div className="flex flex-wrap items-center gap-2 -mt-4 mb-8">
@@ -260,7 +283,7 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 											<div className="flex-1">
 												<dl className="grid gap-y-3">
 													<div className="py-2">
-														<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Stone</dt>
+														<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Stone Identification</dt>
 														<dd className="mt-1 text-sm text-foreground">{report.stone}</dd>
 													</div>
 													{(report.first_name || report.last_name) && (
@@ -319,7 +342,8 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 											<div className="sm:w-48 md:w-56 shrink-0">
 												<img src={headlineImage.signed_url}
 												     alt={`${report.title} headline`}
-												     className="w-full rounded-lg object-cover aspect-square" />
+												     className="w-full rounded-lg object-contain" />
+												<p className="mt-1 text-xs text-text-gray text-center">(colors may be distorted)</p>
 											</div>
 										</div>
 									) : null;
@@ -391,28 +415,34 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 									<h2 className="font-medium">Gemological Properties</h2>
 								</div>
 								<div className="p-6">
-									<dl className="grid sm:grid-cols-2 gap-x-12">
-										{gemologicalFields.map((field) => {
-											if (field.value == null || field.value === "") return null;
-											if (field.label === "Carat Weight") {
-												return (
-													<div key={field.label}
-													     className="py-2">
-														<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">{field.label}</dt>
-														<dd className="mt-1 text-sm text-foreground">
-															{field.value} {field.suffix}
-														</dd>
-													</div>
-												);
-											}
-											return (
-												<FieldDisplay key={field.label}
-												              label={field.label}
-												              value={field.value}
-												              suffix={field.suffix} />
-											);
-										})}
-									</dl>
+									{gemologicalGroups
+										.filter((group) => group.fields.some((f) => f.value != null && f.value !== ""))
+										.map((group, i) => (
+											<dl key={group.label}
+											    className={`grid sm:grid-cols-2 gap-x-12 ${i > 0 ? "mt-10" : ""}`}>
+												{group.fields
+													.filter((f) => f.value != null && f.value !== "")
+													.map((field) => {
+														if (field.label === "Carat Weight") {
+															return (
+																<div key={field.label}
+																     className="py-2">
+																	<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">{field.label}</dt>
+																	<dd className="mt-1 text-sm text-foreground">
+																		{field.value} {field.suffix}
+																	</dd>
+																</div>
+															);
+														}
+														return (
+															<FieldDisplay key={field.label}
+															              label={field.label}
+															              value={field.value}
+															              suffix={field.suffix} />
+														);
+													})}
+											</dl>
+										))}
 								</div>
 							</div>
 						)}
