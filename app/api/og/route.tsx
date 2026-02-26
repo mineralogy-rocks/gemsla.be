@@ -1,8 +1,6 @@
 import { ImageResponse } from "next/og";
 import { createClient } from "@supabase/supabase-js";
 
-export const runtime = "edge";
-
 const size = { width: 1200, height: 630 };
 
 function fallbackImage() {
