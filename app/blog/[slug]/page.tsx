@@ -42,11 +42,20 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
 			modifiedTime: post.updated_at,
 			tags,
 			locale: "en_US",
+			images: [
+				{
+					url: `https://gemsla.be/api/og?slug=${slug}`,
+					width: 1200,
+					height: 630,
+					alt: post.title,
+				},
+			],
 		},
 		twitter: {
 			card: "summary_large_image" as const,
 			title: post.title,
 			description,
+			images: [`https://gemsla.be/api/og?slug=${slug}`],
 		},
 	};
 }
