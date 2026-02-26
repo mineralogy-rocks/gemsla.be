@@ -17,9 +17,37 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
 		return { title: "Post Not Found | GemsLabé" };
 	}
 
+	const tags =
+		post.blog_post_tags
+			?.map((pt) => pt.blog_tags?.name)
+			.filter(Boolean) || [];
+	const description =
+		post.excerpt || `Read "${post.title}" on the GemsLabé blog.`;
+	const url = `https://gemsla.be/blog/${slug}`;
+
 	return {
 		title: `${post.title} | GemsLabé Blog`,
-		description: post.excerpt || `Read "${post.title}" on the GemsLabé blog.`,
+		description,
+		keywords: tags,
+		alternates: {
+			canonical: url,
+		},
+		openGraph: {
+			type: "article" as const,
+			title: post.title,
+			description,
+			url,
+			siteName: "GemsLabé",
+			publishedTime: post.published_at ?? undefined,
+			modifiedTime: post.updated_at,
+			tags,
+			locale: "en_US",
+		},
+		twitter: {
+			card: "summary_large_image" as const,
+			title: post.title,
+			description,
+		},
 	};
 }
 
@@ -44,5 +72,38 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 		resolvedPost = { ...post, content } as typeof post;
 	}
 
-	return <BlogPostDetailClient post={resolvedPost} isAdmin={admin} />;
+	const tags =
+		post.blog_post_tags
+			?.map((pt) => pt.blog_tags?.name)
+			.filter(Boolean) || [];
+
+	const jsonLd = {
+		"@context": "https://schema.org",
+		"@type": "BlogPosting",
+		headline: post.title,
+		description: post.excerpt || undefined,
+		keywords: tags.join(", "),
+		url: `https://gemsla.be/blog/${slug}`,
+		datePublished: post.published_at || undefined,
+		dateModified: post.updated_at,
+		author: {
+			"@type": "Person",
+			name: "Olena Rybnikova",
+		},
+		publisher: {
+			"@type": "Organization",
+			name: "GemsLabé",
+			url: "https://gemsla.be",
+		},
+	};
+
+	return (
+		<>
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+			/>
+			<BlogPostDetailClient post={resolvedPost} isAdmin={admin} />
+		</>
+	);
 }
