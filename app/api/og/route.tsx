@@ -53,7 +53,7 @@ export async function GET(request: Request) {
 			return fallbackImage();
 		}
 
-		const postTags = post.blog_post_tags as
+		const postTags = post.blog_post_tags as unknown as
 			| { blog_tags: { name: string } | null }[]
 			| null;
 		const tags = (
