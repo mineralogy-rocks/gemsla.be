@@ -107,6 +107,9 @@ http {
 			proxy_set_header Connection 'upgrade';
 			proxy_cache_bypass $http_upgrade;
 
+			proxy_buffer_size 16k;
+			proxy_buffers 4 16k;
+
 			add_header Cache-Control 'no-store';
 
 			set $frontend_upstream frontend:8080;
