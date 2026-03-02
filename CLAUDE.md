@@ -55,7 +55,7 @@ The `supabase/` folder contains Supabase CLI configuration for local development
 ## Local Development and debugging
 
 Assume that docker container is already running when you work on any task.
-Execute all commands ONLY through docker container:
+Execute the necessary commands ONLY through docker container:
 
 ```bash
 docker-compose -f ./main/docker-compose.yaml exec -it gems-labe bash

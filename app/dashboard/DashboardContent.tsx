@@ -68,33 +68,6 @@ export function DashboardContent({ user, isAdmin }: DashboardContentProps) {
 							</motion.div>
 						</motion.div>
 					)}
-
-					<motion.div variants={fadeInUp}
-					            initial="hidden"
-					            animate="visible"
-					            className="border border-border rounded-lg p-6 bg-background">
-						<h3 className="text-sm font-medium uppercase tracking-wider text-text-gray mb-4">
-							Account Information
-						</h3>
-						<dl className="space-y-3">
-							<div>
-								<dt className="text-sm text-text-gray">Email</dt>
-								<dd className="text-foreground">{user.email}</dd>
-							</div>
-							<div>
-								<dt className="text-sm text-text-gray">User ID</dt>
-								<dd className="text-foreground text-sm font-mono">{user.id}</dd>
-							</div>
-							<div>
-								<dt className="text-sm text-text-gray">Last Sign In</dt>
-								<dd className="text-foreground">
-									{user.last_sign_in_at
-										? new Date(user.last_sign_in_at).toLocaleString()
-										: "N/A"}
-								</dd>
-							</div>
-						</dl>
-					</motion.div>
 				</div>
 			</section>
 		</div>

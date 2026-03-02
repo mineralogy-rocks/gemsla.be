@@ -40,8 +40,11 @@
 	--color-gold: #c4a77d;
 	--color-page-header-accent: var(--page-header-accent);
 	--color-background-warm: #f0ebe3;
+
 	--font-heading: var(--font-lora);
 	--font-body: var(--font-lora);
+
+	--default-border-width: 0.5px;
 }
 
 html {

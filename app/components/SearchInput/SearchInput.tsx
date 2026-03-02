@@ -7,7 +7,7 @@ import { SearchInputProps } from "./SearchInput.types";
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 	({ value, onChange, onClear, placeholder = "Search...", className = "", ...props }, ref) => {
 		const baseClasses = "w-full rounded-md border border-border bg-background py-2.5 pl-10 pr-10 text-foreground placeholder:text-text-gray transition-colors duration-200";
-		const focusClasses = "focus:border-callout-accent focus:outline-none focus:ring-2 focus:ring-callout-accent";
+		const focusClasses = "focus:border-callout-accent focus:outline-none focus:ring focus:ring-callout-accent";
 
 		return (
 			<div className="relative">

@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3003'
+
 export async function signIn(formData: FormData) {
 	const supabase = await createClient()
 
@@ -50,7 +52,7 @@ export async function resetPassword(formData: FormData) {
 	}
 
 	const { error } = await supabase.auth.resetPasswordForEmail(email, {
-		redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3003'}/auth/callback?next=/auth/sign-in/update-password`,
+		redirectTo: `${baseUrl}/auth/callback?next=/auth/sign-in/update-password`,
 	})
 
 	if (error) {
@@ -58,6 +60,27 @@ export async function resetPassword(formData: FormData) {
 	}
 
 	return { success: true }
+}
+
+export async function signInWithGoogle() {
+	const supabase = await createClient()
+
+	const { data, error } = await supabase.auth.signInWithOAuth({
+		provider: 'google',
+		options: {
+			redirectTo: `${baseUrl}/auth/callback`,
+		},
+	})
+
+	if (error) {
+		return { error: error.message }
+	}
+
+	if (!data.url) {
+		return { error: 'Could not initiate Google sign-in' }
+	}
+
+	redirect(data.url)
 }
 
 export async function updatePassword(formData: FormData) {
