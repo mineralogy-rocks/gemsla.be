@@ -3,6 +3,7 @@
 import {useState, useEffect, useActionState} from "react";
 import Link from "next/link";
 import {signOut} from "@/app/actions/auth";
+import {Button} from "@/app/components/Button";
 import type {User} from "@supabase/supabase-js";
 
 interface HeaderProps {
@@ -70,13 +71,14 @@ export function Header({ user, isAdmin = false }: HeaderProps) {
 								      className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300">
 									Dashboard
 								</Link>
-								<form action={signOutAction}
-								      className="inline">
-									<button type="submit"
-									        disabled={signOutPending}
-									        className="text-sm text-foreground hover:text-callout-accent transition-colors duration-300 bg-transparent border-none cursor-pointer disabled:opacity-50">
-										{signOutPending ? 'Signing out...' : 'Sign Out'}
-									</button>
+								<form action={signOutAction}>
+									<Button type="submit"
+									        variant="primary"
+									        size="sm"
+									        loading={signOutPending}
+									        disabled={signOutPending}>
+										Sign Out
+									</Button>
 									{signOutState.error && (
 										<p className="text-xs text-red-500 mt-1">
 											{signOutState.error}
@@ -84,7 +86,13 @@ export function Header({ user, isAdmin = false }: HeaderProps) {
 									)}
 								</form>
 							</>
-						) : (<></>)}
+						) : (
+							<Link href="/auth/sign-in">
+								<Button variant="primary" size="sm">
+									Sign In
+								</Button>
+							</Link>
+						)}
 					</div>
 				</div>
 			</nav>
