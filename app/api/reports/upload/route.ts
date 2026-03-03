@@ -86,13 +86,8 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const browserUrl = signedUrlData.signedUrl.replace(
-			"host.docker.internal",
-			"localhost"
-		);
-
 		return NextResponse.json({
-			url: browserUrl,
+			url: signedUrlData.signedUrl,
 			path: data.path,
 		});
 	} catch (error) {

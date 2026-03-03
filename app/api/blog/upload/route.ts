@@ -75,12 +75,7 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const signedUrl = signedUrlData.signedUrl.replace(
-			"host.docker.internal",
-			"localhost"
-		);
-
-		return NextResponse.json({ signedUrl, path: data.path });
+		return NextResponse.json({ signedUrl: signedUrlData.signedUrl, path: data.path });
 	} catch (error) {
 		console.error("Upload error:", error);
 		return NextResponse.json(

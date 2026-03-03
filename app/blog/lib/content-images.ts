@@ -2,10 +2,6 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 const SIGNED_URL_EXPIRY = 3600;
 
-function toBrowserUrl(url: string): string {
-	return url.replace("host.docker.internal", "localhost");
-}
-
 function isStoragePath(src: string): boolean {
 	return !!src && !src.startsWith("http://") && !src.startsWith("https://") && !src.startsWith("data:");
 }
@@ -76,7 +72,7 @@ export async function resolveContentImageUrls(
 	const urlMap = new Map<string, string>();
 	for (const item of data) {
 		if (item.signedUrl && item.path) {
-			urlMap.set(item.path, toBrowserUrl(item.signedUrl));
+			urlMap.set(item.path, item.signedUrl);
 		}
 	}
 
