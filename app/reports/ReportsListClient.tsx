@@ -53,7 +53,7 @@ function ReportCard({ report }: { report: ReportListItem }) {
 		<motion.div variants={staggerItem}
 		            className="h-full">
 			<Link href={`/reports/${report.id}`}
-			      className="group flex h-full flex-col rounded-lg border border-border bg-background p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)] transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-gold hover:shadow-[0_4px_16px_rgba(196,167,125,0.15),0_1px_4px_rgba(0,0,0,0.05)]">
+			      className="glass-card group flex h-full flex-col p-5">
 				<div className="flex items-start justify-between gap-3">
 					<div className="min-w-0 flex-1">
 						<h3 className="text-lg font-medium text-foreground transition-colors group-hover:text-foreground-muted">
