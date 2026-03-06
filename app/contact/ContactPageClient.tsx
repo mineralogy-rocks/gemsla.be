@@ -9,9 +9,9 @@ import {Button} from "../components/Button";
 import {PageHeader} from "../components/PageHeader";
 
 const serviceOptions = [
-	{ value: "initial_consultation", label: "Initial Consultation (€90)" },
-	{ value: "standard_examination", label: "Standard Examination (€165)" },
-	{ value: "comprehensive_analysis", label: "Comprehensive Analysis (€320)" },
+	{ value: "initial_consultation", label: "Initial Consultation (€70)" },
+	{ value: "standard_examination", label: "Standard Examination (€140)" },
+	{ value: "comprehensive_analysis", label: "Comprehensive Analysis (€300)" },
 ];
 
 const serviceParamMap: Record<string, string> = {

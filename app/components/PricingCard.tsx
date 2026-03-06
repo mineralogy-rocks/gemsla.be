@@ -3,11 +3,13 @@
 import React from "react";
 import Link from "next/link";
 
+type Feature = string | { text: string; link: string; linkLabel?: string };
+
 interface PricingCardProps {
 	title: string;
 	price: string;
 	description: string;
-	features: string[];
+	features: Feature[];
 	bestFor: string;
 	isHighlighted?: boolean;
 	serviceParam?: string;
@@ -51,24 +53,40 @@ export function PricingCard({
 			</p>
 
 			<ul className="space-y-2 mb-5 flex-grow">
-				{features.map((feature, index) => (
-					<li key={index}
-					    className="flex items-start gap-2.5">
-						<svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-foreground/70"
-						     fill="none"
-						     stroke="currentColor"
-						     viewBox="0 0 24 24"
-						     xmlns="http://www.w3.org/2000/svg">
-							<path strokeLinecap="round"
-							      strokeLinejoin="round"
-							      strokeWidth={2}
-							      d="M5 13l4 4L19 7" />
-						</svg>
-						<span className="text-foreground text-sm leading-relaxed">
-							{feature}
-						</span>
-					</li>
-				))}
+				{features.map((feature, index) => {
+					const text = typeof feature === "string" ? feature : feature.text;
+					const link = typeof feature === "string" ? null : feature.link;
+					const linkLabel = typeof feature === "string" ? null : (feature.linkLabel ?? "example");
+					return (
+						<li key={index}
+						    className="flex items-start gap-2.5">
+							<svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-foreground/70"
+							     fill="none"
+							     stroke="currentColor"
+							     viewBox="0 0 24 24"
+							     xmlns="http://www.w3.org/2000/svg">
+								<path strokeLinecap="round"
+								      strokeLinejoin="round"
+								      strokeWidth={2}
+								      d="M5 13l4 4L19 7" />
+							</svg>
+							<span className="text-foreground text-sm leading-relaxed">
+								{text}
+								{link && (
+									<>
+										{" "}
+										<Link href={link}
+										      target="_blank"
+										      rel="noopener noreferrer"
+										      className="text-text-gray underline underline-offset-2 hover:text-foreground transition-colors">
+											{linkLabel}
+										</Link>
+									</>
+								)}
+							</span>
+						</li>
+					);
+				})}
 			</ul>
 
 			<div className="pt-3 border-t border-border-light mb-3">

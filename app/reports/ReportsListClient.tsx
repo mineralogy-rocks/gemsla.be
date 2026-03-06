@@ -53,6 +53,7 @@ function ReportCard({ report }: { report: ReportListItem }) {
 		<motion.div variants={staggerItem}
 		            className="h-full">
 			<Link href={`/reports/${report.id}`}
+			      prefetch={false}
 			      className="glass-card group flex h-full flex-col p-5">
 				<div className="flex items-start justify-between gap-3">
 					<div className="min-w-0 flex-1">
