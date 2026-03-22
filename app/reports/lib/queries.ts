@@ -26,7 +26,7 @@ export const fetchReportsList = cache(async ({
 
 	if (q) {
 		query = query.or(
-			`title.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%,owner_email.ilike.%${q}%`
+			`title.ilike.%${q}%, first_name.ilike.%${q}%, last_name.ilike.%${q}%, owner_email.ilike.%${q}%, stone.ilike.%${q}%`
 		);
 	}
 

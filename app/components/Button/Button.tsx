@@ -5,11 +5,11 @@ import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import { type ButtonProps, type ButtonVariant, type ButtonSize } from "./Button.types";
 
 const variantClasses: Record<ButtonVariant, string> = {
-	primary: "bg-foreground text-background hover:shadow-[0_4px_16px_rgba(0,0,0,0.15),0_1px_4px_rgba(0,0,0,0.1)] hover:opacity-[0.92]",
-	secondary: "bg-background-creme text-foreground border border-border hover:border-gold hover:bg-background-warm hover:shadow-[0_4px_16px_rgba(196,167,125,0.18),0_1px_4px_rgba(0,0,0,0.06)]",
-	outline: "border border-border text-foreground hover:border-gold hover:bg-background-creme/50 hover:shadow-[0_4px_16px_rgba(196,167,125,0.15),0_1px_4px_rgba(0,0,0,0.05)]",
-	accent: "bg-[#8B3A3A] text-background hover:bg-[#7A3030] hover:shadow-[0_4px_16px_rgba(139,58,58,0.3),0_1px_4px_rgba(0,0,0,0.1)]",
-	ghost: "text-text-gray hover:text-gold hover:bg-background-creme/50",
+	primary: "glass-base glass-primary",
+	secondary: "glass-base glass-secondary",
+	outline: "glass-base glass-outline",
+	accent: "glass-base glass-accent",
+	ghost: "glass-base glass-ghost",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

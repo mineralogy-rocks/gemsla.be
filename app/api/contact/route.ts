@@ -6,9 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const SERVICE_LABELS: Record<string, string> = {
-	initial_consultation: "Initial Consultation (€90)",
-	standard_examination: "Standard Examination (€165)",
-	comprehensive_analysis: "Comprehensive Analysis (€320)",
+	initial_consultation: "Initial Consultation (€70)",
+	standard_examination: "Standard Examination (€140)",
+	comprehensive_analysis: "Comprehensive Analysis (€300)",
 };
 
 function generateEmailTemplate(name: string, email: string, message: string, chosenService?: string): string {

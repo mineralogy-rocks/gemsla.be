@@ -53,7 +53,8 @@ function ReportCard({ report }: { report: ReportListItem }) {
 		<motion.div variants={staggerItem}
 		            className="h-full">
 			<Link href={`/reports/${report.id}`}
-			      className="group flex h-full flex-col rounded-lg border border-border bg-background p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)] transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-gold hover:shadow-[0_4px_16px_rgba(196,167,125,0.15),0_1px_4px_rgba(0,0,0,0.05)]">
+			      prefetch={false}
+			      className="glass-card group flex h-full flex-col p-5">
 				<div className="flex items-start justify-between gap-3">
 					<div className="min-w-0 flex-1">
 						<h3 className="text-lg font-medium text-foreground transition-colors group-hover:text-foreground-muted">
@@ -111,6 +112,7 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
+	const [isExporting, setIsExporting] = useState(false);
 
 	const currentFilter = (searchParams.get("filter") as FilterType) || "all";
 	const currentPage = parseInt(searchParams.get("page") || "1", 10);
@@ -149,6 +151,25 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
+	const handleExportQR = async () => {
+		setIsExporting(true);
+		try {
+			const res = await fetch("/api/reports/export-qr");
+			if (!res.ok) throw new Error("Export failed");
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = "qr-codes.pdf";
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error("Export QR codes failed:", error);
+		} finally {
+			setIsExporting(false);
+		}
+	};
+
 	const { data: reports, total, totalPages } = initialData;
 	const showPagination = totalPages > 1;
 
@@ -168,6 +189,21 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 					            subtitle={`Manage gem lab reports (${total} total)`} />
 
 					<div className="flex flex-wrap gap-2 justify-end my-6">
+						<Button variant="secondary"
+						        size="sm"
+						        loading={isExporting}
+						        onClick={handleExportQR}>
+							<svg className="h-3 w-3 mr-0.5"
+							     fill="none"
+							     viewBox="0 0 24 24"
+							     stroke="currentColor">
+								<path strokeLinecap="round"
+								      strokeLinejoin="round"
+								      strokeWidth={2}
+								      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+							</svg>
+							Export QR Codes
+						</Button>
 						<Link href="/reports/add">
 							<Button variant="primary" size="sm">
 								<svg className="h-3 w-3 mr-0.5"

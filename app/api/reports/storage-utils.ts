@@ -2,10 +2,6 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 const SIGNED_URL_EXPIRY = 3600; // 1 hour
 
-function toBrowserUrl(url: string): string {
-	return url.replace("host.docker.internal", "localhost");
-}
-
 export async function generateSignedImageUrls(
 	supabase: SupabaseClient,
 	paths: string[]
@@ -24,7 +20,7 @@ export async function generateSignedImageUrls(
 
 	for (const item of data) {
 		if (item.signedUrl && item.path) {
-			urlMap.set(item.path, toBrowserUrl(item.signedUrl));
+			urlMap.set(item.path, item.signedUrl);
 		}
 	}
 

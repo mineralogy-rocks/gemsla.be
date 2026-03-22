@@ -9,9 +9,9 @@ import {Button} from "../components/Button";
 import {PageHeader} from "../components/PageHeader";
 
 const serviceOptions = [
-	{ value: "initial_consultation", label: "Initial Consultation (€90)" },
-	{ value: "standard_examination", label: "Standard Examination (€165)" },
-	{ value: "comprehensive_analysis", label: "Comprehensive Analysis (€320)" },
+	{ value: "initial_consultation", label: "Initial Consultation (€70)" },
+	{ value: "standard_examination", label: "Standard Examination (€140)" },
+	{ value: "comprehensive_analysis", label: "Comprehensive Analysis (€300)" },
 ];
 
 const serviceParamMap: Record<string, string> = {
@@ -150,7 +150,6 @@ function ContactForm() {
 								<div>
 									<Input label="Name"
 									       id="name-input"
-									       size="md"
 									       placeholder="Your name"
 									       value={formData.name}
 									       onChange={(e) =>
@@ -162,7 +161,6 @@ function ContactForm() {
 								<div>
 									<Input label="Email"
 									       id="email-input"
-									       size="md"
 									       type="email"
 									       placeholder="your.email@example.com"
 									       value={formData.email}
@@ -176,7 +174,6 @@ function ContactForm() {
 								<div>
 									<Select label="Interested In"
 									        id="service-select"
-									        size="md"
 									        placeholder="Not sure yet"
 									        options={serviceOptions}
 									        value={formData.chosen_service}
@@ -188,7 +185,6 @@ function ContactForm() {
 								<div>
 									<TextArea label="Message"
 									          id="message-input"
-									          size="md"
 									          placeholder="How can I help you?"
 									          value={formData.message}
 									          onChange={(e) =>
@@ -208,9 +204,9 @@ function ContactForm() {
 									</div>
 								)}
 
-								<div>
+								<div className="flex justify-end">
 									<Button type="submit"
-									        size="md"
+									        size="sm"
 									        disabled={status === "loading"}
 									        loading={status === "loading"}>
 										{status === "loading" ? "Sending..." : "Send Message"}
