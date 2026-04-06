@@ -3,6 +3,7 @@ import {Lora} from "next/font/google";
 import "./globals.css";
 import {Header} from "./components/Header";
 import {Footer} from "./components/Footer";
+import {ToastProvider} from "./components/ToastProvider/ToastProvider";
 import {createClient} from "@/lib/supabase/server";
 
 const lora = Lora({
@@ -103,6 +104,7 @@ export default async function RootLayout({
 				<Header user={user} isAdmin={isAdmin} />
 				{children}
 				<Footer />
+				<ToastProvider />
 			</body>
 		</html>
 	);

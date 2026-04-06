@@ -1,0 +1,124 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/supabase/admin";
+import { createStoneSchema, type PaginatedStonesResponse, type StoneListItem } from "./types";
+
+export async function GET(request: NextRequest) {
+	try {
+		const admin = await isAdmin();
+		if (!admin) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
+		const searchParams = request.nextUrl.searchParams;
+		const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+		const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "12", 10)));
+		const search = searchParams.get("q") || "";
+		const minPrice = searchParams.get("min_price");
+		const maxPrice = searchParams.get("max_price");
+		const showSold = searchParams.get("show_sold");
+
+		const supabase = await createClient();
+
+		let query = supabase
+			.from("stones")
+			.select("id, name, stone_type, color, weight_carats, country, selling_price, is_sold, created_at", { count: "exact" });
+
+		if (search) {
+			const sanitized = search.replace(/[%_,().]/g, "\\$&");
+			query = query.or(
+				`name.ilike.%${sanitized}%,description.ilike.%${sanitized}%,country.ilike.%${sanitized}%,stone_type.ilike.%${sanitized}%,color.ilike.%${sanitized}%`
+			);
+		}
+
+		if (minPrice) {
+			const min = parseFloat(minPrice);
+			if (!isNaN(min)) {
+				query = query.gte("selling_price", min);
+			}
+		}
+
+		if (maxPrice) {
+			const max = parseFloat(maxPrice);
+			if (!isNaN(max)) {
+				query = query.lte("selling_price", max);
+			}
+		}
+
+		if (showSold !== "true") {
+			query = query.eq("is_sold", false);
+		}
+
+		const offset = (page - 1) * limit;
+		const { data, count, error } = await query
+			.order("created_at", { ascending: false })
+			.range(offset, offset + limit - 1);
+
+		if (error) {
+			console.error("Error fetching stones:", error);
+			return NextResponse.json({ error: "Failed to fetch stones" }, { status: 500 });
+		}
+
+		const items: StoneListItem[] = (data || []).map((stone) => ({
+			id: stone.id,
+			name: stone.name,
+			stone_type: stone.stone_type,
+			color: stone.color,
+			weight_carats: stone.weight_carats,
+			country: stone.country,
+			selling_price: stone.selling_price,
+			is_sold: stone.is_sold,
+			created_at: stone.created_at,
+		}));
+
+		const response: PaginatedStonesResponse = {
+			data: items,
+			total: count || 0,
+			page,
+			limit,
+			totalPages: Math.ceil((count || 0) / limit),
+		};
+
+		return NextResponse.json(response);
+	} catch (error) {
+		console.error("Stones GET error:", error);
+		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+	}
+}
+
+export async function POST(request: NextRequest) {
+	try {
+		const admin = await isAdmin();
+		if (!admin) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
+		const body = await request.json();
+		const validation = createStoneSchema.safeParse(body);
+
+		if (!validation.success) {
+			return NextResponse.json(
+				{ error: "Validation failed", details: validation.error.flatten() },
+				{ status: 400 }
+			);
+		}
+
+		const supabase = await createClient();
+
+		const { data: stone, error } = await supabase
+			.from("stones")
+			.insert(validation.data)
+			.select()
+			.single();
+
+		if (error) {
+			console.error("Error creating stone:", error);
+			return NextResponse.json({ error: "Failed to create stone" }, { status: 500 });
+		}
+
+		return NextResponse.json(stone, { status: 201 });
+	} catch (error) {
+		console.error("Stones POST error:", error);
+		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+	}
+}

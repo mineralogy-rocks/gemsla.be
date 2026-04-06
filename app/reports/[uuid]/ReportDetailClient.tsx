@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 
 import { Button } from "../../components/Button";
 import { DeleteDialog } from "../../components/DeleteDialog";
@@ -83,9 +84,9 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 
 			const updatedReport = await response.json();
 			setReport(updatedReport);
-		} catch (error) {
+		} catch {
 			setReport(previousReport);
-			console.error("Error toggling public status:", error);
+			toast.error("Failed to update visibility. Please try again.");
 		}
 	};
 
@@ -101,8 +102,8 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 			}
 
 			router.push("/reports");
-		} catch (error) {
-			console.error("Error deleting report:", error);
+		} catch {
+			toast.error("Failed to delete report. Please try again.");
 			setIsDeleting(false);
 		}
 	};

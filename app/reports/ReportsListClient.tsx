@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+
 import { Button } from "../components/Button";
 import { Checkbox } from "../components/Checkbox";
 import { PageHeader } from "../components/PageHeader";
@@ -163,8 +165,8 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 			a.download = "qr-codes.pdf";
 			a.click();
 			URL.revokeObjectURL(url);
-		} catch (error) {
-			console.error("Export QR codes failed:", error);
+		} catch {
+			toast.error("Failed to export QR codes. Please try again.");
 		} finally {
 			setIsExporting(false);
 		}

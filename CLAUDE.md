@@ -67,6 +67,7 @@ docker-compose -f ./main/docker-compose.yaml exec -it gems-labe bash
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
 RESEND_API_KEY
+OPENAI_API_KEY
 ```
 
 ## Component Patterns

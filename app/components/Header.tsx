@@ -2,6 +2,8 @@
 
 import {useState, useEffect, useCallback, useRef, useActionState} from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
+
 import {signOut} from "@/app/actions/auth";
 import {Button} from "@/app/components/Button";
 import {MobileMenu} from "@/app/components/MobileMenu";
@@ -20,7 +22,7 @@ export function Header({ user }: HeaderProps) {
 		async () => {
 			const result = await signOut();
 			if (result?.error) {
-				console.error('Sign out error:', result.error);
+				toast.error("Failed to sign out. Please try again.");
 				return { error: result.error };
 			}
 			return { error: null };

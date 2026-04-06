@@ -1,0 +1,1 @@
+ALTER TABLE public.invoices ADD COLUMN is_refund BOOLEAN NOT NULL DEFAULT FALSE;

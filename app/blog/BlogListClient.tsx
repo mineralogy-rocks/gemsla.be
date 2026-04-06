@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+
 import { staggerContainer, staggerItem } from "@/app/lib/animations";
 import { PageHeader } from "@/app/components/PageHeader";
 import { SearchInput } from "@/app/components/SearchInput";
@@ -170,8 +172,8 @@ export function BlogListClient({
 			if (res.ok) {
 				setPosts((prev) => prev.filter((p) => p.id !== deleteTarget));
 			}
-		} catch (error) {
-			console.error("Failed to delete post:", error);
+		} catch {
+			toast.error("Failed to delete post. Please try again.");
 		} finally {
 			setDeleting(false);
 			setDeleteTarget(null);
