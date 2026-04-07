@@ -2,7 +2,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { InvoiceDetail, InvoiceListItem, InvoiceStats, PaginatedInvoicesResponse } from "@/app/api/stones/types";
 
-const VALID_SORT_COLUMNS = ["invoice_number", "invoice_date", "supplier", "price_eur", "price_usd", "created_at"] as const;
+const VALID_SORT_COLUMNS = ["invoice_number", "original_invoice_number", "invoice_date", "supplier", "price_eur", "price_usd", "created_at"] as const;
 type SortColumn = typeof VALID_SORT_COLUMNS[number];
 
 interface FetchInvoicesParams {
@@ -11,8 +11,9 @@ interface FetchInvoicesParams {
 	sortBy?: string;
 	sortDir?: string;
 	q?: string;
-	isProcessed?: boolean;
+	isParsed?: boolean;
 	isPaid?: boolean;
+	isValidated?: boolean;
 	showRefunds?: boolean;
 }
 
@@ -22,8 +23,9 @@ export const fetchInvoices = cache(async ({
 	sortBy = "created_at",
 	sortDir = "desc",
 	q = "",
-	isProcessed = false,
+	isParsed = false,
 	isPaid = false,
+	isValidated = false,
 	showRefunds = false,
 }: FetchInvoicesParams): Promise<PaginatedInvoicesResponse> => {
 	const supabase = await createClient();
@@ -35,21 +37,26 @@ export const fetchInvoices = cache(async ({
 
 	let query = supabase
 		.from("invoices")
-		.select("*, stones(count)", { count: "exact" });
+		.select("*, stones(count)", { count: "exact" })
+		.eq("is_archived", false);
 
 	if (q) {
 		const sanitized = q.replace(/[%_,().]/g, "\\$&");
 		query = query.or(
-			`invoice_number.ilike.%${sanitized}%,supplier.ilike.%${sanitized}%`
+			`invoice_number.ilike.%${sanitized}%,original_invoice_number.ilike.%${sanitized}%,supplier.ilike.%${sanitized}%`
 		);
 	}
 
-	if (isProcessed) {
-		query = query.eq("is_processed", true);
+	if (isParsed) {
+		query = query.eq("is_parsed", true);
 	}
 
 	if (isPaid) {
 		query = query.eq("is_paid", true);
+	}
+
+	if (isValidated) {
+		query = query.eq("is_validated", true);
 	}
 
 	if (showRefunds) {
@@ -87,7 +94,7 @@ export const fetchInvoiceById = cache(async (id: string): Promise<InvoiceDetail 
 
 	const { data, error } = await supabase
 		.from("invoices")
-		.select("*, stones(id, name, stone_type, color, weight_carats, selling_price, is_sold, created_at)")
+		.select("*, stones(id, name, stone_type, color, weight_carats, selling_price, is_sold, item_number, created_at)")
 		.eq("id", id)
 		.single();
 
@@ -103,11 +110,11 @@ export const fetchInvoiceById = cache(async (id: string): Promise<InvoiceDetail 
 		signedUrl = urlData?.signedUrl ?? undefined;
 	}
 
-	let parentInvoice: { id: string; invoice_number: string | null } | null = null;
+	let parentInvoice: { id: string; invoice_number: string | null; original_invoice_number: string | null } | null = null;
 	if (data.refund_of) {
 		const { data: parent } = await supabase
 			.from("invoices")
-			.select("id, invoice_number")
+			.select("id, invoice_number, original_invoice_number, price_eur, price_usd, shipment_eur, shipment_usd, vat_eur, vat_usd, gross_eur, gross_usd")
 			.eq("id", data.refund_of)
 			.single();
 		parentInvoice = parent ?? null;
@@ -115,7 +122,7 @@ export const fetchInvoiceById = cache(async (id: string): Promise<InvoiceDetail 
 
 	const { data: refunds } = await supabase
 		.from("invoices")
-		.select("id, invoice_number, price_eur, price_usd, invoice_date, file_path")
+		.select("id, invoice_number, original_invoice_number, price_eur, price_usd, shipment_eur, shipment_usd, vat_rate, vat_eur, vat_usd, gross_eur, gross_usd, invoice_date, items, file_path")
 		.eq("refund_of", id);
 
 	const refundInvoices = await Promise.all(
@@ -145,19 +152,27 @@ export const fetchInvoiceById = cache(async (id: string): Promise<InvoiceDetail 
 export const fetchInvoiceStats = cache(async (): Promise<InvoiceStats> => {
 	const supabase = await createClient();
 
-	const [invoiceAgg, processedCount, pendingCount, revenueAgg] = await Promise.all([
+	const [invoiceAgg, parsedCount, unparsedCount, validatedCount, revenueAgg] = await Promise.all([
 		supabase
 			.from("invoices")
 			.select("total_eur:price_eur.sum()")
-			.eq("is_processed", true),
+			.eq("is_parsed", true)
+			.eq("is_archived", false),
 		supabase
 			.from("invoices")
 			.select("id", { count: "exact", head: true })
-			.eq("is_processed", true),
+			.eq("is_parsed", true)
+			.eq("is_archived", false),
 		supabase
 			.from("invoices")
 			.select("id", { count: "exact", head: true })
-			.eq("is_processed", false),
+			.eq("is_parsed", false)
+			.eq("is_archived", false),
+		supabase
+			.from("invoices")
+			.select("id", { count: "exact", head: true })
+			.eq("is_validated", true)
+			.eq("is_archived", false),
 		supabase
 			.from("stones")
 			.select("total_revenue:sold_price.sum()")
@@ -167,7 +182,8 @@ export const fetchInvoiceStats = cache(async (): Promise<InvoiceStats> => {
 	return {
 		total_eur: invoiceAgg.data?.[0]?.total_eur ?? 0,
 		total_revenue: revenueAgg.data?.[0]?.total_revenue ?? 0,
-		processed_count: processedCount.count ?? 0,
-		pending_count: pendingCount.count ?? 0,
+		parsed_count: parsedCount.count ?? 0,
+		unparsed_count: unparsedCount.count ?? 0,
+		validated_count: validatedCount.count ?? 0,
 	};
 });

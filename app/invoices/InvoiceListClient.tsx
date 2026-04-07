@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 
 import { Button } from "../components/Button";
@@ -12,15 +12,14 @@ import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { SearchInput } from "../components/SearchInput";
 import { BulkActionBar } from "../components/BulkActionBar";
-import { DeleteDialog } from "../components/DeleteDialog";
-import type { InvoiceListItem, InvoiceStats, PaginatedInvoicesResponse } from "../api/stones/types";
+import type { InvoiceStats, PaginatedInvoicesResponse } from "../api/stones/types";
 
 interface InvoiceListClientProps {
 	initialData: PaginatedInvoicesResponse;
 	stats: InvoiceStats;
 }
 
-type SortColumn = "invoice_number" | "supplier" | "invoice_date" | "gross_eur" | "gross_usd";
+type SortColumn = "invoice_number" | "original_invoice_number" | "supplier" | "invoice_date" | "gross_eur" | "gross_usd";
 
 function useDebounce<T>(value: T, delay: number): T {
 	const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -96,17 +95,16 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 	const currentSortBy = searchParams.get("sort_by") || "";
 	const currentSortDir = searchParams.get("sort_dir") || "";
 	const currentSearch = searchParams.get("q") || "";
-	const currentShowProcessed = searchParams.get("is_processed") === '1';
+	const currentShowParsed = searchParams.get("is_parsed") === '1';
 	const currentShowPaid = searchParams.get("is_paid") === '1';
+	const currentShowValidated = searchParams.get("is_validated") === '1';
 	const currentShowRefunds = searchParams.get("show_refunds") === '1';
 
 	const [search, setSearch] = useState(currentSearch);
 	const debouncedSearch = useDebounce(search, 300);
 
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-	const [deleteTarget, setDeleteTarget] = useState<InvoiceListItem | null>(null);
-	const [showBulkDelete, setShowBulkDelete] = useState(false);
-	const [isDeleting, setIsDeleting] = useState(false);
+	const [archivingId, setArchivingId] = useState<string | null>(null);
 	const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 	const [isUploading, setIsUploading] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -149,13 +147,18 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 		}
 	}, [debouncedSearch, currentSearch, createQueryString, pathname, router]);
 
-	const handleShowProcessedChange = () => {
-		const query = createQueryString({ is_processed: currentShowProcessed ? '' : '1', page: 1 });
+	const handleShowParsedChange = () => {
+		const query = createQueryString({ is_parsed: currentShowParsed ? '' : '1', page: 1 });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
 	const handleShowPaidChange = () => {
 		const query = createQueryString({ is_paid: currentShowPaid ? '' : '1', page: 1 });
+		router.push(`${pathname}${query ? `?${query}` : ""}`);
+	};
+
+	const handleShowValidatedChange = () => {
+		const query = createQueryString({ is_validated: currentShowValidated ? '' : '1', page: 1 });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
@@ -203,23 +206,25 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 		});
 	};
 
-	const handleDelete = async () => {
-		if (!deleteTarget) return;
-		setIsDeleting(true);
+	const handleArchive = async (id: string) => {
+		setArchivingId(id);
 		try {
-			const response = await fetch(`/api/invoices/${deleteTarget.id}`, { method: "DELETE" });
-			if (!response.ok) throw new Error("Failed to delete invoice");
+			const response = await fetch(`/api/invoices/${id}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ is_archived: true }),
+			});
+			if (!response.ok) throw new Error("Failed to archive invoice");
 			setSelectedIds((prev) => {
 				const next = new Set(prev);
-				next.delete(deleteTarget.id);
+				next.delete(id);
 				return next;
 			});
 			router.refresh();
 		} catch {
-			toast.error("Failed to delete invoice. Please try again.");
+			toast.error("Failed to archive invoice. Please try again.");
 		} finally {
-			setIsDeleting(false);
-			setDeleteTarget(null);
+			setArchivingId(null);
 		}
 	};
 
@@ -263,22 +268,21 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 		}
 	};
 
-	const handleBulkDelete = async () => {
-		setIsDeleting(true);
+	const handleBulkArchive = async () => {
+		setArchivingId("bulk");
 		try {
-			const response = await fetch("/api/invoices/bulk-delete", {
+			const response = await fetch("/api/invoices/bulk-archive", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ ids: [...selectedIds] }),
 			});
-			if (!response.ok) throw new Error("Failed to delete invoices");
+			if (!response.ok) throw new Error("Failed to archive invoices");
 			setSelectedIds(new Set());
 			router.refresh();
 		} catch {
-			toast.error("Failed to delete invoices. Please try again.");
+			toast.error("Failed to archive invoices. Please try again.");
 		} finally {
-			setIsDeleting(false);
-			setShowBulkDelete(false);
+			setArchivingId(null);
 		}
 	};
 
@@ -348,12 +352,15 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 						</div>
 
 						<div className="flex flex-wrap items-center gap-4">
-							<Checkbox label="Processed"
-							          checked={currentShowProcessed}
-							          onChange={handleShowProcessedChange} />
+							<Checkbox label="Parsed"
+							          checked={currentShowParsed}
+							          onChange={handleShowParsedChange} />
 							<Checkbox label="Paid"
 							          checked={currentShowPaid}
 							          onChange={handleShowPaidChange} />
+							<Checkbox label="Validated"
+							          checked={currentShowValidated}
+							          onChange={handleShowValidatedChange} />
 							<Checkbox label="Refunds"
 							          checked={currentShowRefunds}
 							          onChange={handleShowRefundsChange} />
@@ -374,15 +381,21 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 							</p>
 						</div>
 						<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-40">
-							<p className="text-[11px] text-text-gray tracking-wide">Processed</p>
+							<p className="text-[11px] text-text-gray tracking-wide">Parsed</p>
 							<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
-								{stats.processed_count}
+								{stats.parsed_count}
 							</p>
 						</div>
 						<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-40">
-							<p className="text-[11px] text-text-gray tracking-wide">Pending</p>
+							<p className="text-[11px] text-text-gray tracking-wide">Unparsed</p>
 							<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
-								{stats.pending_count}
+								{stats.unparsed_count}
+							</p>
+						</div>
+						<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-40">
+							<p className="text-[11px] text-text-gray tracking-wide">Validated</p>
+							<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
+								{stats.validated_count}
 							</p>
 						</div>
 					</div>
@@ -390,7 +403,7 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 					{invoices.length === 0 ? (
 						<div className="rounded-md border border-border-light bg-background-creme/40 py-16 px-8 text-center">
 							<p className="text-text-gray">
-								{currentSearch || currentShowProcessed || currentShowPaid || currentShowRefunds
+								{currentSearch || currentShowParsed || currentShowPaid || currentShowValidated || currentShowRefunds
 									? "No invoices match your search criteria"
 									: "No invoices yet. Upload your first invoice."}
 							</p>
@@ -421,7 +434,7 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 									<motion.tbody variants={staggerContainer}
 									              initial="hidden"
 									              animate="show"
-									              key={`${currentPage}-${currentSortBy}-${currentSortDir}-${currentSearch}-${currentShowProcessed}-${currentShowPaid}-${currentShowRefunds}-${total}`}>
+									              key={`${currentPage}-${currentSortBy}-${currentSortDir}-${currentSearch}-${currentShowParsed}-${currentShowPaid}-${currentShowValidated}-${currentShowRefunds}-${total}`}>
 										{invoices.map((invoice) => (
 											<motion.tr key={invoice.id}
 											           variants={staggerItem}
@@ -443,9 +456,9 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 													<Link href={`/invoices/${invoice.id}`}
 													      className="inline-flex items-center gap-2 text-xs text-text-gray/60 hover:text-foreground transition-colors font-mono">
 														<span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-															invoice.is_paid && invoice.is_processed
+															invoice.is_paid && invoice.is_validated
 																? "bg-green-500"
-																: !invoice.is_paid && !invoice.is_processed
+																: !invoice.is_paid && !invoice.is_parsed
 																	? "bg-red-500"
 																	: "bg-amber-500"
 														}`} />
@@ -471,20 +484,26 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 													{invoice.stone_count}
 												</td>
 												<td className="py-2.5 px-3">
-													<button type="button"
-													        onClick={() => setDeleteTarget(invoice)}
-													        className="text-text-gray hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
-													        aria-label="Delete invoice">
-														<svg className="h-4 w-4"
-														     fill="none"
-														     viewBox="0 0 24 24"
-														     stroke="currentColor">
-															<path strokeLinecap="round"
-															      strokeLinejoin="round"
-															      strokeWidth={1.5}
-															      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-														</svg>
-													</button>
+													{archivingId === invoice.id ? (
+														<div className="flex items-center justify-center">
+															<div className="h-4 w-4 rounded-full border-2 border-text-gray/40 border-t-text-gray animate-spin" />
+														</div>
+													) : (
+														<button type="button"
+														        onClick={() => handleArchive(invoice.id)}
+														        className="text-text-gray hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
+														        aria-label="Archive invoice">
+															<svg className="h-4 w-4"
+															     fill="none"
+															     viewBox="0 0 24 24"
+															     stroke="currentColor">
+																<path strokeLinecap="round"
+																      strokeLinejoin="round"
+																      strokeWidth={1.5}
+																      d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+															</svg>
+														</button>
+													)}
 												</td>
 											</motion.tr>
 										))}
@@ -538,33 +557,20 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 				<div className="h-4 w-px bg-border" />
 				<Button variant="ghost"
 				        size="sm"
-				        onClick={() => setShowBulkDelete(true)}>
-					<svg className="h-3.5 w-3.5 mr-1 text-red-500"
+				        disabled={archivingId === "bulk"}
+				        onClick={handleBulkArchive}>
+					<svg className="h-3.5 w-3.5 mr-1 text-text-gray"
 					     fill="none"
 					     viewBox="0 0 24 24"
 					     stroke="currentColor">
 						<path strokeLinecap="round"
 						      strokeLinejoin="round"
 						      strokeWidth={1.5}
-						      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+						      d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
 					</svg>
-					Delete
+					Archive
 				</Button>
 			</BulkActionBar>
-
-			<DeleteDialog isOpen={!!deleteTarget}
-			              onClose={() => setDeleteTarget(null)}
-			              onConfirm={handleDelete}
-			              title="Delete Invoice"
-			              message={`Are you sure you want to delete invoice "${deleteTarget?.invoice_number || deleteTarget?.id}"? This action cannot be undone.`}
-			              isPending={isDeleting} />
-
-			<DeleteDialog isOpen={showBulkDelete}
-			              onClose={() => setShowBulkDelete(false)}
-			              onConfirm={handleBulkDelete}
-			              title="Delete Invoices"
-			              message={`Are you sure you want to delete ${selectedIds.size} invoice${selectedIds.size !== 1 ? "s" : ""}? This action cannot be undone.`}
-			              isPending={isDeleting} />
 
 		</div>
 	);

@@ -1,0 +1,2 @@
+ALTER TABLE public.invoices
+	ADD COLUMN is_archived BOOLEAN NOT NULL DEFAULT FALSE;

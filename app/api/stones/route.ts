@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
 		let query = supabase
 			.from("stones")
-			.select("id, name, stone_type, color, weight_carats, country, selling_price, is_sold, created_at", { count: "exact" });
+			.select("id, name, stone_type, color, weight_carats, country, selling_price, is_sold, item_number, created_at", { count: "exact" });
 
 		if (search) {
 			const sanitized = search.replace(/[%_,().]/g, "\\$&");
@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
 			country: stone.country,
 			selling_price: stone.selling_price,
 			is_sold: stone.is_sold,
+			item_number: stone.item_number,
 			created_at: stone.created_at,
 		}));
 

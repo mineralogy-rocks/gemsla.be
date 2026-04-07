@@ -23,7 +23,7 @@ export const fetchStones = cache(async ({
 
 	let query = supabase
 		.from("stones")
-		.select("id, name, stone_type, color, weight_carats, country, selling_price, is_sold, created_at", { count: "exact" });
+		.select("id, name, stone_type, color, weight_carats, country, selling_price, is_sold, item_number, created_at", { count: "exact" });
 
 	if (q) {
 		const sanitized = q.replace(/[%_,().]/g, "\\$&");
@@ -69,6 +69,7 @@ export const fetchStones = cache(async ({
 		country: stone.country,
 		selling_price: stone.selling_price,
 		is_sold: stone.is_sold,
+		item_number: stone.item_number,
 		created_at: stone.created_at,
 	}));
 

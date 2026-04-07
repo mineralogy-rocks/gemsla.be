@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 		const { data: invoice, error } = await supabase
 			.from("invoices")
-			.select("*, stones(id, name, stone_type, color, weight_carats, selling_price, is_sold, created_at)")
+			.select("*, stones(id, name, stone_type, color, weight_carats, selling_price, is_sold, item_number, created_at)")
 			.eq("id", id)
 			.single();
 
@@ -90,53 +90,3 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 	}
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-	try {
-		const admin = await isAdmin();
-		if (!admin) {
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-		}
-
-		const { id } = await params;
-		if (!id) {
-			return NextResponse.json({ error: "Invoice ID is required" }, { status: 400 });
-		}
-
-		const supabase = await createClient();
-
-		const { data: invoice, error: findError } = await supabase
-			.from("invoices")
-			.select("id, file_path")
-			.eq("id", id)
-			.single();
-
-		if (findError || !invoice) {
-			return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
-		}
-
-		if (invoice.file_path) {
-			const { error: storageError } = await supabase.storage
-				.from("invoices")
-				.remove([invoice.file_path]);
-
-			if (storageError) {
-				console.error("Error deleting invoice file:", storageError);
-			}
-		}
-
-		const { error: deleteError } = await supabase
-			.from("invoices")
-			.delete()
-			.eq("id", id);
-
-		if (deleteError) {
-			console.error("Error deleting invoice:", deleteError);
-			return NextResponse.json({ error: "Failed to delete invoice" }, { status: 500 });
-		}
-
-		return NextResponse.json({ success: true });
-	} catch (error) {
-		console.error("Invoice DELETE error:", error);
-		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-	}
-}

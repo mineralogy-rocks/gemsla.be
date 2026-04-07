@@ -2,13 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/supabase/admin";
 import OpenAI from "openai";
 
+import type { InvoiceItem, InvoiceType } from "@/app/api/stones/types";
+
 const STORED_PROMPT_ID = "pmpt_69b30db188a481968f9f68f985966b1f0e35efb672138624";
 
 interface RawInvoice {
+	type: string;
 	invoice_number: string | null;
+	original_invoice_number: string | null;
 	invoice_date: string | null;
 	order_number: string | null;
-	seller_name: string | null;
+	supplier: string | null;
 	ship_from: string | null;
 	price_usd: number | null;
 	price_eur: number | null;
@@ -22,7 +26,7 @@ interface RawInvoice {
 	is_refund: boolean;
 }
 
-interface RawStone {
+interface RawItem {
 	item_number: string | null;
 	name: string;
 	description: string | null;
@@ -43,27 +47,18 @@ interface RawStone {
 	gross_eur: number | null;
 }
 
-interface ParsedStone {
-	name: string;
-	description: string | null;
-	stone_type: string | null;
-	color: string | null;
-	cut: string | null;
-	weight_carats: number | null;
-	dimensions: string | null;
-	country: string | null;
-	price_usd: number | null;
-	price_eur: number | null;
-	shipment_usd: number | null;
-	shipment_eur: number | null;
-	vat_usd: number | null;
-	vat_eur: number | null;
-	gross_usd: number | null;
-	gross_eur: number | null;
+interface RawResponse {
+	invoice: RawInvoice;
+	confidence: Record<string, number>;
+	items: RawItem[];
 }
 
+const VALID_INVOICE_TYPES: InvoiceType[] = ["received", "issued", "credit_note"];
+
 interface ParsedInvoice {
+	type: InvoiceType;
 	invoice_number: string | null;
+	original_invoice_number: string | null;
 	order_number: string | null;
 	supplier: string | null;
 	invoice_date: string | null;
@@ -77,7 +72,8 @@ interface ParsedInvoice {
 	gross_usd: number | null;
 	gross_eur: number | null;
 	is_refund: boolean;
-	stones: ParsedStone[];
+	confidence: Record<string, number>;
+	items: InvoiceItem[];
 }
 
 export async function POST(request: NextRequest) {
@@ -121,14 +117,16 @@ export async function POST(request: NextRequest) {
 
 		const outputText = response.output_text;
 
-		let raw: { invoice: RawInvoice; stones: RawStone[] };
+		let raw: RawResponse;
 		try {
 			const jsonMatch = outputText.match(/```json\s*([\s\S]*?)\s*```/);
 			const jsonString = jsonMatch ? jsonMatch[1] : outputText;
 			raw = JSON.parse(jsonString.trim());
 		} catch {
 			return NextResponse.json({
+				type: "received",
 				invoice_number: null,
+				original_invoice_number: null,
 				order_number: null,
 				supplier: null,
 				invoice_date: null,
@@ -142,15 +140,18 @@ export async function POST(request: NextRequest) {
 				gross_usd: null,
 				gross_eur: null,
 				is_refund: false,
-				stones: [{
+				confidence: {},
+				items: [{
+					item_number: null,
 					name: "Unknown Stone",
 					description: outputText.slice(0, 500),
-					stone_type: null,
-					color: null,
-					cut: null,
-					weight_carats: null,
+					carat_weight: null,
 					dimensions: null,
-					country: null,
+					shape: null,
+					color: null,
+					treatment: null,
+					origin: null,
+					piece_count: 1,
 					price_usd: null,
 					price_eur: null,
 					shipment_usd: null,
@@ -164,11 +165,59 @@ export async function POST(request: NextRequest) {
 		}
 
 		const inv = raw.invoice ?? {} as RawInvoice;
+		const rawType = inv.type as InvoiceType;
+		const type: InvoiceType = VALID_INVOICE_TYPES.includes(rawType) ? rawType : "received";
+
+		const items: InvoiceItem[] = (raw.items ?? []).map((s) => ({
+			item_number: s.item_number ?? null,
+			name: s.name ?? "Unknown Stone",
+			description: s.description ?? null,
+			carat_weight: s.carat_weight ?? null,
+			dimensions: s.dimensions ?? null,
+			shape: s.shape ?? null,
+			color: s.color ?? null,
+			treatment: s.treatment ?? null,
+			origin: s.origin ?? inv.ship_from ?? null,
+			piece_count: s.piece_count ?? 1,
+			price_usd: s.price_usd ?? null,
+			price_eur: s.price_eur ?? null,
+			shipment_usd: s.shipment_usd ?? null,
+			shipment_eur: s.shipment_eur ?? null,
+			vat_usd: s.vat_usd ?? null,
+			vat_eur: s.vat_eur ?? null,
+			gross_usd: s.gross_usd ?? null,
+			gross_eur: s.gross_eur ?? null,
+		}));
+
+		if (items.length === 0) {
+			items.push({
+				item_number: null,
+				name: "Unknown Stone",
+				description: outputText.slice(0, 500),
+				carat_weight: null,
+				dimensions: null,
+				shape: null,
+				color: null,
+				treatment: null,
+				origin: null,
+				piece_count: 1,
+				price_usd: null,
+				price_eur: null,
+				shipment_usd: null,
+				shipment_eur: null,
+				vat_usd: null,
+				vat_eur: null,
+				gross_usd: null,
+				gross_eur: null,
+			});
+		}
 
 		const parsed: ParsedInvoice = {
+			type,
 			invoice_number: inv.invoice_number ?? null,
+			original_invoice_number: inv.original_invoice_number ?? null,
 			order_number: inv.order_number ?? null,
-			supplier: inv.seller_name ?? null,
+			supplier: inv.supplier ?? null,
 			invoice_date: inv.invoice_date ?? null,
 			price_usd: inv.price_usd ?? null,
 			price_eur: inv.price_eur ?? null,
@@ -180,46 +229,9 @@ export async function POST(request: NextRequest) {
 			gross_usd: inv.gross_usd ?? null,
 			gross_eur: inv.gross_eur ?? null,
 			is_refund: inv.is_refund ?? false,
-			stones: (raw.stones ?? []).map((s) => ({
-				name: s.name ?? "Unknown Stone",
-				description: s.description ?? null,
-				stone_type: s.name ?? null,
-				color: s.color ?? null,
-				cut: s.shape ?? null,
-				weight_carats: s.carat_weight ?? null,
-				dimensions: s.dimensions ?? null,
-				country: s.origin ?? inv.ship_from ?? null,
-				price_usd: s.price_usd ?? null,
-				price_eur: s.price_eur ?? null,
-				shipment_usd: s.shipment_usd ?? null,
-				shipment_eur: s.shipment_eur ?? null,
-				vat_usd: s.vat_usd ?? null,
-				vat_eur: s.vat_eur ?? null,
-				gross_usd: s.gross_usd ?? null,
-				gross_eur: s.gross_eur ?? null,
-			})),
+			confidence: raw.confidence ?? {},
+			items,
 		};
-
-		if (parsed.stones.length === 0) {
-			parsed.stones = [{
-				name: "Unknown Stone",
-				description: outputText.slice(0, 500),
-				stone_type: null,
-				color: null,
-				cut: null,
-				weight_carats: null,
-				dimensions: null,
-				country: null,
-				price_usd: null,
-				price_eur: null,
-				shipment_usd: null,
-				shipment_eur: null,
-				vat_usd: null,
-				vat_eur: null,
-				gross_usd: null,
-				gross_eur: null,
-			}];
-		}
 
 		return NextResponse.json(parsed);
 	} catch (err) {

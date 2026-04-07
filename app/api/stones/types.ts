@@ -1,5 +1,26 @@
 import { z } from "zod";
 
+export const invoiceItemSchema = z.object({
+	item_number: z.string().optional().nullable(),
+	name: z.string().min(1),
+	description: z.string().optional().nullable(),
+	carat_weight: z.number().optional().nullable(),
+	dimensions: z.string().optional().nullable(),
+	shape: z.string().optional().nullable(),
+	color: z.string().optional().nullable(),
+	treatment: z.string().optional().nullable(),
+	origin: z.string().optional().nullable(),
+	piece_count: z.number().int().default(1),
+	price_usd: z.number().optional().nullable(),
+	price_eur: z.number().optional().nullable(),
+	shipment_usd: z.number().optional().nullable(),
+	shipment_eur: z.number().optional().nullable(),
+	vat_usd: z.number().optional().nullable(),
+	vat_eur: z.number().optional().nullable(),
+	gross_usd: z.number().optional().nullable(),
+	gross_eur: z.number().optional().nullable(),
+});
+
 export const createStoneSchema = z.object({
 	name: z.string().min(1, "Name is required").max(255),
 	description: z.string().optional().nullable(),
@@ -23,38 +44,60 @@ export const createStoneSchema = z.object({
 	sold_price: z.number().min(0).optional().nullable(),
 	notes: z.string().optional().nullable(),
 	invoice_id: z.string().uuid().optional().nullable(),
+	item_number: z.string().max(100).optional().nullable(),
 });
 
 export const updateStoneSchema = createStoneSchema.partial();
 
 export const createInvoiceSchema = z.object({
 	invoice_number: z.string().max(100).optional().nullable(),
+	original_invoice_number: z.string().max(100).optional().nullable(),
+	type: z.enum(["received", "issued", "credit_note"]).default("received").optional(),
 	supplier: z.string().max(255).optional().nullable(),
 	invoice_date: z.string().optional().nullable(),
-	price_usd: z.number().min(0).optional().nullable(),
-	price_eur: z.number().min(0).optional().nullable(),
-	vat_usd: z.number().min(0).optional().nullable(),
-	shipment_usd: z.number().min(0).optional().nullable(),
-	shipment_eur: z.number().min(0).optional().nullable(),
+	price_usd: z.number().optional().nullable(),
+	price_eur: z.number().optional().nullable(),
+	vat_usd: z.number().optional().nullable(),
+	shipment_usd: z.number().optional().nullable(),
+	shipment_eur: z.number().optional().nullable(),
 	vat_rate: z.number().min(0).optional().nullable(),
-	vat_eur: z.number().min(0).optional().nullable(),
-	gross_usd: z.number().min(0).optional().nullable(),
-	gross_eur: z.number().min(0).optional().nullable(),
+	vat_eur: z.number().optional().nullable(),
+	gross_usd: z.number().optional().nullable(),
+	gross_eur: z.number().optional().nullable(),
 	file_path: z.string().optional().nullable(),
 	notes: z.string().optional().nullable(),
 	order_number: z.string().max(100).optional().nullable(),
 	refund_of: z.string().uuid().optional().nullable(),
 	is_paid: z.boolean().optional(),
-	is_processed: z.boolean().optional(),
+	is_parsed: z.boolean().optional(),
+	is_validated: z.boolean().optional(),
+	is_archived: z.boolean().optional(),
+	items: z.array(invoiceItemSchema).optional().nullable(),
+	parse_metadata: z.record(z.string(), z.number()).optional().nullable(),
 });
 
 export type CreateStoneInput = z.infer<typeof createStoneSchema>;
 export type UpdateStoneInput = z.infer<typeof updateStoneSchema>;
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
+export type InvoiceItem = z.infer<typeof invoiceItemSchema>;
+
+export type InvoiceType = "received" | "issued" | "credit_note";
+
+export type Confidence = Partial<Record<string, number>>;
+
+export interface Issue {
+	severity: "error" | "warning" | "info";
+	code: string;
+	field?: string;
+	message: string;
+	fix?: string;
+}
 
 export interface Invoice {
 	id: string;
 	invoice_number: string | null;
+	original_invoice_number: string | null;
+	type: InvoiceType;
 	supplier: string | null;
 	invoice_date: string | null;
 	price_usd: number | null;
@@ -69,9 +112,12 @@ export interface Invoice {
 	order_number: string | null;
 	refund_of: string | null;
 	is_paid: boolean;
-	is_processed: boolean;
+	is_parsed: boolean;
+	is_validated: boolean;
 	file_path: string | null;
 	notes: string | null;
+	items: InvoiceItem[] | null;
+	parse_metadata: Record<string, number> | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -83,8 +129,36 @@ export interface InvoiceListItem extends Invoice {
 export interface InvoiceDetail extends Invoice {
 	signed_url?: string;
 	stones: StoneListItem[];
-	parent_invoice?: { id: string; invoice_number: string | null } | null;
-	refund_invoices?: { id: string; invoice_number: string | null; price_eur: number | null; price_usd: number | null; invoice_date: string | null; signed_url?: string }[];
+	parent_invoice?: {
+		id: string;
+		invoice_number: string | null;
+		original_invoice_number: string | null;
+		price_eur: number | null;
+		price_usd: number | null;
+		shipment_eur: number | null;
+		shipment_usd: number | null;
+		vat_eur: number | null;
+		vat_usd: number | null;
+		gross_eur: number | null;
+		gross_usd: number | null;
+	} | null;
+	refund_invoices?: {
+		id: string;
+		invoice_number: string | null;
+		original_invoice_number: string | null;
+		price_eur: number | null;
+		price_usd: number | null;
+		shipment_eur: number | null;
+		shipment_usd: number | null;
+		vat_rate: number | null;
+		vat_eur: number | null;
+		vat_usd: number | null;
+		gross_eur: number | null;
+		gross_usd: number | null;
+		invoice_date: string | null;
+		items: InvoiceItem[] | null;
+		signed_url?: string;
+	}[];
 }
 
 export interface PaginatedInvoicesResponse {
@@ -98,13 +172,15 @@ export interface PaginatedInvoicesResponse {
 export interface InvoiceStats {
 	total_eur: number;
 	total_revenue: number;
-	processed_count: number;
-	pending_count: number;
+	parsed_count: number;
+	unparsed_count: number;
+	validated_count: number;
 }
 
 export interface Stone {
 	id: string;
 	invoice_id: string | null;
+	item_number: string | null;
 	name: string;
 	description: string | null;
 	stone_type: string | null;
@@ -140,6 +216,7 @@ export interface StoneListItem {
 	country: string | null;
 	selling_price: number | null;
 	is_sold: boolean;
+	item_number: string | null;
 	created_at: string;
 }
 

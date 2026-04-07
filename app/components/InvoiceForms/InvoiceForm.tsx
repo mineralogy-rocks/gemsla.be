@@ -18,8 +18,16 @@ export function InvoiceForm({ invoice, onChange }: InvoiceFormProps) {
 				       size="sm"
 				       value={invoice.invoice_number}
 				       onChange={(e) => onChange("invoice_number", e.target.value)}
-				       placeholder="e.g., 1261/2026" />
+				       placeholder="e.g., CN-1261/2026" />
 
+				<Input label="Original Invoice Number"
+				       size="sm"
+				       value={invoice.original_invoice_number}
+				       onChange={(e) => onChange("original_invoice_number", e.target.value)}
+				       placeholder="e.g., 1261/2026" />
+			</div>
+
+			<div className="grid gap-4 sm:grid-cols-2">
 				<Input label="Supplier"
 				       size="sm"
 				       value={invoice.supplier}
@@ -46,7 +54,6 @@ export function InvoiceForm({ invoice, onChange }: InvoiceFormProps) {
 				       size="sm"
 				       type="number"
 				       step="0.01"
-				       min="0"
 				       value={invoice.price_eur}
 				       onChange={(e) => onChange("price_eur", e.target.value)}
 				       placeholder="0.00" />
@@ -55,7 +62,6 @@ export function InvoiceForm({ invoice, onChange }: InvoiceFormProps) {
 				       size="sm"
 				       type="number"
 				       step="0.01"
-				       min="0"
 				       value={invoice.price_usd}
 				       onChange={(e) => onChange("price_usd", e.target.value)}
 				       placeholder="0.00" />
@@ -66,7 +72,6 @@ export function InvoiceForm({ invoice, onChange }: InvoiceFormProps) {
 				       size="sm"
 				       type="number"
 				       step="0.01"
-				       min="0"
 				       value={invoice.shipment_eur}
 				       onChange={(e) => onChange("shipment_eur", e.target.value)}
 				       placeholder="0.00" />
@@ -75,7 +80,6 @@ export function InvoiceForm({ invoice, onChange }: InvoiceFormProps) {
 				       size="sm"
 				       type="number"
 				       step="0.01"
-				       min="0"
 				       value={invoice.shipment_usd}
 				       onChange={(e) => onChange("shipment_usd", e.target.value)}
 				       placeholder="0.00" />
@@ -95,7 +99,6 @@ export function InvoiceForm({ invoice, onChange }: InvoiceFormProps) {
 				       size="sm"
 				       type="number"
 				       step="0.01"
-				       min="0"
 				       value={invoice.vat_eur}
 				       onChange={(e) => onChange("vat_eur", e.target.value)}
 				       placeholder="0.00" />
@@ -104,7 +107,6 @@ export function InvoiceForm({ invoice, onChange }: InvoiceFormProps) {
 				       size="sm"
 				       type="number"
 				       step="0.01"
-				       min="0"
 				       value={invoice.vat_usd}
 				       onChange={(e) => onChange("vat_usd", e.target.value)}
 				       placeholder="0.00" />

@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
 
 			const invoiceData: Record<string, unknown> = { file_path: filePath };
 			const invoiceNumber = formData.get("invoice_number");
+			const originalInvoiceNumber = formData.get("original_invoice_number");
 			const supplier = formData.get("supplier");
 			const invoiceDate = formData.get("invoice_date");
 			const priceUsd = formData.get("price_usd");
@@ -91,6 +92,7 @@ export async function POST(request: NextRequest) {
 			const notes = formData.get("notes");
 
 			if (invoiceNumber) invoiceData.invoice_number = invoiceNumber;
+			if (originalInvoiceNumber) invoiceData.original_invoice_number = originalInvoiceNumber;
 			if (supplier) invoiceData.supplier = supplier;
 			if (invoiceDate) invoiceData.invoice_date = invoiceDate;
 			if (priceUsd) invoiceData.price_usd = parseFloat(priceUsd as string);

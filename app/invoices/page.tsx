@@ -14,8 +14,9 @@ interface PageProps {
 		sort_by?: string;
 		sort_dir?: string;
 		q?: string;
-		is_processed?: string;
+		is_parsed?: string;
 		is_paid?: string;
+		is_validated?: string;
 		show_refunds?: string;
 	}>;
 }
@@ -32,12 +33,13 @@ export default async function InvoicesPage({ searchParams }: PageProps) {
 	const sortBy = params.sort_by || "created_at";
 	const sortDir = params.sort_dir || "desc";
 	const q = params.q || "";
-	const isProcessed = params.is_processed === "1";
+	const isParsed = params.is_parsed === "1";
 	const isPaid = params.is_paid === "1";
+	const isValidated = params.is_validated === "1";
 	const showRefunds = params.show_refunds === "1";
 
 	const [initialData, stats] = await Promise.all([
-		fetchInvoices({ page, limit: 20, sortBy, sortDir, q, isProcessed, isPaid, showRefunds }),
+		fetchInvoices({ page, limit: 20, sortBy, sortDir, q, isParsed, isPaid, isValidated, showRefunds }),
 		fetchInvoiceStats(),
 	]);
 
