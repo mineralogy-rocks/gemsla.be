@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 
+import { staggerContainer, staggerItem } from "@/app/lib/animations";
+import { useDebounce } from "@/app/lib/hooks/useDebounce";
+import { createQueryString } from "@/app/lib/queryString";
+import { money, fmtDate } from "@/app/lib/format";
+import { BackgroundTexture } from "@/app/components/BackgroundTexture";
 import { Button } from "../components/Button";
-import { Checkbox } from "../components/Checkbox";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { SearchInput } from "../components/SearchInput";
@@ -20,47 +24,6 @@ interface InvoiceListClientProps {
 }
 
 type SortColumn = "invoice_number" | "original_invoice_number" | "supplier" | "invoice_date" | "gross_eur" | "gross_usd";
-
-function useDebounce<T>(value: T, delay: number): T {
-	const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setDebouncedValue(value);
-		}, delay);
-
-		return () => {
-			clearTimeout(timer);
-		};
-	}, [value, delay]);
-
-	return debouncedValue;
-}
-
-const staggerContainer = {
-	hidden: { opacity: 0 },
-	show: {
-		opacity: 1,
-		transition: { staggerChildren: 0.02 },
-	},
-};
-
-const staggerItem = {
-	hidden: { opacity: 0, y: 3 },
-	show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } },
-};
-
-
-function formatCurrency(amount: number | null, currency: string): string {
-	if (amount == null) return "-";
-	const symbol = currency === "EUR" ? "\u20AC" : "$";
-	return `${symbol}${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatDate(date: string | null): string {
-	if (!date) return "-";
-	return new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-}
 
 function SortArrow({ active, direction }: { active: boolean; direction: string }) {
 	if (!active) {
@@ -96,6 +59,7 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 	const currentSortDir = searchParams.get("sort_dir") || "";
 	const currentSearch = searchParams.get("q") || "";
 	const currentShowParsed = searchParams.get("is_parsed") === '1';
+	const currentShowUnparsed = searchParams.get("is_unparsed") === '1';
 	const currentShowPaid = searchParams.get("is_paid") === '1';
 	const currentShowValidated = searchParams.get("is_validated") === '1';
 	const currentShowRefunds = searchParams.get("show_refunds") === '1';
@@ -116,6 +80,14 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 	const allOnPageSelected = invoices.length > 0 && invoices.every((inv) => selectedIds.has(inv.id));
 	const someSelected = selectedIds.size > 0;
 
+	const parsingInvoiceIds = useMemo(
+		() => invoices
+			.filter((inv) => inv.parse_status === "pending" || inv.parse_status === "parsing")
+			.map((inv) => inv.id),
+		[invoices],
+	);
+	const hasParsingInvoices = parsingInvoiceIds.length > 0;
+
 
 	useEffect(() => {
 		setSelectedIds(new Set());
@@ -127,48 +99,67 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 		}
 	}, [someSelected, allOnPageSelected]);
 
+	useEffect(() => {
+		if (!hasParsingInvoices) return;
 
-	const createQueryString = useCallback((params: Record<string, string | number | boolean>) => {
-		const urlParams = new URLSearchParams(searchParams.toString());
-		Object.entries(params).forEach(([key, value]) => {
-			if (value === "" || value === false || value === 1) {
-				urlParams.delete(key);
-			} else {
-				urlParams.set(key, String(value));
-			}
-		});
-		return urlParams.toString();
-	}, [searchParams]);
+		const interval = setInterval(async () => {
+			try {
+				const res = await fetch("/api/invoices/batch-status", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ ids: parsingInvoiceIds }),
+				});
+				if (!res.ok) return;
+
+				const statuses: { id: string; parse_status: string }[] = await res.json();
+				const anyChanged = statuses.some(
+					(s) => s.parse_status === "completed" || s.parse_status === "failed"
+				);
+
+				if (anyChanged) router.refresh();
+			} catch {}
+		}, 3000);
+
+		return () => clearInterval(interval);
+	}, [hasParsingInvoices, parsingInvoiceIds, router]);
+
+
+	const qs = useCallback((params: Record<string, string | number | boolean>) => createQueryString(params, searchParams), [searchParams]);
 
 	useEffect(() => {
 		if (debouncedSearch !== currentSearch) {
-			const query = createQueryString({ q: debouncedSearch, page: 1 });
+			const query = qs({ q: debouncedSearch, page: 1 });
 			router.push(`${pathname}${query ? `?${query}` : ""}`);
 		}
-	}, [debouncedSearch, currentSearch, createQueryString, pathname, router]);
+	}, [debouncedSearch, currentSearch, qs, pathname, router]);
 
 	const handleShowParsedChange = () => {
-		const query = createQueryString({ is_parsed: currentShowParsed ? '' : '1', page: 1 });
+		const query = qs({ is_parsed: currentShowParsed ? '' : '1', is_unparsed: '', page: 1 });
+		router.push(`${pathname}${query ? `?${query}` : ""}`);
+	};
+
+	const handleShowUnparsedChange = () => {
+		const query = qs({ is_unparsed: currentShowUnparsed ? '' : '1', is_parsed: '', page: 1 });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
 	const handleShowPaidChange = () => {
-		const query = createQueryString({ is_paid: currentShowPaid ? '' : '1', page: 1 });
+		const query = qs({ is_paid: currentShowPaid ? '' : '1', page: 1 });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
 	const handleShowValidatedChange = () => {
-		const query = createQueryString({ is_validated: currentShowValidated ? '' : '1', page: 1 });
+		const query = qs({ is_validated: currentShowValidated ? '' : '1', page: 1 });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
 	const handleShowRefundsChange = () => {
-		const query = createQueryString({ show_refunds: currentShowRefunds ? '' : '1', page: 1 });
+		const query = qs({ show_refunds: currentShowRefunds ? '' : '1', page: 1 });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
 	const handlePageChange = (newPage: number) => {
-		const query = createQueryString({ page: newPage });
+		const query = qs({ page: newPage });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
@@ -177,12 +168,12 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 		if (currentSortBy === column) {
 			if (currentSortDir === "asc") newDir = "desc";
 			else if (currentSortDir === "desc") {
-				const query = createQueryString({ sort_by: "", sort_dir: "", page: 1 });
+				const query = qs({ sort_by: "", sort_dir: "", page: 1 });
 				router.push(`${pathname}${query ? `?${query}` : ""}`);
 				return;
 			}
 		}
-		const query = createQueryString({ sort_by: column, sort_dir: newDir, page: 1 });
+		const query = qs({ sort_by: column, sort_dir: newDir, page: 1 });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
@@ -305,20 +296,15 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 
 	return (
 		<div className="min-h-screen relative pt-16">
-			<div className="fixed inset-0 z-0 opacity-10 pointer-events-none"
-			     style={{
-				     backgroundImage: 'url("/NNNoise Texture Generator.svg")',
-				     backgroundSize: "400px 400px",
-				     backgroundRepeat: "repeat",
-			     }} />
+			<BackgroundTexture />
 
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-6xl mx-auto">
 					<PageHeader title="Invoices"
 					            subtitle={`${total} invoice${total !== 1 ? "s" : ""}`} />
 
-					<div className="flex flex-col gap-4 my-6">
-						<div className="flex items-center gap-3">
+					<div className="flex flex-col gap-3 my-6">
+						<div className="flex items-center gap-2">
 							<div className="flex-1">
 								<SearchInput value={search}
 								             onChange={(e) => setSearch(e.target.value)}
@@ -326,7 +312,30 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 								             placeholder="Search invoices..." />
 							</div>
 
-							<div className="ml-auto">
+							<div className="flex items-center gap-1.5">
+								<button type="button"
+								        onClick={handleShowPaidChange}
+								        aria-pressed={currentShowPaid}
+								        className={`px-3 py-1.5 text-[11px] tracking-wide rounded-full border transition-colors ${
+									        currentShowPaid
+										        ? "border-gold bg-gold/10 text-foreground"
+										        : "border-border-light text-text-gray hover:border-border"
+								        }`}>
+									Paid
+								</button>
+								<button type="button"
+								        onClick={handleShowRefundsChange}
+								        aria-pressed={currentShowRefunds}
+								        className={`px-3 py-1.5 text-[11px] tracking-wide rounded-full border transition-colors ${
+									        currentShowRefunds
+										        ? "border-gold bg-gold/10 text-foreground"
+										        : "border-border-light text-text-gray hover:border-border"
+								        }`}>
+									Refunds
+								</button>
+							</div>
+
+							<div className="ml-1">
 								<input ref={fileInputRef}
 								       type="file"
 								       accept=".pdf,application/pdf"
@@ -350,60 +359,55 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 								</Button>
 							</div>
 						</div>
+					</div>
 
-						<div className="flex flex-wrap items-center gap-4">
-							<Checkbox label="Parsed"
-							          checked={currentShowParsed}
-							          onChange={handleShowParsedChange} />
-							<Checkbox label="Paid"
-							          checked={currentShowPaid}
-							          onChange={handleShowPaidChange} />
-							<Checkbox label="Validated"
-							          checked={currentShowValidated}
-							          onChange={handleShowValidatedChange} />
-							<Checkbox label="Refunds"
-							          checked={currentShowRefunds}
-							          onChange={handleShowRefundsChange} />
+
+					<div className="flex flex-col gap-3 mb-6">
+						<div className="flex flex-wrap gap-3">
+							<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-44">
+								<p className="text-[11px] text-text-gray tracking-wide">Invested (EUR)</p>
+								<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
+									{money(stats.total_eur || null, "eur")}
+								</p>
+							</div>
+							<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-44">
+								<p className="text-[11px] text-text-gray tracking-wide">Revenue</p>
+								<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
+									{money(stats.total_revenue || null, "usd")}
+								</p>
+							</div>
+						</div>
+
+
+						<div className="flex flex-wrap gap-3">
+							{([
+								{ label: "Parsed", value: stats.parsed_count, active: currentShowParsed, onClick: handleShowParsedChange },
+								{ label: "Unparsed", value: stats.unparsed_count, active: currentShowUnparsed, onClick: handleShowUnparsedChange },
+								{ label: "Validated", value: stats.validated_count, active: currentShowValidated, onClick: handleShowValidatedChange },
+							] as const).map(({ label, value, active, onClick }) => (
+								<button key={label}
+								        type="button"
+								        onClick={onClick}
+								        aria-pressed={active}
+								        className={`rounded-md border px-4 py-3 min-w-36 text-left transition-colors cursor-pointer ${
+									        active
+										        ? "border-gold bg-gold/6"
+										        : "border-border-light bg-background-creme/40 hover:border-border"
+								        }`}>
+									<p className={`text-[11px] tracking-wide ${active ? "text-foreground" : "text-text-gray"}`}>
+										{label}
+									</p>
+									<p className="text-sm font-medium tabular-nums mt-0.5">{value}</p>
+								</button>
+							))}
 						</div>
 					</div>
 
-					<div className="flex flex-wrap justify-center gap-3 mb-6">
-						<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-40">
-							<p className="text-[11px] text-text-gray tracking-wide">Invested (EUR)</p>
-							<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
-								{formatCurrency(stats.total_eur || null, "EUR")}
-							</p>
-						</div>
-						<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-40">
-							<p className="text-[11px] text-text-gray tracking-wide">Revenue</p>
-							<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
-								{formatCurrency(stats.total_revenue || null, "USD")}
-							</p>
-						</div>
-						<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-40">
-							<p className="text-[11px] text-text-gray tracking-wide">Parsed</p>
-							<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
-								{stats.parsed_count}
-							</p>
-						</div>
-						<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-40">
-							<p className="text-[11px] text-text-gray tracking-wide">Unparsed</p>
-							<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
-								{stats.unparsed_count}
-							</p>
-						</div>
-						<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-40">
-							<p className="text-[11px] text-text-gray tracking-wide">Validated</p>
-							<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
-								{stats.validated_count}
-							</p>
-						</div>
-					</div>
 
 					{invoices.length === 0 ? (
 						<div className="rounded-md border border-border-light bg-background-creme/40 py-16 px-8 text-center">
 							<p className="text-text-gray">
-								{currentSearch || currentShowParsed || currentShowPaid || currentShowValidated || currentShowRefunds
+								{currentSearch || currentShowParsed || currentShowUnparsed || currentShowPaid || currentShowValidated || currentShowRefunds
 									? "No invoices match your search criteria"
 									: "No invoices yet. Upload your first invoice."}
 							</p>
@@ -433,8 +437,8 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 									</thead>
 									<motion.tbody variants={staggerContainer}
 									              initial="hidden"
-									              animate="show"
-									              key={`${currentPage}-${currentSortBy}-${currentSortDir}-${currentSearch}-${currentShowParsed}-${currentShowPaid}-${currentShowValidated}-${currentShowRefunds}-${total}`}>
+									              animate="visible"
+									              key={`${currentPage}-${currentSortBy}-${currentSortDir}-${currentSearch}-${currentShowParsed}-${currentShowUnparsed}-${currentShowPaid}-${currentShowValidated}-${currentShowRefunds}-${total}`}>
 										{invoices.map((invoice) => (
 											<motion.tr key={invoice.id}
 											           variants={staggerItem}
@@ -455,13 +459,24 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 												<td className="py-2.5 px-3 font-medium">
 													<Link href={`/invoices/${invoice.id}`}
 													      className="inline-flex items-center gap-2 text-xs text-text-gray/60 hover:text-foreground transition-colors font-mono">
-														<span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-															invoice.is_paid && invoice.is_validated
-																? "bg-green-500"
-																: !invoice.is_paid && !invoice.is_parsed
+														{invoice.parse_status === "pending" || invoice.parse_status === "parsing" ? (
+															<span className="relative shrink-0 flex h-1.5 w-1.5">
+																<span className="absolute inset-0 rounded-full bg-amber-400 animate-ping opacity-75" />
+																<span className="relative rounded-full h-1.5 w-1.5 bg-amber-400" />
+															</span>
+														) : (
+															<span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+																invoice.parse_status === "failed"
 																	? "bg-red-500"
-																	: "bg-amber-500"
-														}`} />
+																	: !invoice.is_parsed
+																		? "bg-gray-300"
+																		: invoice.is_validated && invoice.is_paid
+																			? "bg-green-500"
+																			: invoice.is_validated
+																				? "bg-amber-500"
+																				: "bg-blue-400"
+															}`} />
+														)}
 														{invoice.id}
 													</Link>
 												</td>
@@ -472,13 +487,13 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 													{invoice.supplier || "-"}
 												</td>
 												<td className="py-2.5 px-3 text-[13px] text-text-gray hidden md:table-cell">
-													{formatDate(invoice.invoice_date)}
+													{fmtDate(invoice.invoice_date)}
 												</td>
 												<td className={`py-2.5 px-3 text-right text-[13px] tabular-nums ${invoice.gross_eur == null ? "text-text-gray/40" : ""}`}>
-													{formatCurrency(invoice.gross_eur, "EUR")}
+													{money(invoice.gross_eur, "eur")}
 												</td>
 												<td className={`py-2.5 px-3 text-right text-[13px] tabular-nums ${invoice.gross_usd == null ? "text-text-gray/40" : ""}`}>
-													{formatCurrency(invoice.gross_usd, "USD")}
+													{money(invoice.gross_usd, "usd")}
 												</td>
 												<td className="py-2.5 px-3 text-right text-[13px] text-text-gray tabular-nums">
 													{invoice.stone_count}
@@ -509,6 +524,30 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 										))}
 									</motion.tbody>
 								</table>
+							</div>
+
+							<div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 mt-4 text-[11px] text-text-gray">
+								{[
+									["parsing", "Parsing"],
+									["bg-red-500", "Failed"],
+									["bg-gray-300", "New"],
+									["bg-blue-400", "Parsed"],
+									["bg-amber-500", "Validated"],
+									["bg-green-500", "Complete"],
+								].map(([dot, label]) => (
+									<span key={label}
+									      className="inline-flex items-center gap-1.5">
+										{dot === "parsing" ? (
+											<span className="relative flex h-2 w-2">
+												<span className="absolute inset-0 rounded-full bg-amber-400 animate-ping opacity-75" />
+												<span className="relative rounded-full h-2 w-2 bg-amber-400" />
+											</span>
+										) : (
+											<span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+										)}
+										{label}
+									</span>
+								))}
 							</div>
 
 							{showPagination && (

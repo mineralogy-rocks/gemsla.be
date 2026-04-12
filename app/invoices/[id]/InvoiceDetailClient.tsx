@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 
 import { Button } from "../../components/Button";
@@ -20,7 +19,6 @@ import {
 	ItemCard,
 	StonesPanel,
 } from "../../components/InvoiceDetail";
-import { staggerContainer, staggerItem } from "../../lib/animations";
 import { validate } from "../lib/validate";
 import { computeNet } from "../lib/totals";
 import { fmtDate } from "../lib/format";
@@ -178,6 +176,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 	const [showParseConfirm, setShowParseConfirm] = useState(false);
 	const [isParsing, setIsParsing] = useState(false);
 	const [isUploadingRefund, setIsUploadingRefund] = useState(false);
+	const [confirmUnlinkId, setConfirmUnlinkId] = useState<string | null>(null);
 
 	const [localItems, setLocalItems] = useState<InvoiceItem[]>(invoice.items || []);
 	const [itemsForm, setItemsForm] = useState<ItemFormData[]>(() =>
@@ -187,6 +186,42 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 	const [isSavingItems, setIsSavingItems] = useState(false);
 	const [creatingStoneIdx, setCreatingStoneIdx] = useState<number | null>(null);
 	const [editingItems, setEditingItems] = useState(false);
+
+	const isParseActive = invoice.parse_status === "pending" || invoice.parse_status === "parsing";
+	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+	useEffect(() => {
+		if (!isParseActive) {
+			if (pollRef.current) {
+				clearInterval(pollRef.current);
+				pollRef.current = null;
+			}
+			return;
+		}
+
+		pollRef.current = setInterval(async () => {
+			try {
+				const res = await fetch(`/api/invoices/${invoice.id}/status`);
+				if (!res.ok) return;
+				const data = await res.json();
+
+				if (data.parse_status === "completed") {
+					toast.success("Invoice parsed successfully");
+					router.refresh();
+				} else if (data.parse_status === "failed") {
+					toast.error("Invoice parsing failed");
+					router.refresh();
+				}
+			} catch {}
+		}, 3000);
+
+		return () => {
+			if (pollRef.current) {
+				clearInterval(pollRef.current);
+				pollRef.current = null;
+			}
+		};
+	}, [isParseActive, invoice.id, router]);
 
 	useEffect(() => {
 		setForm(initForm(invoice));
@@ -200,7 +235,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 	const hasRefunds = (invoice.refund_invoices?.length ?? 0) > 0;
 
 	const validation = useMemo(
-		() => validate(currentInvoice, invoice.parent_invoice, undefined),
+		() => validate(currentInvoice, invoice.parent_invoice, invoice.parse_metadata?.confidence),
 		[currentInvoice, invoice.parent_invoice],
 	);
 
@@ -308,62 +343,18 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 		setShowParseConfirm(false);
 		setIsParsing(true);
 		try {
-			if (!invoice.signed_url) throw new Error("No PDF file attached");
-
-			const pdfRes = await fetch(invoice.signed_url);
-			if (!pdfRes.ok) throw new Error("Failed to fetch PDF");
-			const blob = await pdfRes.blob();
-
-			const fd = new FormData();
-			fd.append("file", new File([blob], "invoice.pdf", { type: "application/pdf" }));
-
-			const parseRes = await fetch("/api/stones/parse-invoice", { method: "POST", body: fd });
-			if (!parseRes.ok) {
-				const err = await parseRes.json();
-				throw new Error(err.error || "Parse failed");
+			const res = await fetch(`/api/invoices/${invoice.id}/parse`, { method: "POST" });
+			if (!res.ok) {
+				const err = await res.json();
+				throw new Error(err.error || "Failed to trigger parsing");
 			}
-			const parsed = await parseRes.json();
-
-			await patchInvoice({
-				type: parsed.type || "received",
-				invoice_number: parsed.invoice_number || null,
-				original_invoice_number: parsed.original_invoice_number || null,
-				order_number: parsed.order_number || null,
-				supplier: parsed.supplier || null,
-				invoice_date: parsed.invoice_date ?? null,
-				price_usd: parsed.price_usd ?? null,
-				price_eur: parsed.price_eur ?? null,
-				shipment_usd: parsed.shipment_usd ?? null,
-				shipment_eur: parsed.shipment_eur ?? null,
-				vat_rate: parsed.vat_rate ?? null,
-				vat_usd: parsed.vat_usd ?? null,
-				vat_eur: parsed.vat_eur ?? null,
-				gross_usd: parsed.gross_usd ?? null,
-				gross_eur: parsed.gross_eur ?? null,
-				items: parsed.items ?? [],
-				is_parsed: true,
-			});
-
-			const newForm = initForm({
-				...invoice,
-				...parsed,
-				type: parsed.type || invoice.type,
-				items: parsed.items ?? [],
-				is_parsed: true,
-			} as InvoiceDetail);
-			setForm(newForm);
-			const items: InvoiceItem[] = parsed.items || [];
-			setLocalItems(items);
-			setItemsForm(items.map(itemToFormData));
-
-			toast.success("Invoice parsed");
 			router.refresh();
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : "Parse failed");
 		} finally {
 			setIsParsing(false);
 		}
-	}, [invoice, patchInvoice, router]);
+	}, [invoice.id, router]);
 
 	const handleItemChange = useCallback((index: number, field: string, value: string) => {
 		setItemsForm((prev) => {
@@ -438,11 +429,10 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 			const uploadRes = await fetch("/api/invoices", { method: "POST", body: fd });
 			if (!uploadRes.ok) throw new Error();
 			const newInv = await uploadRes.json();
-			await patchInvoice({});
 			await fetch(`/api/invoices/${newInv.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ refund_of: invoice.id }),
+				body: JSON.stringify({ refund_of: invoice.id, type: "credit_note" }),
 			});
 			toast.success("Credit note uploaded");
 			router.refresh();
@@ -451,7 +441,44 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 		} finally {
 			setIsUploadingRefund(false);
 		}
-	}, [invoice.id, patchInvoice, router]);
+	}, [invoice.id, router]);
+
+	const handleUnlinkCreditNote = useCallback((cnId: string) => {
+		setConfirmUnlinkId(cnId);
+	}, []);
+
+	const doUnlinkCreditNote = useCallback(async () => {
+		if (!confirmUnlinkId) return;
+		const cnId = confirmUnlinkId;
+		setConfirmUnlinkId(null);
+		try {
+			const res = await fetch(`/api/invoices/${cnId}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ refund_of: null }),
+			});
+			if (!res.ok) throw new Error();
+			toast.success("Credit note unlinked");
+			router.refresh();
+		} catch {
+			toast.error("Failed to unlink credit note");
+		}
+	}, [confirmUnlinkId, router]);
+
+	const handleLinkCreditNote = useCallback(async (cnId: string) => {
+		try {
+			const res = await fetch(`/api/invoices/${cnId}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ refund_of: invoice.id }),
+			});
+			if (!res.ok) throw new Error();
+			toast.success("Credit note linked");
+			router.refresh();
+		} catch {
+			toast.error("Failed to link credit note");
+		}
+	}, [invoice.id, router]);
 
 	const handleApplyFix = useCallback((issue: Issue) => {
 		if (issue.code === "cn_positive_value" && issue.field) {
@@ -512,9 +539,11 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 					)}
 
 
-					<AnimatePresence mode="wait">
-						{isParsing ? (
-							<div className="flex flex-col items-center py-20">
+					<>
+						{isParsing || isParseActive ? (
+							<div className="flex flex-col items-center py-20"
+							     role="status"
+							     aria-busy="true">
 								<div className="h-8 w-8 rounded-full border-2 border-callout-accent border-t-transparent animate-spin" />
 								<p className="mt-4 text-sm text-text-gray">Extracting metadata...</p>
 							</div>
@@ -538,25 +567,25 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 											{invoice.is_validated && <span className={`${pillBase} ${pillColors.success}`}>Validated</span>}
 											{hasRefunds && <span className={`${pillBase} ${pillColors.info}`}>Has credit note</span>}
 										</div>
-										<div className="text-xs text-text-gray mt-1">
-											{currentInvoice.supplier ?? "Unknown supplier"}
-											{currentInvoice.order_number && <> · Order {currentInvoice.order_number}</>}
-											{currentInvoice.invoice_date && <> · {fmtDate(currentInvoice.invoice_date)}</>}
+										<div className="text-xs text-text-gray mt-2 space-x-5">
+											<span>{currentInvoice.order_number && <>Order #{currentInvoice.order_number}</>}</span>
+											<span>{currentInvoice.supplier ?? "Unknown supplier"}</span>
+											<span>{currentInvoice.invoice_date && <>{fmtDate(currentInvoice.invoice_date)}</>}</span>
 										</div>
+										{invoice.parse_metadata && (
+											<div className="text-xs text-text-gray mt-1">
+												Parsed by {invoice.parse_metadata.model}
+												{invoice.parse_metadata.parsed_at && <> on {fmtDate(invoice.parse_metadata.parsed_at)}</>}
+											</div>
+										)}
 									</div>
 									<div className="flex items-center gap-2 shrink-0">
 										{invoice.signed_url && (
 											<Button variant="secondary"
 											        size="sm"
+											        disabled={isParseActive}
 											        onClick={() => setShowParseConfirm(true)}>
-												Extract metadata
-											</Button>
-										)}
-										{!invoice.is_paid && !isCreditNote && (
-											<Button variant="secondary"
-											        size="sm"
-											        onClick={() => toggleFlag("is_paid", true)}>
-												Mark paid
+												{isParseActive ? "Parsing..." : "Extract metadata"}
 											</Button>
 										)}
 										{editing ? (
@@ -762,7 +791,9 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 												               signedUrl={invoice.signed_url}
 												               refundInvoices={invoice.refund_invoices}
 												               onUploadCreditNote={handleUploadRefund}
-												               isUploading={isUploadingRefund} />
+												               isUploading={isUploadingRefund}
+												               onLinkCreditNote={handleLinkCreditNote}
+												               onUnlinkCreditNote={handleUnlinkCreditNote} />
 												<div className="glass-card glass-secondary p-4">
 													<div className="text-xs text-text-gray uppercase tracking-wider mb-3">Details</div>
 													<table className="w-full text-xs">
@@ -834,7 +865,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 								)}
 							</div>
 						)}
-					</AnimatePresence>
+					</>
 				</div>
 			</section>
 
@@ -846,6 +877,13 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 				              ? "Re-parse this invoice? This will overwrite current data."
 				              : "Parse this invoice PDF to extract data using AI."}
 			              confirmText={invoice.is_parsed ? "Re-parse" : "Parse"} />
+
+			<ConfirmDialog isOpen={confirmUnlinkId !== null}
+			              onClose={() => setConfirmUnlinkId(null)}
+			              onConfirm={doUnlinkCreditNote}
+			              title="Unlink credit note"
+			              message="Remove the link between this credit note and the invoice? The credit note will remain but will no longer be associated."
+			              confirmText="Unlink" />
 
 		</div>
 	);

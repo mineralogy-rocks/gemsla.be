@@ -12,9 +12,12 @@ interface FetchInvoicesParams {
 	sortDir?: string;
 	q?: string;
 	isParsed?: boolean;
+	isUnparsed?: boolean;
 	isPaid?: boolean;
 	isValidated?: boolean;
 	showRefunds?: boolean;
+	type?: string;
+	unlinkedOnly?: boolean;
 }
 
 export const fetchInvoices = cache(async ({
@@ -24,9 +27,12 @@ export const fetchInvoices = cache(async ({
 	sortDir = "desc",
 	q = "",
 	isParsed = false,
+	isUnparsed = false,
 	isPaid = false,
 	isValidated = false,
 	showRefunds = false,
+	type,
+	unlinkedOnly = false,
 }: FetchInvoicesParams): Promise<PaginatedInvoicesResponse> => {
 	const supabase = await createClient();
 
@@ -49,6 +55,8 @@ export const fetchInvoices = cache(async ({
 
 	if (isParsed) {
 		query = query.eq("is_parsed", true);
+	} else if (isUnparsed) {
+		query = query.eq("is_parsed", false);
 	}
 
 	if (isPaid) {
@@ -59,10 +67,16 @@ export const fetchInvoices = cache(async ({
 		query = query.eq("is_validated", true);
 	}
 
-	if (showRefunds) {
+	if (unlinkedOnly) {
+		query = query.is("refund_of", null);
+	} else if (showRefunds) {
 		query = query.not("refund_of", "is", null);
 	} else {
 		query = query.is("refund_of", null);
+	}
+
+	if (type) {
+		query = query.eq("type", type);
 	}
 
 	const offset = (page - 1) * limit;
@@ -155,7 +169,7 @@ export const fetchInvoiceStats = cache(async (): Promise<InvoiceStats> => {
 	const [invoiceAgg, parsedCount, unparsedCount, validatedCount, revenueAgg] = await Promise.all([
 		supabase
 			.from("invoices")
-			.select("total_eur:price_eur.sum()")
+			.select("total_eur:gross_eur.sum()")
 			.eq("is_parsed", true)
 			.eq("is_archived", false),
 		supabase

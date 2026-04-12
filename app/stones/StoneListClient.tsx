@@ -6,6 +6,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 
+import { staggerContainer, staggerItem } from "@/app/lib/animations";
+import { useDebounce } from "@/app/lib/hooks/useDebounce";
+import { createQueryString } from "@/app/lib/queryString";
+import { money, fmtDate } from "@/app/lib/format";
+import { BackgroundTexture } from "@/app/components/BackgroundTexture";
 import { Button } from "../components/Button";
 import { Checkbox } from "../components/Checkbox";
 import { PageHeader } from "../components/PageHeader";
@@ -17,42 +22,6 @@ import type { StoneListItem, PaginatedStonesResponse } from "../api/stones/types
 
 interface StoneListClientProps {
 	initialData: PaginatedStonesResponse;
-}
-
-const staggerContainer = {
-	hidden: { opacity: 0 },
-	show: {
-		opacity: 1,
-		transition: {
-			staggerChildren: 0.05,
-		},
-	},
-};
-
-const staggerItem = {
-	hidden: { opacity: 0, y: 10 },
-	show: { opacity: 1, y: 0 },
-};
-
-function useDebounce<T>(value: T, delay: number): T {
-	const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setDebouncedValue(value);
-		}, delay);
-
-		return () => {
-			clearTimeout(timer);
-		};
-	}, [value, delay]);
-
-	return debouncedValue;
-}
-
-function formatPrice(price: number | null): string {
-	if (price == null) return "-";
-	return `$${price.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
 function StoneCard({ stone, onDelete }: { stone: StoneListItem; onDelete: (stone: StoneListItem) => void }) {
@@ -88,10 +57,10 @@ function StoneCard({ stone, onDelete }: { stone: StoneListItem; onDelete: (stone
 
 				<div className="mt-auto flex items-center justify-between gap-4 pt-4 text-xs text-text-gray">
 					<span className="text-base font-medium text-foreground">
-						{formatPrice(stone.selling_price)}
+						{money(stone.selling_price, "usd")}
 					</span>
 					<div className="flex shrink-0 items-center gap-4">
-						<span>{new Date(stone.created_at).toLocaleDateString()}</span>
+						<span>{fmtDate(stone.created_at)}</span>
 						<button type="button"
 						        onClick={(e) => {
 							        e.preventDefault();
@@ -137,46 +106,36 @@ export function StoneListClient({ initialData }: StoneListClientProps) {
 
 	const [deleteTarget, setDeleteTarget] = useState<StoneListItem | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
-	const createQueryString = useCallback((params: Record<string, string | number | boolean>) => {
-		const urlParams = new URLSearchParams(searchParams.toString());
-		Object.entries(params).forEach(([key, value]) => {
-			if (value === "" || value === false || value === 1) {
-				urlParams.delete(key);
-			} else {
-				urlParams.set(key, String(value));
-			}
-		});
-		return urlParams.toString();
-	}, [searchParams]);
+	const qs = useCallback((params: Record<string, string | number | boolean>) => createQueryString(params, searchParams), [searchParams]);
 
 	useEffect(() => {
 		if (debouncedSearch !== currentSearch) {
-			const query = createQueryString({ q: debouncedSearch, page: 1 });
+			const query = qs({ q: debouncedSearch, page: 1 });
 			router.push(`${pathname}${query ? `?${query}` : ""}`);
 		}
-	}, [debouncedSearch, currentSearch, createQueryString, pathname, router]);
+	}, [debouncedSearch, currentSearch, qs, pathname, router]);
 
 	useEffect(() => {
 		if (debouncedMinPrice !== currentMinPrice) {
-			const query = createQueryString({ min_price: debouncedMinPrice, page: 1 });
+			const query = qs({ min_price: debouncedMinPrice, page: 1 });
 			router.push(`${pathname}${query ? `?${query}` : ""}`);
 		}
-	}, [debouncedMinPrice, currentMinPrice, createQueryString, pathname, router]);
+	}, [debouncedMinPrice, currentMinPrice, qs, pathname, router]);
 
 	useEffect(() => {
 		if (debouncedMaxPrice !== currentMaxPrice) {
-			const query = createQueryString({ max_price: debouncedMaxPrice, page: 1 });
+			const query = qs({ max_price: debouncedMaxPrice, page: 1 });
 			router.push(`${pathname}${query ? `?${query}` : ""}`);
 		}
-	}, [debouncedMaxPrice, currentMaxPrice, createQueryString, pathname, router]);
+	}, [debouncedMaxPrice, currentMaxPrice, qs, pathname, router]);
 
 	const handleShowSoldChange = () => {
-		const query = createQueryString({ show_sold: !currentShowSold, page: 1 });
+		const query = qs({ show_sold: !currentShowSold, page: 1 });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
 	const handlePageChange = (newPage: number) => {
-		const query = createQueryString({ page: newPage });
+		const query = qs({ page: newPage });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
@@ -200,12 +159,7 @@ export function StoneListClient({ initialData }: StoneListClientProps) {
 
 	return (
 		<div className="min-h-screen relative pt-16">
-			<div className="fixed inset-0 z-0 opacity-10 pointer-events-none"
-			     style={{
-				     backgroundImage: 'url("/NNNoise Texture Generator.svg")',
-				     backgroundSize: "400px 400px",
-				     backgroundRepeat: "repeat",
-			     }} />
+			<BackgroundTexture />
 
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-6xl mx-auto">
@@ -288,7 +242,7 @@ export function StoneListClient({ initialData }: StoneListClientProps) {
 							<motion.div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
 							            variants={staggerContainer}
 							            initial="hidden"
-							            animate="show"
+							            animate="visible"
 							            key={`${currentPage}-${currentSearch}-${currentShowSold}`}>
 								{stones.map((stone) => (
 									<StoneCard key={stone.id}

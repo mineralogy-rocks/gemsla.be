@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { createInvoiceSchema } from "@/app/api/stones/types";
+
+import { fetchInvoices } from "@/app/invoices/lib/queries";
 
 export async function GET(request: NextRequest) {
 	try {
@@ -13,33 +15,10 @@ export async function GET(request: NextRequest) {
 		const searchParams = request.nextUrl.searchParams;
 		const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
 		const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
+		const type = searchParams.get("type") || undefined;
+		const unlinkedOnly = searchParams.get("unlinked_only") === "true";
 
-		const supabase = await createClient();
-
-		const offset = (page - 1) * limit;
-		const { data, count, error } = await supabase
-			.from("invoices")
-			.select("*, stones(count)", { count: "exact" })
-			.order("created_at", { ascending: false })
-			.range(offset, offset + limit - 1);
-
-		if (error) {
-			console.error("Error fetching invoices:", error);
-			return NextResponse.json({ error: "Failed to fetch invoices" }, { status: 500 });
-		}
-
-		const items = (data || []).map(({ stones, ...invoice }) => ({
-			...invoice,
-			stone_count: stones?.[0]?.count ?? 0,
-		}));
-
-		return NextResponse.json({
-			data: items,
-			total: count || 0,
-			page,
-			limit,
-			totalPages: Math.ceil((count || 0) / limit),
-		});
+		return NextResponse.json(await fetchInvoices({ page, limit, type, unlinkedOnly }));
 	} catch (error) {
 		console.error("Invoices GET error:", error);
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -101,6 +80,8 @@ export async function POST(request: NextRequest) {
 			if (vatEur) invoiceData.vat_eur = parseFloat(vatEur as string);
 			if (notes) invoiceData.notes = notes;
 
+			invoiceData.parse_status = "pending";
+
 			const { data: invoice, error: insertError } = await supabase
 				.from("invoices")
 				.insert(invoiceData)
@@ -111,6 +92,21 @@ export async function POST(request: NextRequest) {
 				console.error("Error creating invoice:", insertError);
 				await supabase.storage.from("invoices").remove([filePath]);
 				return NextResponse.json({ error: "Failed to create invoice" }, { status: 500 });
+			}
+
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+			const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+			if (supabaseUrl && serviceRoleKey && invoice?.id) {
+				fetch(`${supabaseUrl}/functions/v1/parse-invoice`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"Authorization": `Bearer ${serviceRoleKey}`,
+					},
+					body: JSON.stringify({ invoice_id: invoice.id }),
+				}).catch((err) => {
+					console.error("Failed to invoke Edge Function:", err);
+				});
 			}
 
 			return NextResponse.json(invoice, { status: 201 });

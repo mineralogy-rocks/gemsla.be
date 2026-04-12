@@ -49,6 +49,10 @@ export const createStoneSchema = z.object({
 
 export const updateStoneSchema = createStoneSchema.partial();
 
+export const parseStatusSchema = z.enum(["pending", "parsing", "completed", "failed"]).nullable().optional();
+
+export type ParseStatus = "pending" | "parsing" | "completed" | "failed" | null;
+
 export const createInvoiceSchema = z.object({
 	invoice_number: z.string().max(100).optional().nullable(),
 	original_invoice_number: z.string().max(100).optional().nullable(),
@@ -73,7 +77,13 @@ export const createInvoiceSchema = z.object({
 	is_validated: z.boolean().optional(),
 	is_archived: z.boolean().optional(),
 	items: z.array(invoiceItemSchema).optional().nullable(),
-	parse_metadata: z.record(z.string(), z.number()).optional().nullable(),
+	parse_metadata: z.object({
+		raw_response: z.string(),
+		confidence: z.record(z.string(), z.number()),
+		model: z.string(),
+		parsed_at: z.string(),
+	}).optional().nullable(),
+	parse_status: parseStatusSchema,
 });
 
 export type CreateStoneInput = z.infer<typeof createStoneSchema>;
@@ -84,6 +94,13 @@ export type InvoiceItem = z.infer<typeof invoiceItemSchema>;
 export type InvoiceType = "received" | "issued" | "credit_note";
 
 export type Confidence = Partial<Record<string, number>>;
+
+export interface ParseMetadata {
+	raw_response: string;
+	confidence: Record<string, number>;
+	model: string;
+	parsed_at: string;
+}
 
 export interface Issue {
 	severity: "error" | "warning" | "info";
@@ -114,10 +131,11 @@ export interface Invoice {
 	is_paid: boolean;
 	is_parsed: boolean;
 	is_validated: boolean;
+	parse_status: ParseStatus;
 	file_path: string | null;
 	notes: string | null;
 	items: InvoiceItem[] | null;
-	parse_metadata: Record<string, number> | null;
+	parse_metadata: ParseMetadata | null;
 	created_at: string;
 	updated_at: string;
 }

@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/supabase/admin";
 import OpenAI from "openai";
 
-import type { InvoiceItem, InvoiceType } from "@/app/api/stones/types";
+import type { InvoiceItem, InvoiceType, ParseMetadata } from "@/app/api/stones/types";
 
 const STORED_PROMPT_ID = "pmpt_69b30db188a481968f9f68f985966b1f0e35efb672138624";
+const MODEL = "gpt-5-mini-2025-08-07";
 
 interface RawInvoice {
 	type: string;
@@ -74,6 +75,7 @@ interface ParsedInvoice {
 	is_refund: boolean;
 	confidence: Record<string, number>;
 	items: InvoiceItem[];
+	parse_metadata: ParseMetadata;
 }
 
 export async function POST(request: NextRequest) {
@@ -102,7 +104,7 @@ export async function POST(request: NextRequest) {
 		});
 
 		const response = await client.responses.create({
-			model: "gpt-5-mini-2025-08-07",
+			model: MODEL,
 			prompt: {
 				id: STORED_PROMPT_ID,
 				variables: {
@@ -141,6 +143,12 @@ export async function POST(request: NextRequest) {
 				gross_eur: null,
 				is_refund: false,
 				confidence: {},
+				parse_metadata: {
+					raw_response: outputText,
+					confidence: {},
+					model: MODEL,
+					parsed_at: new Date().toISOString(),
+				},
 				items: [{
 					item_number: null,
 					name: "Unknown Stone",
@@ -212,6 +220,7 @@ export async function POST(request: NextRequest) {
 			});
 		}
 
+		const confidence = raw.confidence ?? {};
 		const parsed: ParsedInvoice = {
 			type,
 			invoice_number: inv.invoice_number ?? null,
@@ -229,8 +238,14 @@ export async function POST(request: NextRequest) {
 			gross_usd: inv.gross_usd ?? null,
 			gross_eur: inv.gross_eur ?? null,
 			is_refund: inv.is_refund ?? false,
-			confidence: raw.confidence ?? {},
+			confidence,
 			items,
+			parse_metadata: {
+				raw_response: outputText,
+				confidence,
+				model: MODEL,
+				parsed_at: new Date().toISOString(),
+			},
 		};
 
 		return NextResponse.json(parsed);

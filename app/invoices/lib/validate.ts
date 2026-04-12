@@ -51,7 +51,7 @@ function checkArithmetic(i: Invoice): Issue[] {
 			});
 		}
 		if (i.vat_rate && price > 0) {
-			const expectedVat = price * (i.vat_rate / 100);
+			const expectedVat = (price + ship) * (i.vat_rate / 100);
 			if (Math.abs(expectedVat - vat) > TOLERANCE) {
 				issues.push({
 					severity: "warning",
