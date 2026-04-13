@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -24,45 +24,55 @@ interface InvoiceSummaryCardProps {
 }
 
 
-function ToggleSwitch({ label, checked, onToggle }: {
+function ToggleSwitch({ label, description, checked, onToggle }: {
 	label: string;
+	description?: string;
 	checked: boolean;
 	onToggle: () => Promise<void>;
 }) {
-	const [optimistic, setOptimistic] = useState(checked);
+	const [display, setDisplay] = useState(checked);
 	const [pending, setPending] = useState(false);
 
-	const stableChecked = pending ? optimistic : checked;
+	useEffect(() => {
+		setDisplay(checked);
+	}, [checked]);
 
 	const handleClick = useCallback(async (e: React.MouseEvent) => {
 		e.stopPropagation();
 		if (pending) return;
-		const next = !stableChecked;
-		setOptimistic(next);
+		const next = !display;
+		setDisplay(next);
 		setPending(true);
 		try {
 			await onToggle();
 		} catch {
-			setOptimistic(!next);
+			setDisplay(!next);
 			toast.error(`Failed to update ${label.toLowerCase()}`);
 		} finally {
 			setPending(false);
 		}
-	}, [pending, stableChecked, onToggle, label]);
+	}, [pending, display, onToggle, label]);
 
 	return (
-		<button className={`flex items-center gap-1.5 group ${pending ? "opacity-70" : ""}`}
+		<button className={`flex items-start gap-1.5 group ${pending ? "opacity-70" : ""}`}
 		        onClick={handleClick}
 		        role="switch"
-		        aria-checked={stableChecked}
+		        aria-checked={display}
 		        aria-label={`Toggle ${label}`}
 		        disabled={pending}>
-			<span className="text-xs text-text-gray group-hover:text-foreground transition-colors">
-				{label}
-			</span>
-			<div className={`relative w-7 h-4 rounded-full transition-colors ${stableChecked ? "bg-foreground" : "bg-border"}`}>
+			<div className="flex flex-col items-end">
+				<span className="text-xs text-text-gray group-hover:text-foreground transition-colors">
+					{label}
+				</span>
+				{description && (
+					<span className="text-[10px] text-text-gray/50 leading-tight max-w-[120px] text-right">
+						{description}
+					</span>
+				)}
+			</div>
+			<div className={`relative w-7 h-4 rounded-full transition-colors mt-0.5 ${display ? "bg-foreground" : "bg-border"}`}>
 				<motion.div className="absolute top-0.5 w-3 h-3 rounded-full bg-background shadow-sm"
-				            animate={{ left: stableChecked ? 14 : 2 }}
+				            animate={{ left: display ? 14 : 2 }}
 				            transition={{ type: "spring", stiffness: 500, damping: 30 }} />
 			</div>
 		</button>
@@ -144,12 +154,15 @@ export function InvoiceSummaryCard({
 				<div className="flex sm:flex-col items-center sm:items-end gap-3 shrink-0"
 				     onClick={(e) => e.stopPropagation()}>
 					<ToggleSwitch label="Paid"
+					              description="Is invoice paid?"
 					              checked={isPaid}
 					              onToggle={() => onToggleFlag("is_paid", !isPaid)} />
 					<ToggleSwitch label="Parsed"
+					              description="Is data extracted?"
 					              checked={isParsed}
 					              onToggle={() => onToggleFlag("is_parsed", !isParsed)} />
 					<ToggleSwitch label="Validated"
+					              description="Is data validated?"
 					              checked={isValidated}
 					              onToggle={() => onToggleFlag("is_validated", !isValidated)} />
 				</div>
