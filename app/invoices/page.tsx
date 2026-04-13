@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { getAdminUser } from "@/lib/supabase/admin";
 import { InvoiceListClient } from "./InvoiceListClient";
-import { fetchInvoices, fetchInvoiceStats } from "./lib/queries";
+import { fetchInvoices, fetchInvoiceStats, fetchMonthlyInvoiceStats } from "./lib/queries";
 
 export const metadata = {
 	title: "Invoices",
@@ -33,11 +33,13 @@ export default async function InvoicesPage({ searchParams }: PageProps) {
 	const q = params.q || "";
 	const isArchived = params.is_archived === "1";
 
-	const [initialData, stats] = await Promise.all([
+	const [initialData, stats, monthlyStats] = await Promise.all([
 		fetchInvoices({ page, limit: 20, sortBy, sortDir, q, isArchived }),
 		fetchInvoiceStats(),
+		fetchMonthlyInvoiceStats(),
 	]);
 
 	return <InvoiceListClient initialData={initialData}
-	                          stats={stats} />;
+	                          stats={stats}
+	                          monthlyStats={monthlyStats} />;
 }

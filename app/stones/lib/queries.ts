@@ -2,13 +2,19 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { PaginatedStonesResponse, StoneListItem, Stone, Invoice, StoneInvoice } from "@/app/api/stones/types";
 
+type SortColumn = "name" | "color" | "weight_carats" | "selling_price" | "sold_price" | "country" | "created_at";
+
+const VALID_SORT_COLUMNS: SortColumn[] = ["name", "color", "weight_carats", "selling_price", "sold_price", "country", "created_at"];
+
 interface FetchStonesParams {
 	page?: number;
 	limit?: number;
 	q?: string;
 	minPrice?: string;
 	maxPrice?: string;
-	showSold?: boolean;
+	showSold?: "all" | "sold" | "unsold";
+	sortBy?: string;
+	sortDir?: string;
 }
 
 export const fetchStones = cache(async ({
@@ -17,13 +23,15 @@ export const fetchStones = cache(async ({
 	q = "",
 	minPrice = "",
 	maxPrice = "",
-	showSold = false,
+	showSold = "all",
+	sortBy = "",
+	sortDir = "",
 }: FetchStonesParams): Promise<PaginatedStonesResponse> => {
 	const supabase = await createClient();
 
 	let query = supabase
 		.from("stones")
-		.select("id, name, stone_type, color, weight_carats, country, selling_price, is_sold, item_number, created_at", { count: "exact" });
+		.select("id, name, stone_type, color, weight_carats, country, selling_price, sold_price, sold_at, gross_eur, is_sold, item_number, created_at", { count: "exact" });
 
 	if (q) {
 		const sanitized = q.replace(/[%_,().]/g, "\\$&");
@@ -46,13 +54,18 @@ export const fetchStones = cache(async ({
 		}
 	}
 
-	if (!showSold) {
+	if (showSold === "sold") {
+		query = query.eq("is_sold", true);
+	} else if (showSold === "unsold") {
 		query = query.eq("is_sold", false);
 	}
 
+	const validatedSortBy = VALID_SORT_COLUMNS.includes(sortBy as SortColumn) ? sortBy : "created_at";
+	const ascending = sortDir === "asc";
+
 	const offset = (page - 1) * limit;
 	const { data, count, error } = await query
-		.order("created_at", { ascending: false })
+		.order(validatedSortBy, { ascending })
 		.range(offset, offset + limit - 1);
 
 	if (error) {
@@ -68,6 +81,9 @@ export const fetchStones = cache(async ({
 		weight_carats: stone.weight_carats,
 		country: stone.country,
 		selling_price: stone.selling_price,
+		sold_price: stone.sold_price,
+		sold_at: stone.sold_at,
+		gross_eur: stone.gross_eur,
 		is_sold: stone.is_sold,
 		item_number: stone.item_number,
 		created_at: stone.created_at,

@@ -17,6 +17,7 @@ import {
 	PriceBreakdown,
 	ItemsTable,
 	BatchStoneCreation,
+	BatchStoneLinking,
 } from "../../components/InvoiceDetail";
 import { validate } from "../lib/validate";
 import { computeNet } from "../lib/totals";
@@ -48,6 +49,7 @@ interface FormState {
 	type: string;
 	order_number: string;
 	supplier: string;
+	customer_name: string;
 	invoice_date: string;
 	price_eur: string;
 	price_usd: string;
@@ -68,6 +70,7 @@ function initForm(invoice: InvoiceDetail): FormState {
 		type: invoice.type || "received",
 		order_number: str(invoice.order_number),
 		supplier: str(invoice.supplier),
+		customer_name: str(invoice.customer_name),
 		invoice_date: str(invoice.invoice_date),
 		price_eur: str(invoice.price_eur),
 		price_usd: str(invoice.price_usd),
@@ -89,6 +92,7 @@ function buildPayload(form: FormState) {
 		type: form.type || "received",
 		order_number: form.order_number || null,
 		supplier: form.supplier || null,
+		customer_name: form.customer_name || null,
 		invoice_date: form.invoice_date || null,
 		price_eur: toNum(form.price_eur),
 		price_usd: toNum(form.price_usd),
@@ -160,6 +164,16 @@ const pillColors: Record<string, string> = {
 	warning: "bg-amber-100 text-amber-800",
 	info: "bg-blue-100 text-blue-800",
 };
+const typePillColors: Record<string, string> = {
+	received: "bg-gray-100 text-gray-700",
+	issued: "bg-blue-100 text-blue-700",
+	credit_note: "bg-amber-100 text-amber-800",
+};
+const typePillLabels: Record<string, string> = {
+	received: "Received",
+	issued: "Issued",
+	credit_note: "Credit note",
+};
 
 
 export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
@@ -181,6 +195,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 	const [isSavingItems, setIsSavingItems] = useState(false);
 	const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 	const [showBatchCreate, setShowBatchCreate] = useState(false);
+	const [showBatchLinking, setShowBatchLinking] = useState(false);
 
 	const isParseActive = invoice.parse_status === "pending" || invoice.parse_status === "parsing";
 	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -226,6 +241,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 
 	const currentInvoice = useMemo(() => formToInvoice(form, invoice), [form, invoice]);
 	const isCreditNote = currentInvoice.type === "credit_note";
+	const isIssued = currentInvoice.type === "issued";
 	const hasRefunds = (invoice.refund_invoices?.length ?? 0) > 0;
 
 	const validation = useMemo(
@@ -541,16 +557,14 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 									<h1 className="text-2xl font-medium font-heading text-foreground">
 										{currentInvoice.invoice_number || "Untitled invoice"}
 									</h1>
-									{(isCreditNote || hasRefunds) && (
-										<div className="flex items-center gap-1.5 mt-1.5">
-											{isCreditNote && (
-												<span className={`${pillBase} ${pillColors.warning}`}>Credit note</span>
-											)}
-											{hasRefunds && (
-												<span className={`${pillBase} ${pillColors.info}`}>Has credit note</span>
-											)}
-										</div>
-									)}
+									<div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+										<span className={`${pillBase} ${typePillColors[currentInvoice.type] || typePillColors.received}`}>
+											{typePillLabels[currentInvoice.type] || "Received"}
+										</span>
+										{hasRefunds && (
+											<span className={`${pillBase} ${pillColors.info}`}>Has credit note</span>
+										)}
+									</div>
 								</div>
 								<div className="flex items-center gap-2 shrink-0">
 									{invoice.signed_url && (
@@ -642,7 +656,8 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 									            stonesByItem={stonesByItem}
 									            onItemClick={(i) => setEditingItemIndex(i)}
 									            unlinkedCount={unlinkedCount}
-									            onOpenBatchCreate={() => setShowBatchCreate(true)} />
+									            invoiceType={currentInvoice.type}
+									            onOpenBatchCreate={() => isIssued ? setShowBatchLinking(true) : setShowBatchCreate(true)} />
 								)}
 
 
@@ -651,7 +666,8 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 									<div className="text-xs font-medium uppercase tracking-wider text-text-gray mb-3">
 										Stones ({invoice.stones.length})
 									</div>
-									<StonesPanel stones={invoice.stones} />
+									<StonesPanel stones={invoice.stones}
+									             invoiceType={currentInvoice.type} />
 								</div>
 							)}
 						</div>
@@ -697,15 +713,25 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 			               onSaveCreditNoteItem={handleSaveCreditNoteItem}
 			               linkedStone={editingItemIndex !== null && localItems[editingItemIndex]?.item_number ? stonesByItem.get(localItems[editingItemIndex].item_number!) : undefined}
 			               onCreateStone={() => {}}
-			               isCreatingStone={false} />
+			               isCreatingStone={false}
+			               invoiceType={currentInvoice.type} />
 
-			<BatchStoneCreation isOpen={showBatchCreate}
-			                    onClose={() => setShowBatchCreate(false)}
-			                    items={localItems}
-			                    stonesByItem={stonesByItem}
-			                    invoiceId={invoice.id}
-			                    refundInvoices={invoice.refund_invoices}
-			                    onComplete={() => router.refresh()} />
+			{!isIssued && (
+				<BatchStoneCreation isOpen={showBatchCreate}
+				                    onClose={() => setShowBatchCreate(false)}
+				                    items={localItems}
+				                    stonesByItem={stonesByItem}
+				                    invoiceId={invoice.id}
+				                    refundInvoices={invoice.refund_invoices}
+				                    onComplete={() => router.refresh()} />
+			)}
+
+			<BatchStoneLinking isOpen={showBatchLinking}
+			                   onClose={() => setShowBatchLinking(false)}
+			                   items={localItems}
+			                   stones={invoice.stones}
+			                   invoiceId={invoice.id}
+			                   onComplete={() => router.refresh()} />
 
 		</div>
 	);

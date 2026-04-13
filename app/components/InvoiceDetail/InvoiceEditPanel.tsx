@@ -15,6 +15,7 @@ interface FormState {
 	type: string;
 	order_number: string;
 	supplier: string;
+	customer_name: string;
 	invoice_date: string;
 	price_eur: string;
 	price_usd: string;
@@ -102,11 +103,19 @@ export function InvoiceEditPanel({
 							       value={form.invoice_date}
 							       issues={issuesFor("invoice_date")}
 							       onChange={(e) => onFieldChange("invoice_date", e.target.value)} />
-							<Input label="Supplier"
-							       size="sm"
-							       value={form.supplier}
-							       issues={issuesFor("supplier")}
-							       onChange={(e) => onFieldChange("supplier", e.target.value)} />
+							{form.type === "issued" ? (
+								<Input label="Customer"
+								       size="sm"
+								       value={form.customer_name}
+								       issues={issuesFor("customer_name")}
+								       onChange={(e) => onFieldChange("customer_name", e.target.value)} />
+							) : (
+								<Input label="Supplier"
+								       size="sm"
+								       value={form.supplier}
+								       issues={issuesFor("supplier")}
+								       onChange={(e) => onFieldChange("supplier", e.target.value)} />
+							)}
 							<div>
 								<label className="block text-xs font-medium text-text-gray mb-1">Type</label>
 								<select value={form.type}

@@ -101,9 +101,15 @@ export function InvoiceSummaryCard({
 				<div className="flex-1 min-w-0">
 					<div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
 						<div>
-							<div className="text-xs text-text-gray">Supplier</div>
-							<div className="font-medium truncate">{invoice.supplier ?? "---"}</div>
-							<IssueIndicator issues={issuesFor("supplier")} />
+							<div className="text-xs text-text-gray">
+								{invoice.type === "issued" ? "Customer" : "Supplier"}
+							</div>
+							<div className="font-medium truncate">
+								{invoice.type === "issued"
+									? (invoice.customer_name ?? "---")
+									: (invoice.supplier ?? "---")}
+							</div>
+							<IssueIndicator issues={issuesFor(invoice.type === "issued" ? "customer_name" : "supplier")} />
 						</div>
 						<div>
 							<div className="text-xs text-text-gray">Date</div>

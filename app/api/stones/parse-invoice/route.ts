@@ -24,7 +24,6 @@ interface RawInvoice {
 	vat_eur: number | null;
 	gross_usd: number | null;
 	gross_eur: number | null;
-	is_refund: boolean;
 }
 
 interface RawItem {
@@ -72,7 +71,6 @@ interface ParsedInvoice {
 	vat_eur: number | null;
 	gross_usd: number | null;
 	gross_eur: number | null;
-	is_refund: boolean;
 	confidence: Record<string, number>;
 	items: InvoiceItem[];
 	parse_metadata: ParseMetadata;
@@ -141,7 +139,6 @@ export async function POST(request: NextRequest) {
 				vat_eur: null,
 				gross_usd: null,
 				gross_eur: null,
-				is_refund: false,
 				confidence: {},
 				parse_metadata: {
 					raw_response: outputText,
@@ -237,7 +234,6 @@ export async function POST(request: NextRequest) {
 			vat_eur: inv.vat_eur ?? null,
 			gross_usd: inv.gross_usd ?? null,
 			gross_eur: inv.gross_eur ?? null,
-			is_refund: inv.is_refund ?? false,
 			confidence,
 			items,
 			parse_metadata: {

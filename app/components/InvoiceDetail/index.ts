@@ -9,3 +9,4 @@ export { InvoiceSummaryCard } from "./InvoiceSummaryCard";
 export { PriceBreakdown } from "./PriceBreakdown";
 export { ItemsTable } from "./ItemsTable";
 export { BatchStoneCreation } from "./BatchStoneCreation";
+export { BatchStoneLinking } from "./BatchStoneLinking";

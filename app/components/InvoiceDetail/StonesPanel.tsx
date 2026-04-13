@@ -3,22 +3,27 @@
 import Link from "next/link";
 
 import { money } from "@/app/invoices/lib/format";
-import type { StoneListItem } from "@/app/api/stones/types";
+import type { StoneListItem, InvoiceType } from "@/app/api/stones/types";
 
 
 interface StonesPanelProps {
 	stones: StoneListItem[];
+	invoiceType?: InvoiceType;
 }
 
 
 const pillBase = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
 
 
-export function StonesPanel({ stones }: StonesPanelProps) {
+export function StonesPanel({ stones, invoiceType = "received" }: StonesPanelProps) {
+	const isIssued = invoiceType === "issued";
+
 	if (stones.length === 0) {
 		return (
 			<div className="rounded-lg border border-border-light p-4 text-text-gray text-xs">
-				No stones created from this invoice yet.
+				{isIssued
+					? "No stones linked to this invoice yet."
+					: "No stones created from this invoice yet."}
 			</div>
 		);
 	}
@@ -41,8 +46,12 @@ export function StonesPanel({ stones }: StonesPanelProps) {
 							</span>
 						</div>
 						<div className="text-xs text-text-gray/60">
-							Cost basis {money(stone.selling_price, "eur")}
-							{stone.selling_price ? ` · Listed at ${money(stone.selling_price, "eur")}` : " · No selling price set"}
+							{isIssued
+								? <>Sold for {money(stone.sold_price, "eur")}</>
+								: <>
+									Cost basis {money(stone.selling_price, "eur")}
+									{stone.selling_price ? ` · Listed at ${money(stone.selling_price, "eur")}` : " · No selling price set"}
+								</>}
 						</div>
 					</div>
 

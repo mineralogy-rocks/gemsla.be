@@ -54,11 +54,21 @@ export const parseStatusSchema = z.enum(["pending", "parsing", "completed", "fai
 
 export type ParseStatus = "pending" | "parsing" | "completed" | "failed" | null;
 
+export const markStonesSoldSchema = z.object({
+	stones: z.array(z.object({
+		stone_id: z.string().uuid(),
+		sold_price: z.number().min(0).optional().nullable(),
+	})),
+});
+
+export type MarkStonesSoldInput = z.infer<typeof markStonesSoldSchema>;
+
 export const createInvoiceSchema = z.object({
 	invoice_number: z.string().max(100).optional().nullable(),
 	original_invoice_number: z.string().max(100).optional().nullable(),
 	type: z.enum(["received", "issued", "credit_note"]).default("received").optional(),
 	supplier: z.string().max(255).optional().nullable(),
+	customer_name: z.string().max(255).optional().nullable(),
 	invoice_date: z.string().optional().nullable(),
 	price_usd: z.number().optional().nullable(),
 	price_eur: z.number().optional().nullable(),
@@ -118,6 +128,7 @@ export interface Invoice {
 	original_invoice_number: string | null;
 	type: InvoiceType;
 	supplier: string | null;
+	customer_name: string | null;
 	invoice_date: string | null;
 	price_usd: number | null;
 	price_eur: number | null;
@@ -199,6 +210,14 @@ export interface InvoiceStats {
 	validated_count: number;
 }
 
+export interface MonthlyInvoiceStat {
+	month: string;
+	invested_paid: number;
+	invested_all: number;
+	revenue_paid: number;
+	revenue_all: number;
+}
+
 export interface Stone {
 	id: string;
 	item_number: string | null;
@@ -243,6 +262,9 @@ export interface StoneListItem {
 	weight_carats: number | null;
 	country: string | null;
 	selling_price: number | null;
+	sold_price: number | null;
+	sold_at: string | null;
+	gross_eur: number | null;
 	is_sold: boolean;
 	item_number: string | null;
 	created_at: string;

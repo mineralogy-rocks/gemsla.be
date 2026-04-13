@@ -1,7 +1,7 @@
 "use client";
 
 import { money } from "@/app/invoices/lib/format";
-import type { InvoiceItem, InvoiceDetail, StoneListItem } from "@/app/api/stones/types";
+import type { InvoiceItem, InvoiceDetail, InvoiceType, StoneListItem } from "@/app/api/stones/types";
 
 
 interface ItemsTableProps {
@@ -10,6 +10,7 @@ interface ItemsTableProps {
 	stonesByItem: Map<string, StoneListItem>;
 	onItemClick: (index: number) => void;
 	unlinkedCount: number;
+	invoiceType?: InvoiceType;
 	onOpenBatchCreate: () => void;
 }
 
@@ -20,8 +21,10 @@ export function ItemsTable({
 	stonesByItem,
 	onItemClick,
 	unlinkedCount,
+	invoiceType = "received",
 	onOpenBatchCreate,
 }: ItemsTableProps) {
+	const isIssued = invoiceType === "issued";
 	if (items.length === 0) return null;
 
 	const totals = items.reduce(
@@ -51,12 +54,17 @@ export function ItemsTable({
 				<div className="text-xs font-medium uppercase tracking-wider text-text-gray">
 					Items ({items.length})
 				</div>
-				{unlinkedCount > 0 && (
+				{isIssued ? (
+					<button onClick={onOpenBatchCreate}
+					        className="text-xs px-2.5 py-1 rounded border border-border-light hover:bg-background-creme/50 transition-colors text-text-gray hover:text-foreground">
+						Mark stones as sold
+					</button>
+				) : unlinkedCount > 0 ? (
 					<button onClick={onOpenBatchCreate}
 					        className="text-xs px-2.5 py-1 rounded border border-border-light hover:bg-background-creme/50 transition-colors text-text-gray hover:text-foreground">
 						Create stones from {unlinkedCount} {unlinkedCount === 1 ? "item" : "items"}
 					</button>
-				)}
+				) : null}
 			</div>
 
 			<div className="rounded-lg border border-border-light overflow-hidden">
@@ -124,10 +132,10 @@ export function ItemsTable({
 									<td className="px-4 py-3 text-center">
 										{linked ? (
 											<span className="inline-block w-2 h-2 rounded-full bg-green-500"
-											      title="Linked to stone" />
+											      title={isIssued ? "Linked" : "Linked to stone"} />
 										) : (
 											<span className="inline-block w-2 h-2 rounded-full bg-amber-400"
-											      title="No stone yet" />
+											      title={isIssued ? "Not linked" : "No stone yet"} />
 										)}
 									</td>
 								</tr>

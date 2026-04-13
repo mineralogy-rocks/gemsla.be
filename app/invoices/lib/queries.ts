@@ -1,7 +1,7 @@
 import { cache } from "react";
 
 import { createClient } from "@/lib/supabase/server";
-import type { InvoiceDetail, InvoiceListItem, InvoiceStats, PaginatedInvoicesResponse } from "@/app/api/stones/types";
+import type { InvoiceDetail, InvoiceListItem, InvoiceStats, MonthlyInvoiceStat, PaginatedInvoicesResponse } from "@/app/api/stones/types";
 
 const VALID_SORT_COLUMNS = ["invoice_number", "original_invoice_number", "invoice_date", "supplier", "price_eur", "price_usd", "created_at"] as const;
 type SortColumn = typeof VALID_SORT_COLUMNS[number];
@@ -104,7 +104,7 @@ export const fetchInvoiceById = cache(async (id: string): Promise<InvoiceDetail 
 
 	const { data, error } = await supabase
 		.from("invoices")
-		.select("*, stone_invoices(stones(id, name, stone_type, color, weight_carats, selling_price, is_sold, item_number, created_at))")
+		.select("*, stone_invoices(stones(id, name, stone_type, color, weight_carats, selling_price, sold_price, sold_at, gross_eur, is_sold, item_number, created_at))")
 		.eq("id", id)
 		.single();
 
@@ -200,4 +200,37 @@ export const fetchInvoiceStats = cache(async (): Promise<InvoiceStats> => {
 		unparsed_count: unparsedCount.count ?? 0,
 		validated_count: validatedCount.count ?? 0,
 	};
+});
+
+
+export const fetchMonthlyInvoiceStats = cache(async (): Promise<MonthlyInvoiceStat[]> => {
+	const supabase = await createClient();
+
+	const { data } = await supabase
+		.from("invoices")
+		.select("invoice_date, created_at, gross_eur, is_paid, type")
+		.eq("is_archived", false)
+		.neq("type", "credit_note");
+
+	if (!data) return [];
+
+	const map = new Map<string, MonthlyInvoiceStat>();
+	for (const row of data) {
+		const dateStr = (row.invoice_date ?? row.created_at) as string;
+		const month = dateStr.slice(0, 7);
+		if (!map.has(month)) {
+			map.set(month, { month, invested_paid: 0, invested_all: 0, revenue_paid: 0, revenue_all: 0 });
+		}
+		const entry = map.get(month)!;
+		const gross = row.gross_eur ?? 0;
+		if (row.type === "received") {
+			entry.invested_all += gross;
+			if (row.is_paid) entry.invested_paid += gross;
+		} else if (row.type === "issued") {
+			entry.revenue_all += gross;
+			if (row.is_paid) entry.revenue_paid += gross;
+		}
+	}
+
+	return Array.from(map.values()).sort((a, b) => a.month.localeCompare(b.month));
 });

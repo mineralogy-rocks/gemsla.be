@@ -7,7 +7,7 @@ import { SlidePanel } from "@/app/components/SlidePanel";
 import { Button } from "@/app/components/Button";
 import { Input } from "@/app/components/Input";
 import { TextArea } from "@/app/components/TextArea";
-import type { InvoiceItem, StoneListItem } from "@/app/api/stones/types";
+import type { InvoiceItem, InvoiceType, StoneListItem } from "@/app/api/stones/types";
 import type { ItemFormData } from "@/app/components/InvoiceForms/InvoiceForms.types";
 
 
@@ -31,6 +31,7 @@ interface ItemEditPanelProps {
 	linkedStone?: StoneListItem;
 	onCreateStone: () => void;
 	isCreatingStone: boolean;
+	invoiceType?: InvoiceType;
 }
 
 
@@ -100,7 +101,9 @@ export function ItemEditPanel({
 	linkedStone,
 	onCreateStone,
 	isCreatingStone,
+	invoiceType = "received",
 }: ItemEditPanelProps) {
+	const isIssued = invoiceType === "issued";
 	const [cnForms, setCnForms] = useState<Map<string, CnFormState>>(new Map());
 	const [cnInitial, setCnInitial] = useState<Map<string, CnFormState>>(new Map());
 	const [isSavingCn, setIsSavingCn] = useState(false);
@@ -195,7 +198,7 @@ export function ItemEditPanel({
 						      className={`${pillBase} bg-green-100 text-green-800 hover:bg-green-200 transition-colors`}>
 							Linked to stone
 						</Link>
-					) : (
+					) : !isIssued ? (
 						<>
 							<span className={`${pillBase} bg-amber-100 text-amber-800`}>No stone yet</span>
 							<button onClick={onCreateStone}
@@ -204,6 +207,8 @@ export function ItemEditPanel({
 								{isCreatingStone ? "Creating..." : "Create stone"}
 							</button>
 						</>
+					) : (
+						<span className={`${pillBase} bg-amber-100 text-amber-800`}>Not linked</span>
 					)}
 				</div>
 

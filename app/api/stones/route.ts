@@ -17,12 +17,18 @@ export async function GET(request: NextRequest) {
 		const minPrice = searchParams.get("min_price");
 		const maxPrice = searchParams.get("max_price");
 		const showSold = searchParams.get("show_sold");
+		const sortBy = searchParams.get("sort_by") || "";
+		const sortDir = searchParams.get("sort_dir") || "";
+
+		const validSortColumns = ["name", "color", "weight_carats", "selling_price", "sold_price", "country", "created_at"];
+		const validatedSortBy = validSortColumns.includes(sortBy) ? sortBy : "created_at";
+		const ascending = sortDir === "asc";
 
 		const supabase = await createClient();
 
 		let query = supabase
 			.from("stones")
-			.select("id, name, stone_type, color, weight_carats, country, selling_price, is_sold, item_number, created_at", { count: "exact" });
+			.select("id, name, stone_type, color, weight_carats, country, selling_price, sold_price, sold_at, gross_eur, is_sold, item_number, created_at", { count: "exact" });
 
 		if (search) {
 			const sanitized = search.replace(/[%_,().]/g, "\\$&");
@@ -45,13 +51,15 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
-		if (showSold !== "true") {
+		if (showSold === "sold" || showSold === "1") {
+			query = query.eq("is_sold", true);
+		} else if (showSold !== "all") {
 			query = query.eq("is_sold", false);
 		}
 
 		const offset = (page - 1) * limit;
 		const { data, count, error } = await query
-			.order("created_at", { ascending: false })
+			.order(validatedSortBy, { ascending })
 			.range(offset, offset + limit - 1);
 
 		if (error) {
@@ -67,6 +75,9 @@ export async function GET(request: NextRequest) {
 			weight_carats: stone.weight_carats,
 			country: stone.country,
 			selling_price: stone.selling_price,
+			sold_price: stone.sold_price,
+			sold_at: stone.sold_at,
+			gross_eur: stone.gross_eur,
 			is_sold: stone.is_sold,
 			item_number: stone.item_number,
 			created_at: stone.created_at,

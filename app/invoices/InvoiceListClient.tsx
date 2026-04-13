@@ -9,16 +9,18 @@ import { useDebounce } from "@/app/lib/hooks/useDebounce";
 import { createQueryString } from "@/app/lib/queryString";
 import { money, fmtDate } from "@/app/lib/format";
 import { BackgroundTexture } from "@/app/components/BackgroundTexture";
+import { InvoiceChart } from "@/app/components/InvoiceChart";
 import { Button } from "../components/Button";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { SearchInput } from "../components/SearchInput";
 import { BulkActionBar } from "../components/BulkActionBar";
-import type { InvoiceListItem, InvoiceStats, PaginatedInvoicesResponse } from "../api/stones/types";
+import type { InvoiceListItem, InvoiceStats, MonthlyInvoiceStat, PaginatedInvoicesResponse } from "../api/stones/types";
 
 interface InvoiceListClientProps {
 	initialData: PaginatedInvoicesResponse;
 	stats: InvoiceStats;
+	monthlyStats: MonthlyInvoiceStat[];
 }
 
 type SortColumn = "invoice_number" | "original_invoice_number" | "supplier" | "invoice_date" | "gross_eur" | "gross_usd";
@@ -205,7 +207,7 @@ function InvoiceRow({ invoice, isChild, isArchived, selectedIds, someSelected, a
 }
 
 
-export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps) {
+export function InvoiceListClient({ initialData, stats, monthlyStats }: InvoiceListClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
@@ -465,6 +467,8 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 						            ) : undefined
 					            } />
 
+					<InvoiceChart data={monthlyStats} />
+
 					<div className="flex items-center gap-4 mb-4 text-[13px] border-b border-border-light">
 						<Link href="/invoices"
 						      className={`pb-2.5 transition-colors border-b-2 -mb-px ${
@@ -494,7 +498,7 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 						<div className="hidden sm:flex items-center gap-3 ml-auto text-[13px] text-text-gray tabular-nums">
 							<span>{money(stats.total_eur || null, "eur")} invested</span>
 							<span className="text-border-light">|</span>
-							<span>{money(stats.total_revenue || null, "usd")} revenue</span>
+							<span>{money(stats.total_revenue || null, "eur")} revenue</span>
 							<span className="text-border-light">|</span>
 							<span>{stats.parsed_count} parsed</span>
 							<span className="text-border-light">|</span>

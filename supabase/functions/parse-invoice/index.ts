@@ -13,6 +13,7 @@ interface RawInvoice {
 	invoice_date: string | null;
 	order_number: string | null;
 	supplier: string | null;
+	customer_name: string | null;
 	ship_from: string | null;
 	price_usd: number | null;
 	price_eur: number | null;
@@ -23,7 +24,6 @@ interface RawInvoice {
 	vat_eur: number | null;
 	gross_usd: number | null;
 	gross_eur: number | null;
-	is_refund: boolean;
 }
 
 interface RawItem {
@@ -211,6 +211,7 @@ Deno.serve(async (req) => {
 				original_invoice_number: inv.original_invoice_number ?? null,
 				order_number: inv.order_number ?? null,
 				supplier: inv.supplier ?? null,
+				customer_name: inv.customer_name ?? null,
 				invoice_date: inv.invoice_date ?? null,
 				price_usd: inv.price_usd ?? null,
 				price_eur: inv.price_eur ?? null,

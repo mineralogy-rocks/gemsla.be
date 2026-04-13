@@ -15,6 +15,8 @@ interface PageProps {
 		min_price?: string;
 		max_price?: string;
 		show_sold?: string;
+		sort_by?: string;
+		sort_dir?: string;
 	}>;
 }
 
@@ -30,9 +32,11 @@ export default async function StonesPage({ searchParams }: PageProps) {
 	const q = params.q || "";
 	const minPrice = params.min_price || "";
 	const maxPrice = params.max_price || "";
-	const showSold = params.show_sold === "true";
+	const showSold = params.show_sold === "1" ? "sold" : "all";
+	const sortBy = params.sort_by || "";
+	const sortDir = params.sort_dir || "";
 
-	const initialData = await fetchStones({ page, q, minPrice, maxPrice, showSold, limit: 12 });
+	const initialData = await fetchStones({ page, q, minPrice, maxPrice, showSold, sortBy, sortDir, limit: 12 });
 
 	return <StoneListClient initialData={initialData} />;
 }
