@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 
 import { getAdminUser } from "@/lib/supabase/admin";
-import { InvoiceListClient } from "./InvoiceListClient";
-import { fetchInvoices, fetchInvoiceStats } from "./lib/queries";
+import { InvoiceListClient } from "../InvoiceListClient";
+import { fetchInvoices, fetchInvoiceStats } from "../lib/queries";
 
 export const metadata = {
-	title: "Invoices",
-	description: "Manage invoices and PDF documents",
+	title: "Archived Invoices",
+	description: "View archived invoices",
 };
 
 interface PageProps {
@@ -18,7 +18,7 @@ interface PageProps {
 	}>;
 }
 
-export default async function InvoicesPage({ searchParams }: PageProps) {
+export default async function ArchivedInvoicesPage({ searchParams }: PageProps) {
 	const adminUser = await getAdminUser();
 
 	if (!adminUser) {
@@ -32,11 +32,11 @@ export default async function InvoicesPage({ searchParams }: PageProps) {
 	const q = params.q || "";
 
 	const [initialData, stats] = await Promise.all([
-		fetchInvoices({ page, limit: 20, sortBy, sortDir, q, isArchived: false }),
+		fetchInvoices({ page, limit: 20, sortBy, sortDir, q, isArchived: true }),
 		fetchInvoiceStats(),
 	]);
 
 	return <InvoiceListClient initialData={initialData}
 	                          stats={stats}
-	                          isArchived={false} />;
+	                          isArchived={true} />;
 }

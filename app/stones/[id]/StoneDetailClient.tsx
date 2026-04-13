@@ -32,6 +32,17 @@ function formatPrice(price: number | null, symbol = "$"): string {
 	return `${symbol}${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+function PriceRow({ label, eur, usd }: { label: string; eur: number | null; usd: number | null }) {
+	if (eur == null && usd == null) return null;
+	return (
+		<div className="grid grid-cols-[110px_1fr_1fr] gap-3 py-1.5 text-xs">
+			<div className="text-text-gray">{label}</div>
+			<div className="tabular-nums text-foreground">{formatPrice(eur, "\u20AC")}</div>
+			<div className="tabular-nums text-foreground">{formatPrice(usd)}</div>
+		</div>
+	);
+}
+
 export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProps) {
 	const router = useRouter();
 	const [stone] = useState(initialStone);
@@ -134,15 +145,29 @@ export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProp
 								<h2 className="font-medium">Pricing</h2>
 							</div>
 							<div className="p-6">
-								<dl className="grid sm:grid-cols-2 gap-x-12">
-									<div className="py-2">
-										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Price (USD)</dt>
-										<dd className="mt-1 text-sm text-foreground">{formatPrice(stone.price_usd)}</dd>
-									</div>
-									<div className="py-2">
-										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Price (EUR)</dt>
-										<dd className="mt-1 text-sm text-foreground">{formatPrice(stone.price_eur, "\u20AC")}</dd>
-									</div>
+								<div className="grid grid-cols-[110px_1fr_1fr] gap-3 text-xs text-text-gray/60 pb-1.5">
+									<div></div>
+									<div className="uppercase tracking-wider">EUR</div>
+									<div className="uppercase tracking-wider">USD</div>
+								</div>
+
+								<PriceRow label="Price"
+								          eur={stone.price_eur}
+								          usd={stone.price_usd} />
+								<PriceRow label="Shipment"
+								          eur={stone.shipment_eur}
+								          usd={stone.shipment_usd} />
+								<PriceRow label="VAT"
+								          eur={stone.vat_eur}
+								          usd={stone.vat_usd} />
+
+								<div className="grid grid-cols-[110px_1fr_1fr] gap-3 pt-2.5 mt-1.5 border-t border-border text-sm">
+									<div className="font-medium">Gross</div>
+									<div className="tabular-nums font-medium">{formatPrice(stone.gross_eur, "\u20AC")}</div>
+									<div className="tabular-nums font-medium">{formatPrice(stone.gross_usd)}</div>
+								</div>
+
+								<div className="mt-6 pt-4 border-t border-border">
 									<div className="py-2">
 										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Selling Price</dt>
 										<dd className="mt-1 text-lg font-medium text-foreground">{formatPrice(stone.selling_price)}</dd>
@@ -165,7 +190,7 @@ export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProp
 											</dd>
 										</div>
 									)}
-								</dl>
+								</div>
 							</div>
 						</div>
 

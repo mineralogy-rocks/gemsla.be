@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 
-import { staggerContainer, staggerItem } from "@/app/lib/animations";
 import { useDebounce } from "@/app/lib/hooks/useDebounce";
 import { createQueryString } from "@/app/lib/queryString";
 import { money, fmtDate } from "@/app/lib/format";
@@ -16,11 +14,12 @@ import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { SearchInput } from "../components/SearchInput";
 import { BulkActionBar } from "../components/BulkActionBar";
-import type { InvoiceStats, PaginatedInvoicesResponse } from "../api/stones/types";
+import type { InvoiceListItem, InvoiceStats, PaginatedInvoicesResponse } from "../api/stones/types";
 
 interface InvoiceListClientProps {
 	initialData: PaginatedInvoicesResponse;
 	stats: InvoiceStats;
+	isArchived: boolean;
 }
 
 type SortColumn = "invoice_number" | "original_invoice_number" | "supplier" | "invoice_date" | "gross_eur" | "gross_usd";
@@ -31,7 +30,8 @@ function SortArrow({ active, direction }: { active: boolean; direction: string }
 			<svg className="h-3 w-3 text-text-gray/30"
 			     viewBox="0 0 12 12"
 			     fill="currentColor">
-				<path d="M6 2l3 4H3zM6 10l3-4H3z" />
+				<path d="M6 1.5l3 4H3z" />
+				<path d="M6 10.5l3-4H3z" />
 			</svg>
 		);
 	}
@@ -49,7 +49,115 @@ function SortArrow({ active, direction }: { active: boolean; direction: string }
 }
 
 
-export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps) {
+function InvoiceRow({ invoice, isChild, selectedIds, someSelected, archivingId, onSelect, onArchive }: {
+	invoice: InvoiceListItem;
+	isChild?: boolean;
+	selectedIds: Set<string>;
+	someSelected: boolean;
+	archivingId: string | null;
+	onSelect: (id: string) => void;
+	onArchive: (id: string) => void;
+}) {
+	return (
+		<tr className={`border-b border-border-light/60 group transition-colors duration-150 ${
+			selectedIds.has(invoice.id)
+				? "bg-foreground/[0.03]"
+				: "hover:bg-background-creme/40"
+		}`}>
+			<td className="py-2.5 px-3">
+				<div className="row-checkbox"
+				     data-visible={someSelected || selectedIds.has(invoice.id) || undefined}>
+					<input type="checkbox"
+					       checked={selectedIds.has(invoice.id)}
+					       onChange={() => onSelect(invoice.id)}
+					       className="h-3.5 w-3.5 rounded border-border accent-foreground cursor-pointer" />
+				</div>
+			</td>
+			<td className="py-2.5 px-3 font-medium">
+				<Link href={`/invoices/${invoice.id}`}
+				      className={`inline-flex items-center gap-2 text-xs hover:text-foreground transition-colors font-mono ${
+					      isChild ? "text-text-gray/50 pl-4" : "text-text-gray/60"
+				      }`}>
+					{isChild && (
+						<svg className="h-3 w-3 shrink-0 text-text-gray/40"
+						     viewBox="0 0 16 16"
+						     fill="none"
+						     stroke="currentColor"
+						     strokeWidth="1.5">
+							<path d="M4 2v8h8"
+							      strokeLinecap="round"
+							      strokeLinejoin="round" />
+						</svg>
+					)}
+					{invoice.parse_status === "pending" || invoice.parse_status === "parsing" ? (
+						<span className="relative shrink-0 flex h-1.5 w-1.5">
+							<span className="absolute inset-0 rounded-full bg-amber-400 animate-ping opacity-75" />
+							<span className="relative rounded-full h-1.5 w-1.5 bg-amber-400" />
+						</span>
+					) : (
+						<span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+							invoice.parse_status === "failed"
+								? "bg-red-500"
+								: !invoice.is_parsed
+									? "bg-gray-300"
+									: invoice.is_validated && invoice.is_paid
+										? "bg-green-500"
+										: invoice.is_validated
+											? "bg-amber-500"
+											: "bg-blue-400"
+						}`} />
+					)}
+					{invoice.id}
+				</Link>
+			</td>
+			<td className={`py-2.5 px-3 font-medium ${isChild ? "text-text-gray" : "text-foreground"}`}>
+				{invoice.invoice_number || "-"}
+			</td>
+			<td className="py-2.5 px-3 text-[13px] text-text-gray hidden sm:table-cell">
+				{invoice.supplier || "-"}
+			</td>
+			<td className="py-2.5 px-3 text-[13px] text-text-gray hidden md:table-cell">
+				{fmtDate(invoice.invoice_date)}
+			</td>
+			<td className={`py-2.5 px-3 text-right text-[13px] tabular-nums ${invoice.gross_eur == null ? "text-text-gray/40" : ""}`}>
+				{money(invoice.gross_eur, "eur")}
+			</td>
+			<td className={`py-2.5 px-3 text-right text-[13px] tabular-nums ${invoice.gross_usd == null ? "text-text-gray/40" : ""}`}>
+				{money(invoice.gross_usd, "usd")}
+			</td>
+			<td className="py-2.5 px-3 text-right text-[13px] text-text-gray tabular-nums">
+				{invoice.stone_count}
+			</td>
+			<td className="py-2.5 px-3">
+				{!isChild && (
+					archivingId === invoice.id ? (
+						<div className="flex items-center justify-center">
+							<div className="h-4 w-4 rounded-full border-2 border-text-gray/40 border-t-text-gray animate-spin" />
+						</div>
+					) : (
+						<button type="button"
+						        onClick={() => onArchive(invoice.id)}
+						        className="text-text-gray hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
+						        aria-label="Archive invoice">
+							<svg className="h-4 w-4"
+							     fill="none"
+							     viewBox="0 0 24 24"
+							     stroke="currentColor">
+								<path strokeLinecap="round"
+								      strokeLinejoin="round"
+								      strokeWidth={1.5}
+								      d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+							</svg>
+						</button>
+					)
+				)}
+			</td>
+		</tr>
+	);
+}
+
+
+export function InvoiceListClient({ initialData, stats, isArchived }: InvoiceListClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
@@ -58,11 +166,6 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 	const currentSortBy = searchParams.get("sort_by") || "";
 	const currentSortDir = searchParams.get("sort_dir") || "";
 	const currentSearch = searchParams.get("q") || "";
-	const currentShowParsed = searchParams.get("is_parsed") === '1';
-	const currentShowUnparsed = searchParams.get("is_unparsed") === '1';
-	const currentShowPaid = searchParams.get("is_paid") === '1';
-	const currentShowValidated = searchParams.get("is_validated") === '1';
-	const currentShowRefunds = searchParams.get("show_refunds") === '1';
 
 	const [search, setSearch] = useState(currentSearch);
 	const debouncedSearch = useDebounce(search, 300);
@@ -74,10 +177,18 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const checkboxRef = useRef<HTMLInputElement>(null);
 
-	const { data: invoices, total, totalPages } = initialData;
+	const { data: invoices, creditNotes = {}, total, totalPages } = initialData;
 	const showPagination = totalPages > 1;
 
-	const allOnPageSelected = invoices.length > 0 && invoices.every((inv) => selectedIds.has(inv.id));
+	const allPageIds = useMemo(() => {
+		const ids = invoices.map((inv) => inv.id);
+		for (const children of Object.values(creditNotes)) {
+			for (const cn of children) ids.push(cn.id);
+		}
+		return ids;
+	}, [invoices, creditNotes]);
+
+	const allOnPageSelected = allPageIds.length > 0 && allPageIds.every((id) => selectedIds.has(id));
 	const someSelected = selectedIds.size > 0;
 
 	const parsingInvoiceIds = useMemo(
@@ -133,31 +244,6 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 		}
 	}, [debouncedSearch, currentSearch, qs, pathname, router]);
 
-	const handleShowParsedChange = () => {
-		const query = qs({ is_parsed: currentShowParsed ? '' : '1', is_unparsed: '', page: 1 });
-		router.push(`${pathname}${query ? `?${query}` : ""}`);
-	};
-
-	const handleShowUnparsedChange = () => {
-		const query = qs({ is_unparsed: currentShowUnparsed ? '' : '1', is_parsed: '', page: 1 });
-		router.push(`${pathname}${query ? `?${query}` : ""}`);
-	};
-
-	const handleShowPaidChange = () => {
-		const query = qs({ is_paid: currentShowPaid ? '' : '1', page: 1 });
-		router.push(`${pathname}${query ? `?${query}` : ""}`);
-	};
-
-	const handleShowValidatedChange = () => {
-		const query = qs({ is_validated: currentShowValidated ? '' : '1', page: 1 });
-		router.push(`${pathname}${query ? `?${query}` : ""}`);
-	};
-
-	const handleShowRefundsChange = () => {
-		const query = qs({ show_refunds: currentShowRefunds ? '' : '1', page: 1 });
-		router.push(`${pathname}${query ? `?${query}` : ""}`);
-	};
-
 	const handlePageChange = (newPage: number) => {
 		const query = qs({ page: newPage });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
@@ -181,7 +267,7 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 		if (allOnPageSelected) {
 			setSelectedIds(new Set());
 		} else {
-			setSelectedIds(new Set(invoices.map((inv) => inv.id)));
+			setSelectedIds(new Set(allPageIds));
 		}
 	};
 
@@ -203,9 +289,9 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 			const response = await fetch(`/api/invoices/${id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ is_archived: true }),
+				body: JSON.stringify({ is_archived: !isArchived }),
 			});
-			if (!response.ok) throw new Error("Failed to archive invoice");
+			if (!response.ok) throw new Error("Failed to update invoice");
 			setSelectedIds((prev) => {
 				const next = new Set(prev);
 				next.delete(id);
@@ -213,7 +299,7 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 			});
 			router.refresh();
 		} catch {
-			toast.error("Failed to archive invoice. Please try again.");
+			toast.error("Failed to update invoice. Please try again.");
 		} finally {
 			setArchivingId(null);
 		}
@@ -284,7 +370,7 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 			<th className={`py-2 px-3 text-[11px] font-normal text-text-gray tracking-wide ${className || ""}`}>
 				<button type="button"
 				        onClick={() => handleSort(column)}
-				        className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+				        className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer">
 					{label}
 					<SortArrow active={isActive}
 					           direction={currentSortDir} />
@@ -301,123 +387,90 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-6xl mx-auto">
 					<PageHeader title="Invoices"
-					            subtitle={`${total} invoice${total !== 1 ? "s" : ""}`} />
+					            subtitle={`${total} invoice${total !== 1 ? "s" : ""}`}
+					            actions={
+						            !isArchived ? (
+							            <>
+								            <input ref={fileInputRef}
+								                   type="file"
+								                   accept=".pdf,application/pdf"
+								                   multiple
+								                   onChange={handleUpload}
+								                   className="hidden" />
+								            <Button variant="primary"
+								                    size="sm"
+								                    loading={isUploading}
+								                    onClick={() => fileInputRef.current?.click()}>
+									            <svg className="h-3 w-3 mr-0.5"
+									                 fill="none"
+									                 viewBox="0 0 24 24"
+									                 stroke="currentColor">
+										            <path strokeLinecap="round"
+										                  strokeLinejoin="round"
+										                  strokeWidth={2}
+										                  d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+									            </svg>
+									            Upload Invoice
+								            </Button>
+							            </>
+						            ) : undefined
+					            } />
 
-					<div className="flex flex-col gap-3 my-6">
-						<div className="flex items-center gap-2">
-							<div className="flex-1">
-								<SearchInput value={search}
-								             onChange={(e) => setSearch(e.target.value)}
-								             onClear={() => setSearch("")}
-								             placeholder="Search invoices..." />
-							</div>
-
-							<div className="flex items-center gap-1.5">
-								<button type="button"
-								        onClick={handleShowPaidChange}
-								        aria-pressed={currentShowPaid}
-								        className={`px-3 py-1.5 text-[11px] tracking-wide rounded-full border transition-colors ${
-									        currentShowPaid
-										        ? "border-gold bg-gold/10 text-foreground"
-										        : "border-border-light text-text-gray hover:border-border"
-								        }`}>
-									Paid
-								</button>
-								<button type="button"
-								        onClick={handleShowRefundsChange}
-								        aria-pressed={currentShowRefunds}
-								        className={`px-3 py-1.5 text-[11px] tracking-wide rounded-full border transition-colors ${
-									        currentShowRefunds
-										        ? "border-gold bg-gold/10 text-foreground"
-										        : "border-border-light text-text-gray hover:border-border"
-								        }`}>
-									Refunds
-								</button>
-							</div>
-
-							<div className="ml-1">
-								<input ref={fileInputRef}
-								       type="file"
-								       accept=".pdf,application/pdf"
-								       multiple
-								       onChange={handleUpload}
-								       className="hidden" />
-								<Button variant="primary"
-								        size="sm"
-								        loading={isUploading}
-								        onClick={() => fileInputRef.current?.click()}>
-									<svg className="h-3 w-3 mr-0.5"
-									     fill="none"
-									     viewBox="0 0 24 24"
-									     stroke="currentColor">
-										<path strokeLinecap="round"
-										      strokeLinejoin="round"
-										      strokeWidth={2}
-										      d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-									</svg>
-									Upload Invoice
-								</Button>
-							</div>
-						</div>
+					<div className="flex items-center gap-4 mb-4 text-[13px] border-b border-border-light">
+						<Link href="/invoices"
+						      className={`pb-2.5 transition-colors border-b-2 -mb-px ${
+							      !isArchived
+								      ? "border-foreground text-foreground font-medium"
+								      : "border-transparent text-text-gray hover:text-foreground"
+						      }`}>
+							All
+						</Link>
+						<Link href="/invoices/archived"
+						      className={`pb-2.5 transition-colors border-b-2 -mb-px ${
+							      isArchived
+								      ? "border-foreground text-foreground font-medium"
+								      : "border-transparent text-text-gray hover:text-foreground"
+						      }`}>
+							Archived
+						</Link>
 					</div>
 
-
-					<div className="flex flex-col gap-3 mb-6">
-						<div className="flex flex-wrap gap-3">
-							<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-44">
-								<p className="text-[11px] text-text-gray tracking-wide">Invested (EUR)</p>
-								<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
-									{money(stats.total_eur || null, "eur")}
-								</p>
-							</div>
-							<div className="rounded-md border border-border-light bg-background-creme/40 px-4 py-3 min-w-44">
-								<p className="text-[11px] text-text-gray tracking-wide">Revenue</p>
-								<p className="text-sm font-medium text-foreground tabular-nums mt-0.5">
-									{money(stats.total_revenue || null, "usd")}
-								</p>
-							</div>
+					<div className="flex items-center gap-3 mb-5">
+						<div className="flex-1 max-w-sm">
+							<SearchInput value={search}
+							             onChange={(e) => setSearch(e.target.value)}
+							             onClear={() => setSearch("")}
+							             placeholder="Search invoices..." />
 						</div>
-
-
-						<div className="flex flex-wrap gap-3">
-							{([
-								{ label: "Parsed", value: stats.parsed_count, active: currentShowParsed, onClick: handleShowParsedChange },
-								{ label: "Unparsed", value: stats.unparsed_count, active: currentShowUnparsed, onClick: handleShowUnparsedChange },
-								{ label: "Validated", value: stats.validated_count, active: currentShowValidated, onClick: handleShowValidatedChange },
-							] as const).map(({ label, value, active, onClick }) => (
-								<button key={label}
-								        type="button"
-								        onClick={onClick}
-								        aria-pressed={active}
-								        className={`rounded-md border px-4 py-3 min-w-36 text-left transition-colors cursor-pointer ${
-									        active
-										        ? "border-gold bg-gold/6"
-										        : "border-border-light bg-background-creme/40 hover:border-border"
-								        }`}>
-									<p className={`text-[11px] tracking-wide ${active ? "text-foreground" : "text-text-gray"}`}>
-										{label}
-									</p>
-									<p className="text-sm font-medium tabular-nums mt-0.5">{value}</p>
-								</button>
-							))}
+						<div className="hidden sm:flex items-center gap-3 ml-auto text-[13px] text-text-gray tabular-nums">
+							<span>{money(stats.total_eur || null, "eur")} invested</span>
+							<span className="text-border-light">|</span>
+							<span>{money(stats.total_revenue || null, "usd")} revenue</span>
+							<span className="text-border-light">|</span>
+							<span>{stats.parsed_count} parsed</span>
+							<span className="text-border-light">|</span>
+							<span>{stats.validated_count} validated</span>
 						</div>
 					</div>
 
 
 					{invoices.length === 0 ? (
-						<div className="rounded-md border border-border-light bg-background-creme/40 py-16 px-8 text-center">
+						<div className="rounded-md border border-border py-16 px-8 text-center">
 							<p className="text-text-gray">
-								{currentSearch || currentShowParsed || currentShowUnparsed || currentShowPaid || currentShowValidated || currentShowRefunds
+								{currentSearch
 									? "No invoices match your search criteria"
-									: "No invoices yet. Upload your first invoice."}
+									: isArchived
+										? "No archived invoices."
+										: "No invoices yet. Upload your first invoice."}
 							</p>
 						</div>
 					) : (
 						<>
-							<div className="overflow-x-auto">
+							<div className="rounded-md border border-border overflow-hidden">
+								<div className="overflow-x-auto">
 								<table className="w-full text-sm">
 									<thead>
-										<tr className="border-b border-border-light text-left">
+										<tr className="border-b border-border text-left bg-background-creme/30">
 											<th className="py-2 px-3 w-10">
 												<input ref={checkboxRef}
 												       type="checkbox"
@@ -431,123 +484,34 @@ export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps
 											{renderSortableHeader("invoice_date", "Date", "hidden md:table-cell")}
 											{renderSortableHeader("gross_eur", "EUR", "text-right")}
 											{renderSortableHeader("gross_usd", "USD", "text-right")}
-											<th className="py-2 px-3 text-[11px] font-normal text-text-gray tracking-wide text-right">Stones</th>
+											<th className="py-2 px-3 text-[11px] font-normal text-text-gray tracking-wide text-right">Items</th>
 											<th className="py-2 px-3 w-10"></th>
 										</tr>
 									</thead>
-									<motion.tbody variants={staggerContainer}
-									              initial="hidden"
-									              animate="visible"
-									              key={`${currentPage}-${currentSortBy}-${currentSortDir}-${currentSearch}-${currentShowParsed}-${currentShowUnparsed}-${currentShowPaid}-${currentShowValidated}-${currentShowRefunds}-${total}`}>
+									<tbody key={`${currentPage}-${currentSortBy}-${currentSortDir}-${currentSearch}-${total}`}>
 										{invoices.map((invoice) => (
-											<motion.tr key={invoice.id}
-											           variants={staggerItem}
-											           className={`border-b border-border-light/60 group transition-colors duration-150 ${
-												           selectedIds.has(invoice.id)
-													           ? "bg-gold/[0.04]"
-													           : "hover:bg-background-creme/40"
-											           }`}>
-												<td className="py-2.5 px-3">
-													<div className="row-checkbox"
-													     data-visible={someSelected || selectedIds.has(invoice.id) || undefined}>
-														<input type="checkbox"
-														       checked={selectedIds.has(invoice.id)}
-														       onChange={() => handleSelectOne(invoice.id)}
-														       className="h-3.5 w-3.5 rounded border-border accent-foreground cursor-pointer" />
-													</div>
-												</td>
-												<td className="py-2.5 px-3 font-medium">
-													<Link href={`/invoices/${invoice.id}`}
-													      className="inline-flex items-center gap-2 text-xs text-text-gray/60 hover:text-foreground transition-colors font-mono">
-														{invoice.parse_status === "pending" || invoice.parse_status === "parsing" ? (
-															<span className="relative shrink-0 flex h-1.5 w-1.5">
-																<span className="absolute inset-0 rounded-full bg-amber-400 animate-ping opacity-75" />
-																<span className="relative rounded-full h-1.5 w-1.5 bg-amber-400" />
-															</span>
-														) : (
-															<span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-																invoice.parse_status === "failed"
-																	? "bg-red-500"
-																	: !invoice.is_parsed
-																		? "bg-gray-300"
-																		: invoice.is_validated && invoice.is_paid
-																			? "bg-green-500"
-																			: invoice.is_validated
-																				? "bg-amber-500"
-																				: "bg-blue-400"
-															}`} />
-														)}
-														{invoice.id}
-													</Link>
-												</td>
-												<td className="py-2.5 px-3 font-medium text-foreground">
-													{invoice.invoice_number || "-"}
-												</td>
-												<td className="py-2.5 px-3 text-[13px] text-text-gray hidden sm:table-cell">
-													{invoice.supplier || "-"}
-												</td>
-												<td className="py-2.5 px-3 text-[13px] text-text-gray hidden md:table-cell">
-													{fmtDate(invoice.invoice_date)}
-												</td>
-												<td className={`py-2.5 px-3 text-right text-[13px] tabular-nums ${invoice.gross_eur == null ? "text-text-gray/40" : ""}`}>
-													{money(invoice.gross_eur, "eur")}
-												</td>
-												<td className={`py-2.5 px-3 text-right text-[13px] tabular-nums ${invoice.gross_usd == null ? "text-text-gray/40" : ""}`}>
-													{money(invoice.gross_usd, "usd")}
-												</td>
-												<td className="py-2.5 px-3 text-right text-[13px] text-text-gray tabular-nums">
-													{invoice.stone_count}
-												</td>
-												<td className="py-2.5 px-3">
-													{archivingId === invoice.id ? (
-														<div className="flex items-center justify-center">
-															<div className="h-4 w-4 rounded-full border-2 border-text-gray/40 border-t-text-gray animate-spin" />
-														</div>
-													) : (
-														<button type="button"
-														        onClick={() => handleArchive(invoice.id)}
-														        className="text-text-gray hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
-														        aria-label="Archive invoice">
-															<svg className="h-4 w-4"
-															     fill="none"
-															     viewBox="0 0 24 24"
-															     stroke="currentColor">
-																<path strokeLinecap="round"
-																      strokeLinejoin="round"
-																      strokeWidth={1.5}
-																      d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-															</svg>
-														</button>
-													)}
-												</td>
-											</motion.tr>
+											<React.Fragment key={invoice.id}>
+												<InvoiceRow invoice={invoice}
+												            selectedIds={selectedIds}
+												            someSelected={someSelected}
+												            archivingId={archivingId}
+												            onSelect={handleSelectOne}
+												            onArchive={handleArchive} />
+												{(creditNotes[invoice.id] || []).map((cn) => (
+													<InvoiceRow key={cn.id}
+													            invoice={cn}
+													            isChild
+													            selectedIds={selectedIds}
+													            someSelected={someSelected}
+													            archivingId={archivingId}
+													            onSelect={handleSelectOne}
+													            onArchive={handleArchive} />
+												))}
+											</React.Fragment>
 										))}
-									</motion.tbody>
+									</tbody>
 								</table>
-							</div>
-
-							<div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 mt-4 text-[11px] text-text-gray">
-								{[
-									["parsing", "Parsing"],
-									["bg-red-500", "Failed"],
-									["bg-gray-300", "New"],
-									["bg-blue-400", "Parsed"],
-									["bg-amber-500", "Validated"],
-									["bg-green-500", "Complete"],
-								].map(([dot, label]) => (
-									<span key={label}
-									      className="inline-flex items-center gap-1.5">
-										{dot === "parsing" ? (
-											<span className="relative flex h-2 w-2">
-												<span className="absolute inset-0 rounded-full bg-amber-400 animate-ping opacity-75" />
-												<span className="relative rounded-full h-2 w-2 bg-amber-400" />
-											</span>
-										) : (
-											<span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-										)}
-										{label}
-									</span>
-								))}
+								</div>
 							</div>
 
 							{showPagination && (

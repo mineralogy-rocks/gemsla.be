@@ -8,16 +8,15 @@ import toast from "react-hot-toast";
 import { Button } from "../../components/Button";
 import { Checkbox } from "../../components/Checkbox";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { Input } from "../../components/Input";
 import { IssueIndicator } from "../../components/IssueIndicator";
-import { TextArea } from "../../components/TextArea";
-import { ItemsTable } from "../../components/InvoiceForms/ItemsTable";
 import {
 	IssuesBanner,
 	TotalsCard,
 	DocumentsList,
 	ItemCard,
 	StonesPanel,
+	InvoiceEditPanel,
+	ItemEditPanel,
 } from "../../components/InvoiceDetail";
 import { validate } from "../lib/validate";
 import { computeNet } from "../lib/totals";
@@ -182,10 +181,9 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 	const [itemsForm, setItemsForm] = useState<ItemFormData[]>(() =>
 		(invoice.items || []).map(itemToFormData)
 	);
-	const [isItemsDirty, setIsItemsDirty] = useState(false);
 	const [isSavingItems, setIsSavingItems] = useState(false);
 	const [creatingStoneIdx, setCreatingStoneIdx] = useState<number | null>(null);
-	const [editingItems, setEditingItems] = useState(false);
+	const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
 	const isParseActive = invoice.parse_status === "pending" || invoice.parse_status === "parsing";
 	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -227,7 +225,6 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 		setForm(initForm(invoice));
 		setLocalItems(invoice.items || []);
 		setItemsForm((invoice.items || []).map(itemToFormData));
-		setIsItemsDirty(false);
 	}, [invoice]);
 
 	const currentInvoice = useMemo(() => formToInvoice(form, invoice), [form, invoice]);
@@ -267,23 +264,6 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 		}
 		return map;
 	}, [invoice.stones]);
-
-	const existingItemNumbers = useMemo(() => {
-		const set = new Set<string>();
-		for (const s of invoice.stones) {
-			if (s.item_number) set.add(s.item_number);
-		}
-		return set;
-	}, [invoice.stones]);
-
-	const creditNoteItems = useMemo(() => {
-		if (!invoice.refund_invoices?.length) return undefined;
-		const all: InvoiceItem[] = [];
-		for (const r of invoice.refund_invoices) {
-			if (r.items) all.push(...r.items);
-		}
-		return all.length > 0 ? all : undefined;
-	}, [invoice.refund_invoices]);
 
 	const initialForm = useMemo(() => initForm(invoice), [invoice]);
 	const isDirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(initialForm), [form, initialForm]);
@@ -330,10 +310,15 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 	const handleArchive = async () => {
 		setIsArchiving(true);
 		try {
-			await patchInvoice({ is_archived: true });
-			router.push("/invoices");
+			await patchInvoice({ is_archived: !invoice.is_archived });
+			if (!invoice.is_archived) {
+				router.push("/invoices");
+			} else {
+				toast.success("Invoice restored");
+				router.refresh();
+			}
 		} catch {
-			toast.error("Failed to archive");
+			toast.error(invoice.is_archived ? "Failed to restore" : "Failed to archive");
 		} finally {
 			setIsArchiving(false);
 		}
@@ -362,7 +347,6 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 			next[index] = { ...next[index], [field]: value };
 			return next;
 		});
-		setIsItemsDirty(true);
 	}, []);
 
 	const handleSaveItems = useCallback(async () => {
@@ -371,7 +355,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 			const items = itemsForm.map(formDataToItem);
 			await patchInvoice({ items });
 			toast.success("Items saved");
-			setIsItemsDirty(false);
+			setEditingItemIndex(null);
 			router.refresh();
 		} catch {
 			toast.error("Failed to save items");
@@ -379,6 +363,41 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 			setIsSavingItems(false);
 		}
 	}, [itemsForm, patchInvoice, router]);
+
+	const handleSaveCreditNoteItem = useCallback(async (cnInvoiceId: string, updatedItems: InvoiceItem[]) => {
+		try {
+			const res = await fetch(`/api/invoices/${cnInvoiceId}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ items: updatedItems }),
+			});
+			if (!res.ok) throw new Error("Failed to update credit note");
+			toast.success("Credit note updated");
+			router.refresh();
+		} catch {
+			toast.error("Failed to save credit note");
+		}
+	}, [router]);
+
+	const handleCloseItemPanel = useCallback(() => {
+		setItemsForm((invoice.items || []).map(itemToFormData));
+		setEditingItemIndex(null);
+	}, [invoice.items]);
+
+	const creditNoteDataForItem = useCallback((index: number) => {
+		const item = itemsForm[index];
+		if (!item?.item_number || !invoice.refund_invoices?.length) return [];
+		return invoice.refund_invoices.flatMap((cn) => {
+			const cnItem = cn.items?.find((it) => it.item_number === item.item_number);
+			if (!cnItem) return [];
+			return [{
+				invoiceId: cn.id,
+				invoiceNumber: cn.invoice_number,
+				item: cnItem,
+				allItems: cn.items || [],
+			}];
+		});
+	}, [itemsForm, invoice.refund_invoices]);
 
 	const handleCreateStone = useCallback(async (index: number) => {
 		const item = itemsForm[index];
@@ -581,48 +600,49 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 									</div>
 									<div className="flex items-center gap-2 shrink-0">
 										{invoice.signed_url && (
-											<Button variant="secondary"
+											<Button variant="ghost"
 											        size="sm"
+											        loading={isParsing}
 											        disabled={isParseActive}
+											        aria-label="Extract metadata"
 											        onClick={() => setShowParseConfirm(true)}>
-												{isParseActive ? "Parsing..." : "Extract metadata"}
-											</Button>
-										)}
-										{editing ? (
-											<>
-												<Button variant="secondary"
-												        size="sm"
-												        onClick={handleCancel}>
-													Cancel
-												</Button>
-												<Button variant="primary"
-												        size="sm"
-												        loading={isSaving}
-												        onClick={handleSave}
-												        disabled={!isDirty || !validation.canSave}>
-													Save
-												</Button>
-											</>
-										) : (
-											<Button variant="secondary"
-											        size="sm"
-											        onClick={() => setEditing(true)}>
-												Edit
+												<svg className="h-4 w-4 text-text-gray"
+												     fill="none"
+												     viewBox="0 0 24 24"
+												     stroke="currentColor">
+													<path strokeLinecap="round"
+													      strokeLinejoin="round"
+													      strokeWidth={1.5}
+													      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+												</svg>
 											</Button>
 										)}
 										<Button variant="ghost"
 										        size="sm"
 										        loading={isArchiving}
+										        aria-label={invoice.is_archived ? "Restore" : "Archive"}
 										        onClick={handleArchive}>
-											<svg className="h-4 w-4 text-text-gray"
-											     fill="none"
-											     viewBox="0 0 24 24"
-											     stroke="currentColor">
-												<path strokeLinecap="round"
-												      strokeLinejoin="round"
-												      strokeWidth={1.5}
-												      d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-											</svg>
+											{invoice.is_archived ? (
+												<svg className="h-4 w-4 text-text-gray"
+												     fill="none"
+												     viewBox="0 0 24 24"
+												     stroke="currentColor">
+													<path strokeLinecap="round"
+													      strokeLinejoin="round"
+													      strokeWidth={1.5}
+													      d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3" />
+												</svg>
+											) : (
+												<svg className="h-4 w-4 text-text-gray"
+												     fill="none"
+												     viewBox="0 0 24 24"
+												     stroke="currentColor">
+													<path strokeLinecap="round"
+													      strokeLinejoin="round"
+													      strokeWidth={1.5}
+													      d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+												</svg>
+											)}
 										</Button>
 									</div>
 								</div>
@@ -649,208 +669,66 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 								</div>
 
 
-								{editing ? (
-									<div className="space-y-4">
-										<div className="grid gap-4 sm:grid-cols-2">
-											<Input label="Invoice Number"
-											       size="sm"
-											       value={form.invoice_number}
-											       issues={issuesFor("invoice_number")}
-											       onChange={(e) => updateField("invoice_number", e.target.value)} />
-											<Input label="Original Invoice Number"
-											       size="sm"
-											       value={form.original_invoice_number}
-											       issues={issuesFor("original_invoice_number")}
-											       onChange={(e) => updateField("original_invoice_number", e.target.value)} />
-										</div>
-										<div className="grid gap-4 sm:grid-cols-3">
-											<Input label="Invoice Date"
-											       size="sm"
-											       type="date"
-											       value={form.invoice_date}
-											       issues={issuesFor("invoice_date")}
-											       onChange={(e) => updateField("invoice_date", e.target.value)} />
-											<Input label="Supplier"
-											       size="sm"
-											       value={form.supplier}
-											       issues={issuesFor("supplier")}
-											       onChange={(e) => updateField("supplier", e.target.value)} />
-											<div>
-												<label className="block text-xs font-medium text-text-gray mb-1">Type</label>
-												<select value={form.type}
-												        onChange={(e) => updateField("type", e.target.value)}
-												        className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-callout-accent">
-													<option value="received">Received</option>
-													<option value="issued">Issued</option>
-													<option value="credit_note">Credit Note</option>
-												</select>
-											</div>
-										</div>
-										<Input label="Order Number"
-										       size="sm"
-										       value={form.order_number}
-										       issues={issuesFor("order_number")}
-										       onChange={(e) => updateField("order_number", e.target.value)} />
-
-										<div className="pt-2">
-											<h3 className="text-xs font-medium uppercase tracking-wider text-text-gray mb-3">Pricing</h3>
-											<div className="max-w-xs mb-4">
-												<Input label="VAT Rate (%)"
-												       size="sm"
-												       type="number"
-												       step="0.01"
-												       value={form.vat_rate}
-												       issues={issuesFor("vat_rate")}
-												       onChange={(e) => updateField("vat_rate", e.target.value)} />
-											</div>
-											<div className="grid gap-6 sm:grid-cols-2">
-												<div className="space-y-3">
-													<h4 className="text-xs font-medium uppercase tracking-wider text-text-gray">EUR</h4>
-													<Input label="Price"
-													       size="sm"
-													       type="number"
-													       step="0.01"
-													       value={form.price_eur}
-													       issues={issuesFor("price_eur")}
-													       onChange={(e) => updateField("price_eur", e.target.value)} />
-													<Input label="Shipment"
-													       size="sm"
-													       type="number"
-													       step="0.01"
-													       value={form.shipment_eur}
-													       issues={issuesFor("shipment_eur")}
-													       onChange={(e) => updateField("shipment_eur", e.target.value)} />
-													<Input label="VAT"
-													       size="sm"
-													       type="number"
-													       step="0.01"
-													       value={form.vat_eur}
-													       issues={issuesFor("vat_eur")}
-													       onChange={(e) => updateField("vat_eur", e.target.value)} />
-													<Input label="Gross"
-													       size="sm"
-													       type="number"
-													       step="0.01"
-													       value={form.gross_eur}
-													       issues={issuesFor("gross_eur")}
-													       onChange={(e) => updateField("gross_eur", e.target.value)} />
-												</div>
-												<div className="space-y-3">
-													<h4 className="text-xs font-medium uppercase tracking-wider text-text-gray">USD</h4>
-													<Input label="Price"
-													       size="sm"
-													       type="number"
-													       step="0.01"
-													       value={form.price_usd}
-													       issues={issuesFor("price_usd")}
-													       onChange={(e) => updateField("price_usd", e.target.value)} />
-													<Input label="Shipment"
-													       size="sm"
-													       type="number"
-													       step="0.01"
-													       value={form.shipment_usd}
-													       issues={issuesFor("shipment_usd")}
-													       onChange={(e) => updateField("shipment_usd", e.target.value)} />
-													<Input label="VAT"
-													       size="sm"
-													       type="number"
-													       step="0.01"
-													       value={form.vat_usd}
-													       issues={issuesFor("vat_usd")}
-													       onChange={(e) => updateField("vat_usd", e.target.value)} />
-													<Input label="Gross"
-													       size="sm"
-													       type="number"
-													       step="0.01"
-													       value={form.gross_usd}
-													       issues={issuesFor("gross_usd")}
-													       onChange={(e) => updateField("gross_usd", e.target.value)} />
-												</div>
-											</div>
-										</div>
-
-										<TextArea label="Notes"
-										          size="sm"
-										          rows={3}
-										          value={form.notes}
-										          issues={issuesFor("notes")}
-										          onChange={(e) => updateField("notes", e.target.value)} />
+								<>
+									<div className="relative group/totals cursor-pointer"
+									     onClick={() => setEditing(true)}>
+										<button className="absolute top-3 right-3 text-xs text-text-gray hover:text-foreground opacity-0 group-hover/totals:opacity-100 transition-opacity px-2 py-1 rounded border border-border-light hover:bg-background-creme/50">
+											Edit
+										</button>
+										<TotalsCard invoice={currentInvoice}
+										            net={net}
+										            hasCredit={hasRefunds}
+										            fieldIssues={fieldIssues} />
 									</div>
-								) : (
-									<>
-										<div>
-											<TotalsCard invoice={currentInvoice}
-											            net={net}
-											            hasCredit={hasRefunds}
-											            fieldIssues={fieldIssues} />
-										</div>
 
-										<div>
-											<div className="grid gap-4 grid-cols-1 sm:grid-cols-[1.4fr_1fr]">
-												<DocumentsList invoice={currentInvoice}
-												               signedUrl={invoice.signed_url}
-												               refundInvoices={invoice.refund_invoices}
-												               onUploadCreditNote={handleUploadRefund}
-												               isUploading={isUploadingRefund}
-												               onLinkCreditNote={handleLinkCreditNote}
-												               onUnlinkCreditNote={handleUnlinkCreditNote} />
-												<div className="glass-card glass-secondary p-4">
-													<div className="text-xs text-text-gray uppercase tracking-wider mb-3">Details</div>
-													<table className="w-full text-xs">
-														<tbody>
-															<tr><td className="text-text-gray py-1.5">Supplier</td><td className="text-right">{currentInvoice.supplier ?? "—"}<IssueIndicator issues={issuesFor("supplier")} /></td></tr>
-															<tr><td className="text-text-gray py-1.5">Order #</td><td className="text-right font-mono">{currentInvoice.order_number ?? "—"}<IssueIndicator issues={issuesFor("order_number")} /></td></tr>
-															<tr><td className="text-text-gray py-1.5">Date</td><td className="text-right">{fmtDate(currentInvoice.invoice_date)}<IssueIndicator issues={issuesFor("invoice_date")} /></td></tr>
-															<tr><td className="text-text-gray py-1.5">VAT rate</td><td className="text-right">{currentInvoice.vat_rate ? `${currentInvoice.vat_rate}%` : "—"}<IssueIndicator issues={issuesFor("vat_rate")} /></td></tr>
-															{currentInvoice.notes && (
-																<tr><td className="text-text-gray py-1.5">Notes</td><td className="text-right">{currentInvoice.notes}</td></tr>
-															)}
-														</tbody>
-													</table>
+									<div>
+										<div className="grid gap-4 grid-cols-1 sm:grid-cols-[1.4fr_1fr]">
+											<DocumentsList invoice={currentInvoice}
+											               signedUrl={invoice.signed_url}
+											               refundInvoices={invoice.refund_invoices}
+											               onUploadCreditNote={handleUploadRefund}
+											               isUploading={isUploadingRefund}
+											               onLinkCreditNote={handleLinkCreditNote}
+											               onUnlinkCreditNote={handleUnlinkCreditNote} />
+											<div className="glass-card glass-secondary p-4 relative group/details cursor-pointer"
+											     onClick={() => setEditing(true)}>
+												<div className="flex items-center justify-between mb-3">
+													<div className="text-xs text-text-gray uppercase tracking-wider">Details</div>
+													<button className="text-xs text-text-gray hover:text-foreground opacity-0 group-hover/details:opacity-100 transition-opacity px-2 py-1 rounded border border-border-light hover:bg-background-creme/50">
+														Edit
+													</button>
 												</div>
+												<table className="w-full text-xs">
+													<tbody>
+														<tr><td className="text-text-gray py-1.5">Supplier</td><td className="text-right">{currentInvoice.supplier ?? "—"}<IssueIndicator issues={issuesFor("supplier")} /></td></tr>
+														<tr><td className="text-text-gray py-1.5">Order #</td><td className="text-right font-mono">{currentInvoice.order_number ?? "—"}<IssueIndicator issues={issuesFor("order_number")} /></td></tr>
+														<tr><td className="text-text-gray py-1.5">Date</td><td className="text-right">{fmtDate(currentInvoice.invoice_date)}<IssueIndicator issues={issuesFor("invoice_date")} /></td></tr>
+														<tr><td className="text-text-gray py-1.5">VAT rate</td><td className="text-right">{currentInvoice.vat_rate ? `${currentInvoice.vat_rate}%` : "—"}<IssueIndicator issues={issuesFor("vat_rate")} /></td></tr>
+														{currentInvoice.notes && (
+															<tr><td className="text-text-gray py-1.5">Notes</td><td className="text-right">{currentInvoice.notes}</td></tr>
+														)}
+													</tbody>
+												</table>
 											</div>
 										</div>
-									</>
-								)}
+									</div>
+								</>
 
 
 								{localItems.length > 0 && (
 									<div>
-										<div className="flex items-baseline justify-between mb-3">
-											<div className="text-xs font-medium uppercase tracking-wider text-text-gray">
-												Items ({localItems.length})
-											</div>
-											<div className="flex items-center gap-3">
-												<button onClick={() => setEditingItems(!editingItems)}
-												        className="text-xs text-text-gray hover:text-foreground transition-colors">
-													{editingItems ? "Card view" : "Edit items"}
-												</button>
-												{isItemsDirty && (
-													<Button variant="primary"
-													        size="sm"
-													        loading={isSavingItems}
-													        onClick={handleSaveItems}>
-														Save Items
-													</Button>
-												)}
-											</div>
+										<div className="text-xs font-medium uppercase tracking-wider text-text-gray mb-3">
+											Items ({localItems.length})
 										</div>
-										{editingItems ? (
-											<ItemsTable items={itemsForm}
-											            onItemChange={handleItemChange}
-											            onCreateStone={handleCreateStone}
-											            existingItemNumbers={existingItemNumbers}
-											            creditNoteItems={creditNoteItems} />
-										) : (
-											localItems.map((item, i) => (
-												<ItemCard key={item.item_number || i}
-												          item={item}
-												          refundInvoices={invoice.refund_invoices}
-												          linkedStone={item.item_number ? stonesByItem.get(item.item_number) : undefined}
-												          onCreateStone={() => handleCreateStone(i)}
-												          isCreating={creatingStoneIdx === i} />
-											))
-										)}
+										{localItems.map((item, i) => (
+											<ItemCard key={item.item_number || i}
+											          item={item}
+											          refundInvoices={invoice.refund_invoices}
+											          linkedStone={item.item_number ? stonesByItem.get(item.item_number) : undefined}
+											          onCreateStone={() => handleCreateStone(i)}
+											          isCreating={creatingStoneIdx === i}
+											          onClick={() => setEditingItemIndex(i)} />
+										))}
 									</div>
 								)}
 
@@ -884,6 +762,30 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 			              title="Unlink credit note"
 			              message="Remove the link between this credit note and the invoice? The credit note will remain but will no longer be associated."
 			              confirmText="Unlink" />
+
+			<InvoiceEditPanel isOpen={editing}
+			                  onClose={handleCancel}
+			                  form={form}
+			                  onFieldChange={updateField}
+			                  onSave={handleSave}
+			                  onCancel={handleCancel}
+			                  isSaving={isSaving}
+			                  isDirty={isDirty}
+			                  canSave={validation.canSave}
+			                  issuesFor={issuesFor} />
+
+			<ItemEditPanel isOpen={editingItemIndex !== null}
+			               onClose={handleCloseItemPanel}
+			               item={editingItemIndex !== null ? itemsForm[editingItemIndex] : null}
+			               itemIndex={editingItemIndex ?? 0}
+			               onItemChange={handleItemChange}
+			               onSave={handleSaveItems}
+			               isSaving={isSavingItems}
+			               creditNoteData={editingItemIndex !== null ? creditNoteDataForItem(editingItemIndex) : []}
+			               onSaveCreditNoteItem={handleSaveCreditNoteItem}
+			               linkedStone={editingItemIndex !== null && localItems[editingItemIndex]?.item_number ? stonesByItem.get(localItems[editingItemIndex].item_number!) : undefined}
+			               onCreateStone={() => editingItemIndex !== null && handleCreateStone(editingItemIndex)}
+			               isCreatingStone={creatingStoneIdx === editingItemIndex} />
 
 		</div>
 	);

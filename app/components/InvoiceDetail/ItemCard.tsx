@@ -10,6 +10,7 @@ interface ItemCardProps {
 	linkedStone: StoneListItem | undefined;
 	onCreateStone: () => void;
 	isCreating: boolean;
+	onClick?: () => void;
 }
 
 
@@ -22,6 +23,7 @@ export function ItemCard({
 	linkedStone,
 	onCreateStone,
 	isCreating,
+	onClick,
 }: ItemCardProps) {
 	const refund = (refundInvoices ?? []).reduce(
 		(acc, cn) => {
@@ -50,7 +52,8 @@ export function ItemCard({
 	].filter(Boolean).join(" · ");
 
 	return (
-		<div className="glass-card glass-secondary p-4 mb-3">
+		<div className={`glass-card glass-secondary p-4 mb-3 ${onClick ? "cursor-pointer hover:border-callout-accent transition-colors" : ""}`}
+		     onClick={onClick}>
 			<div className="flex items-start justify-between gap-3 mb-3">
 				<div className="min-w-0">
 					<div className="flex items-center gap-2.5 flex-wrap">
@@ -72,7 +75,7 @@ export function ItemCard({
 				</div>
 
 				{!linkedStone && (
-					<button onClick={onCreateStone}
+					<button onClick={(e) => { e.stopPropagation(); onCreateStone(); }}
 					        disabled={isCreating}
 					        className="text-xs shrink-0 px-2.5 py-1 rounded border border-border-light hover:bg-background-creme/50 transition-colors">
 						{isCreating ? "Creating..." : "Create stone"}

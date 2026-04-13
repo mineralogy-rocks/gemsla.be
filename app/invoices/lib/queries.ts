@@ -1,4 +1,5 @@
 import { cache } from "react";
+
 import { createClient } from "@/lib/supabase/server";
 import type { InvoiceDetail, InvoiceListItem, InvoiceStats, PaginatedInvoicesResponse } from "@/app/api/stones/types";
 
@@ -11,26 +12,18 @@ interface FetchInvoicesParams {
 	sortBy?: string;
 	sortDir?: string;
 	q?: string;
-	isParsed?: boolean;
-	isUnparsed?: boolean;
-	isPaid?: boolean;
-	isValidated?: boolean;
-	showRefunds?: boolean;
+	isArchived?: boolean;
 	type?: string;
 	unlinkedOnly?: boolean;
 }
 
 export const fetchInvoices = cache(async ({
 	page = 1,
-	limit = 12,
+	limit = 20,
 	sortBy = "created_at",
 	sortDir = "desc",
 	q = "",
-	isParsed = false,
-	isUnparsed = false,
-	isPaid = false,
-	isValidated = false,
-	showRefunds = false,
+	isArchived = false,
 	type,
 	unlinkedOnly = false,
 }: FetchInvoicesParams): Promise<PaginatedInvoicesResponse> => {
@@ -44,39 +37,23 @@ export const fetchInvoices = cache(async ({
 	let query = supabase
 		.from("invoices")
 		.select("*, stones(count)", { count: "exact" })
-		.eq("is_archived", false);
-
-	if (q) {
-		const sanitized = q.replace(/[%_,().]/g, "\\$&");
-		query = query.or(
-			`invoice_number.ilike.%${sanitized}%,original_invoice_number.ilike.%${sanitized}%,supplier.ilike.%${sanitized}%`
-		);
-	}
-
-	if (isParsed) {
-		query = query.eq("is_parsed", true);
-	} else if (isUnparsed) {
-		query = query.eq("is_parsed", false);
-	}
-
-	if (isPaid) {
-		query = query.eq("is_paid", true);
-	}
-
-	if (isValidated) {
-		query = query.eq("is_validated", true);
-	}
+		.eq("is_archived", isArchived);
 
 	if (unlinkedOnly) {
 		query = query.is("refund_of", null);
-	} else if (showRefunds) {
-		query = query.not("refund_of", "is", null);
 	} else {
 		query = query.is("refund_of", null);
 	}
 
 	if (type) {
 		query = query.eq("type", type);
+	}
+
+	if (q) {
+		const sanitized = q.replace(/[%_,().]/g, "\\$&");
+		query = query.or(
+			`invoice_number.ilike.%${sanitized}%,original_invoice_number.ilike.%${sanitized}%,supplier.ilike.%${sanitized}%`
+		);
 	}
 
 	const offset = (page - 1) * limit;
@@ -94,8 +71,27 @@ export const fetchInvoices = cache(async ({
 		stone_count: stones?.[0]?.count ?? 0,
 	}));
 
+	const parentIds = items.map((inv) => inv.id);
+	const creditNotes: Record<string, InvoiceListItem[]> = {};
+
+	if (parentIds.length > 0) {
+		const { data: cnData } = await supabase
+			.from("invoices")
+			.select("*, stones(count)")
+			.in("refund_of", parentIds)
+			.eq("is_archived", isArchived)
+			.order("created_at", { ascending: false });
+
+		for (const { stones, ...cn } of cnData || []) {
+			const parentId = cn.refund_of!;
+			if (!creditNotes[parentId]) creditNotes[parentId] = [];
+			creditNotes[parentId].push({ ...cn, stone_count: stones?.[0]?.count ?? 0 });
+		}
+	}
+
 	return {
 		data: items,
+		creditNotes,
 		total: count || 0,
 		page,
 		limit,

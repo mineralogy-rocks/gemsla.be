@@ -131,6 +131,7 @@ export interface Invoice {
 	is_paid: boolean;
 	is_parsed: boolean;
 	is_validated: boolean;
+	is_archived: boolean;
 	parse_status: ParseStatus;
 	file_path: string | null;
 	notes: string | null;
@@ -181,6 +182,7 @@ export interface InvoiceDetail extends Invoice {
 
 export interface PaginatedInvoicesResponse {
 	data: InvoiceListItem[];
+	creditNotes?: Record<string, InvoiceListItem[]>;
 	total: number;
 	page: number;
 	limit: number;
