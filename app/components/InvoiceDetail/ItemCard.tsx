@@ -1,7 +1,7 @@
 "use client";
 
 import { money } from "@/app/invoices/lib/format";
-import type { InvoiceItem, InvoiceDetail, StoneListItem } from "@/app/api/stones/types";
+import type { InvoiceItem, InvoiceDetail, InvoiceType, StoneListItem } from "@/app/api/stones/types";
 
 
 interface ItemCardProps {
@@ -11,6 +11,7 @@ interface ItemCardProps {
 	onCreateStone: () => void;
 	isCreating: boolean;
 	onClick?: () => void;
+	invoiceType?: InvoiceType;
 }
 
 
@@ -24,7 +25,9 @@ export function ItemCard({
 	onCreateStone,
 	isCreating,
 	onClick,
+	invoiceType = "received",
 }: ItemCardProps) {
+	const isIssued = invoiceType === "issued";
 	const refund = (refundInvoices ?? []).reduce(
 		(acc, cn) => {
 			const cnItem = cn.items?.find((it) => it.item_number === item.item_number);
@@ -74,7 +77,7 @@ export function ItemCard({
 					)}
 				</div>
 
-				{!linkedStone && (
+				{!linkedStone && !isIssued && (
 					<button onClick={(e) => { e.stopPropagation(); onCreateStone(); }}
 					        disabled={isCreating}
 					        className="text-xs shrink-0 px-2.5 py-1 rounded border border-border-light hover:bg-background-creme/50 transition-colors">
