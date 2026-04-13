@@ -1,4 +1,4 @@
-import type { Invoice } from "@/app/api/stones/types";
+import type { Invoice, InvoiceItem } from "@/app/api/stones/types";
 
 
 type PricingFields = Pick<Invoice,
@@ -18,6 +18,34 @@ export interface NetTotals {
 	refund_eur: number;
 	refund_usd: number;
 	refund_pct_eur: number;
+}
+
+
+export interface ItemNet {
+	adjusted_price_eur: number | null;
+	adjusted_price_usd: number | null;
+}
+
+
+export function computeItemNet(item: InvoiceItem, creditNoteItems: InvoiceItem[]): ItemNet {
+	const matchingCnItems = creditNoteItems.filter(
+		(cnItem) => cnItem.item_number && cnItem.item_number === item.item_number
+	);
+
+	if (matchingCnItems.length === 0) {
+		return {
+			adjusted_price_eur: item.gross_eur ?? null,
+			adjusted_price_usd: item.gross_usd ?? null,
+		};
+	}
+
+	const cnSumEur = matchingCnItems.reduce((sum, cnItem) => sum + (cnItem.gross_eur ?? 0), 0);
+	const cnSumUsd = matchingCnItems.reduce((sum, cnItem) => sum + (cnItem.gross_usd ?? 0), 0);
+
+	return {
+		adjusted_price_eur: item.gross_eur != null ? item.gross_eur + cnSumEur : null,
+		adjusted_price_usd: item.gross_usd != null ? item.gross_usd + cnSumUsd : null,
+	};
 }
 
 

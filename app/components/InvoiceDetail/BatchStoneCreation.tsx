@@ -6,7 +6,8 @@ import toast from "react-hot-toast";
 import { SlidePanel } from "../SlidePanel";
 import { Button } from "../Button";
 import { money } from "@/app/invoices/lib/format";
-import type { InvoiceItem, StoneListItem } from "@/app/api/stones/types";
+import { computeItemNet } from "@/app/invoices/lib/totals";
+import type { InvoiceItem, StoneListItem, InvoiceDetail } from "@/app/api/stones/types";
 
 
 interface BatchStoneCreationProps {
@@ -15,6 +16,7 @@ interface BatchStoneCreationProps {
 	items: InvoiceItem[];
 	stonesByItem: Map<string, StoneListItem>;
 	invoiceId: string;
+	refundInvoices?: InvoiceDetail["refund_invoices"];
 	onComplete: () => void;
 }
 
@@ -30,8 +32,10 @@ export function BatchStoneCreation({
 	items,
 	stonesByItem,
 	invoiceId,
+	refundInvoices,
 	onComplete,
 }: BatchStoneCreationProps) {
+	const allCreditNoteItems = (refundInvoices ?? []).flatMap((cn) => cn.items ?? []);
 	const unlinkedItems = items
 		.map((item, index) => ({ item, index }))
 		.filter(({ item }) => !item.item_number || !stonesByItem.has(item.item_number));
@@ -66,6 +70,7 @@ export function BatchStoneCreation({
 		for (const { item } of toCreate) {
 			setProgress((prev) => ({ ...prev, current: prev.current + 1 }));
 			try {
+				const itemNet = computeItemNet(item, allCreditNoteItems);
 				const res = await fetch("/api/stones", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
@@ -86,6 +91,8 @@ export function BatchStoneCreation({
 						vat_eur: toPos(item.vat_eur),
 						gross_usd: toPos(item.gross_usd),
 						gross_eur: toPos(item.gross_eur),
+						adjusted_price_eur: itemNet.adjusted_price_eur,
+						adjusted_price_usd: itemNet.adjusted_price_usd,
 						is_sold: false,
 						invoice_id: invoiceId,
 						item_number: item.item_number || null,

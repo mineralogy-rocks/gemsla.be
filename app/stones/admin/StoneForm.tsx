@@ -67,7 +67,7 @@ export function StoneForm({ mode, initialData, invoices }: StoneFormProps) {
 		selling_price: initialData?.selling_price != null ? String(initialData.selling_price) : "",
 		is_sold: initialData?.is_sold || false,
 		notes: initialData?.notes || "",
-		invoice_id: initialData?.invoice_id || "",
+		invoice_id: initialData?.stone_invoices?.[0]?.invoice_id || "",
 	});
 
 	const handleChange = (field: keyof FormData, value: string | boolean) => {

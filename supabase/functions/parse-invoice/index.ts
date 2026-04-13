@@ -129,19 +129,28 @@ Deno.serve(async (req) => {
 
 		const outputText = response.output_text;
 
+		if (!outputText) {
+			throw new Error("Empty response from OpenAI");
+		}
+
 		let raw: RawResponse;
-		let parseFailed = false;
 		try {
-			const jsonMatch = outputText.match(/```json\s*([\s\S]*?)\s*```/);
-			const jsonString = jsonMatch ? jsonMatch[1] : outputText;
-			raw = JSON.parse(jsonString.trim());
-		} catch {
-			parseFailed = true;
-			raw = {
-				invoice: {} as RawInvoice,
-				confidence: {},
-				items: [],
-			};
+			const fencedMatch = outputText.match(/```json\s*([\s\S]*?)\s*```/);
+			if (fencedMatch) {
+				raw = JSON.parse(fencedMatch[1].trim());
+			} else {
+				try {
+					raw = JSON.parse(outputText.trim());
+				} catch {
+					const objectMatch = outputText.match(/\{[\s\S]*\}/);
+					if (!objectMatch) throw new Error("No JSON found in response");
+					raw = JSON.parse(objectMatch[0]);
+				}
+			}
+		} catch (parseErr) {
+			throw new Error(
+				`Failed to parse OpenAI response: ${parseErr instanceof Error ? parseErr.message : "unknown"} — raw: ${outputText.slice(0, 500)}`
+			);
 		}
 
 		const inv = raw.invoice ?? ({} as RawInvoice);
@@ -173,7 +182,7 @@ Deno.serve(async (req) => {
 			items.push({
 				item_number: null,
 				name: "Unknown Stone",
-				description: parseFailed ? outputText.slice(0, 500) : null,
+				description: null,
 				carat_weight: null,
 				dimensions: null,
 				shape: null,

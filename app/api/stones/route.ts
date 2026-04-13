@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
 		}
 
 		const body = await request.json();
+		const invoiceId: string | undefined = body.invoice_id;
 		const validation = createStoneSchema.safeParse(body);
 
 		if (!validation.success) {
@@ -115,6 +116,29 @@ export async function POST(request: NextRequest) {
 		if (error) {
 			console.error("Error creating stone:", error);
 			return NextResponse.json({ error: "Failed to create stone" }, { status: 500 });
+		}
+
+		if (invoiceId) {
+			try {
+				const junctionRecords: { stone_id: string; invoice_id: string }[] = [
+					{ stone_id: stone.id, invoice_id: invoiceId },
+				];
+
+				const { data: creditNotes } = await supabase
+					.from("invoices")
+					.select("id")
+					.eq("refund_of", invoiceId);
+
+				if (creditNotes?.length) {
+					for (const cn of creditNotes) {
+						junctionRecords.push({ stone_id: stone.id, invoice_id: cn.id });
+					}
+				}
+
+				await supabase.from("stone_invoices").insert(junctionRecords);
+			} catch (err) {
+				console.error("Failed to create stone_invoices junction records:", err);
+			}
 		}
 
 		return NextResponse.json(stone, { status: 201 });

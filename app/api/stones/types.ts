@@ -38,12 +38,13 @@ export const createStoneSchema = z.object({
 	vat_eur: z.number().min(0).optional().nullable(),
 	gross_usd: z.number().min(0).optional().nullable(),
 	gross_eur: z.number().min(0).optional().nullable(),
+	adjusted_price_eur: z.number().min(0).optional().nullable(),
+	adjusted_price_usd: z.number().min(0).optional().nullable(),
 	selling_price: z.number().min(0).optional().nullable(),
 	is_sold: z.boolean().default(false),
 	sold_at: z.string().datetime({ offset: true }).optional().nullable(),
 	sold_price: z.number().min(0).optional().nullable(),
 	notes: z.string().optional().nullable(),
-	invoice_id: z.string().uuid().optional().nullable(),
 	item_number: z.string().max(100).optional().nullable(),
 });
 
@@ -108,6 +109,7 @@ export interface Issue {
 	field?: string;
 	message: string;
 	fix?: string;
+	fixValue?: number;
 }
 
 export interface Invoice {
@@ -199,7 +201,6 @@ export interface InvoiceStats {
 
 export interface Stone {
 	id: string;
-	invoice_id: string | null;
 	item_number: string | null;
 	name: string;
 	description: string | null;
@@ -217,6 +218,8 @@ export interface Stone {
 	vat_eur: number | null;
 	gross_usd: number | null;
 	gross_eur: number | null;
+	adjusted_price_eur: number | null;
+	adjusted_price_usd: number | null;
 	selling_price: number | null;
 	is_sold: boolean;
 	sold_at: string | null;
@@ -224,7 +227,12 @@ export interface Stone {
 	notes: string | null;
 	created_at: string;
 	updated_at: string;
-	invoices?: Invoice | null;
+	stone_invoices?: StoneInvoice[];
+}
+
+export interface StoneInvoice {
+	invoice_id: string;
+	invoices: Invoice & { signed_url?: string };
 }
 
 export interface StoneListItem {

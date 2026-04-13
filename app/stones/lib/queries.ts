@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import type { PaginatedStonesResponse, StoneListItem, Stone, Invoice } from "@/app/api/stones/types";
+import type { PaginatedStonesResponse, StoneListItem, Stone, Invoice, StoneInvoice } from "@/app/api/stones/types";
 
 interface FetchStonesParams {
 	page?: number;
@@ -87,7 +87,7 @@ export const fetchStoneById = cache(async (id: string): Promise<Stone | null> =>
 
 	const { data, error } = await supabase
 		.from("stones")
-		.select("*, invoices(*)")
+		.select("*, stone_invoices(invoice_id, invoices(*))")
 		.eq("id", id)
 		.single();
 
@@ -95,11 +95,15 @@ export const fetchStoneById = cache(async (id: string): Promise<Stone | null> =>
 		return null;
 	}
 
-	if (data.invoices?.file_path) {
-		const { data: urlData } = await supabase.storage
-			.from("invoices")
-			.createSignedUrl(data.invoices.file_path, 3600);
-		(data.invoices as Invoice & { signed_url?: string }).signed_url = urlData?.signedUrl ?? undefined;
+	if (data.stone_invoices?.length) {
+		for (const si of data.stone_invoices as { invoices: Invoice & { signed_url?: string; file_path?: string } }[]) {
+			if (si.invoices?.file_path) {
+				const { data: urlData } = await supabase.storage
+					.from("invoices")
+					.createSignedUrl(si.invoices.file_path, 3600);
+				si.invoices.signed_url = urlData?.signedUrl ?? undefined;
+			}
+		}
 	}
 
 	return data as Stone;

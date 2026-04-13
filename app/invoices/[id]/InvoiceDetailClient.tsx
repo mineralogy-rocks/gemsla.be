@@ -332,6 +332,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 				const err = await res.json();
 				throw new Error(err.error || "Failed to trigger parsing");
 			}
+			toast("Parsing started — results will appear in 1–2 minutes.");
 			router.refresh();
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : "Parse failed");
@@ -457,18 +458,35 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 		}
 	}, [invoice.id, router]);
 
-	const handleApplyFix = useCallback((issue: Issue) => {
-		if (issue.code === "cn_positive_value" && issue.field) {
-			const field = issue.field as keyof FormState;
-			if (field in form) {
-				const val = toNum(String(form[field]));
-				if (val != null) {
-					setForm((prev) => ({ ...prev, [field]: String(-val) }));
-					if (!editing) setEditing(true);
-				}
-			}
+	const handleApplyFix = useCallback(async (issue: Issue) => {
+		if (!issue.field) return;
+		const field = issue.field as keyof FormState;
+		if (!(field in form)) return;
+
+		let newValue: number | null = null;
+
+		if (issue.code === "cn_positive_value") {
+			const val = toNum(String(form[field]));
+			if (val == null) return;
+			newValue = -val;
+		} else if (
+			(issue.code === "gross_mismatch" || issue.code === "vat_rate_mismatch") &&
+			issue.fixValue != null
+		) {
+			newValue = issue.fixValue;
+		} else {
+			return;
 		}
-	}, [form, editing]);
+
+		setForm((prev) => ({ ...prev, [field]: String(newValue) }));
+		try {
+			await patchInvoice({ [field]: newValue });
+			toast.success("Fix applied");
+			router.refresh();
+		} catch {
+			toast.error("Failed to apply fix");
+		}
+	}, [form, patchInvoice, router]);
 
 	const updateField = useCallback((field: keyof FormState, value: string) => {
 		setForm((prev) => ({ ...prev, [field]: value }));
@@ -516,52 +534,42 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 					)}
 
 
-					<>
-						{isParsing || isParseActive ? (
-							<div className="flex flex-col items-center py-20"
-							     role="status"
-							     aria-busy="true">
-								<div className="h-8 w-8 rounded-full border-2 border-foreground/30 border-t-transparent animate-spin" />
-								<p className="mt-4 text-sm text-text-gray">Extracting metadata...</p>
-							</div>
-						) : (
-							<div className="space-y-5">
+					<div className="space-y-5">
 
-								<div className="flex items-start justify-between gap-3">
-									<div className="min-w-0">
-										<h1 className="text-2xl font-medium font-heading text-foreground">
-											{currentInvoice.invoice_number || "Untitled invoice"}
-										</h1>
-										{(isCreditNote || hasRefunds) && (
-											<div className="flex items-center gap-1.5 mt-1.5">
-												{isCreditNote && (
-													<span className={`${pillBase} ${pillColors.warning}`}>Credit note</span>
-												)}
-												{hasRefunds && (
-													<span className={`${pillBase} ${pillColors.info}`}>Has credit note</span>
-												)}
-											</div>
-										)}
-									</div>
-									<div className="flex items-center gap-2 shrink-0">
-										{invoice.signed_url && (
-											<Button variant="ghost"
-											        size="sm"
-											        loading={isParsing}
-											        disabled={isParseActive}
-											        aria-label="Extract metadata"
-											        onClick={() => setShowParseConfirm(true)}>
-												<svg className="h-4 w-4 text-text-gray"
-												     fill="none"
-												     viewBox="0 0 24 24"
-												     stroke="currentColor">
-													<path strokeLinecap="round"
-													      strokeLinejoin="round"
-													      strokeWidth={1.5}
-													      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-												</svg>
-											</Button>
-										)}
+							<div className="flex items-start justify-between gap-3">
+								<div className="min-w-0">
+									<h1 className="text-2xl font-medium font-heading text-foreground">
+										{currentInvoice.invoice_number || "Untitled invoice"}
+									</h1>
+									{(isCreditNote || hasRefunds) && (
+										<div className="flex items-center gap-1.5 mt-1.5">
+											{isCreditNote && (
+												<span className={`${pillBase} ${pillColors.warning}`}>Credit note</span>
+											)}
+											{hasRefunds && (
+												<span className={`${pillBase} ${pillColors.info}`}>Has credit note</span>
+											)}
+										</div>
+									)}
+								</div>
+								<div className="flex items-center gap-2 shrink-0">
+									{invoice.signed_url && (
+										<Button variant="ghost"
+										        size="sm"
+										        disabled={isParsing || isParseActive}
+										        aria-label="Extract metadata"
+										        onClick={() => setShowParseConfirm(true)}>
+											<svg className="h-4 w-4 text-text-gray"
+											     fill="none"
+											     viewBox="0 0 24 24"
+											     stroke="currentColor">
+												<path strokeLinecap="round"
+												      strokeLinejoin="round"
+												      strokeWidth={1.5}
+												      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+											</svg>
+										</Button>
+									)}
 										<Button variant="ghost"
 										        size="sm"
 										        loading={isArchiving}
@@ -638,18 +646,16 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 								)}
 
 
-								{!isCreditNote && (
-									<div>
-										<div className="text-xs font-medium uppercase tracking-wider text-text-gray mb-3">
-											Stones ({invoice.stones.length})
-										</div>
-										<StonesPanel stones={invoice.stones} />
+							{!isCreditNote && (
+								<div>
+									<div className="text-xs font-medium uppercase tracking-wider text-text-gray mb-3">
+										Stones ({invoice.stones.length})
 									</div>
-								)}
-							</div>
-						)}
-					</>
-				</div>
+									<StonesPanel stones={invoice.stones} />
+								</div>
+							)}
+						</div>
+					</div>
 			</section>
 
 			<ConfirmDialog isOpen={showParseConfirm}
@@ -698,6 +704,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 			                    items={localItems}
 			                    stonesByItem={stonesByItem}
 			                    invoiceId={invoice.id}
+			                    refundInvoices={invoice.refund_invoices}
 			                    onComplete={() => router.refresh()} />
 
 		</div>

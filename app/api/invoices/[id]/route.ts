@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 		const { data: invoice, error } = await supabase
 			.from("invoices")
-			.select("*, stones(id, name, stone_type, color, weight_carats, selling_price, is_sold, item_number, created_at)")
+			.select("*, stone_invoices(stones(id, name, stone_type, color, weight_carats, selling_price, is_sold, item_number, created_at))")
 			.eq("id", id)
 			.single();
 
@@ -39,8 +39,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			signedUrl = urlData?.signedUrl || null;
 		}
 
-		const { stones, ...invoiceData } = invoice;
-		return NextResponse.json({ ...invoiceData, signed_url: signedUrl, stones: stones || [] });
+		const { stone_invoices, ...invoiceData } = invoice;
+		const stones = (stone_invoices || []).map((si: { stones: unknown }) => si.stones).filter(Boolean);
+		return NextResponse.json({ ...invoiceData, signed_url: signedUrl, stones });
 	} catch (error) {
 		console.error("Invoice GET error:", error);
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });

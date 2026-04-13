@@ -48,6 +48,8 @@ function checkArithmetic(i: Invoice): Issue[] {
 				code: "gross_mismatch",
 				field: `gross_${ccy}`,
 				message: `Gross ${ccy.toUpperCase()} should be ${expected.toFixed(2)} but is ${gross.toFixed(2)}`,
+				fix: `Set to ${expected.toFixed(2)}`,
+				fixValue: expected,
 			});
 		}
 		if (i.vat_rate && price > 0) {
@@ -58,6 +60,8 @@ function checkArithmetic(i: Invoice): Issue[] {
 					code: "vat_rate_mismatch",
 					field: `vat_${ccy}`,
 					message: `VAT ${ccy.toUpperCase()} of ${vat.toFixed(2)} doesn't match ${i.vat_rate}% of net (expected ${expectedVat.toFixed(2)})`,
+					fix: `Set to ${expectedVat.toFixed(2)}`,
+					fixValue: expectedVat,
 				});
 			}
 		}

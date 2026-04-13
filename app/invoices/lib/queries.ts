@@ -36,7 +36,7 @@ export const fetchInvoices = cache(async ({
 
 	let query = supabase
 		.from("invoices")
-		.select("*, stones(count)", { count: "exact" })
+		.select("*, stone_invoices(count)", { count: "exact" })
 		.eq("is_archived", isArchived);
 
 	if (unlinkedOnly) {
@@ -66,9 +66,9 @@ export const fetchInvoices = cache(async ({
 		return { data: [], total: 0, page, limit, totalPages: 0 };
 	}
 
-	const items: InvoiceListItem[] = (data || []).map(({ stones, ...invoice }) => ({
+	const items: InvoiceListItem[] = (data || []).map(({ stone_invoices, ...invoice }) => ({
 		...invoice,
-		stone_count: stones?.[0]?.count ?? 0,
+		stone_count: stone_invoices?.[0]?.count ?? 0,
 	}));
 
 	const parentIds = items.map((inv) => inv.id);
@@ -77,15 +77,15 @@ export const fetchInvoices = cache(async ({
 	if (parentIds.length > 0) {
 		const { data: cnData } = await supabase
 			.from("invoices")
-			.select("*, stones(count)")
+			.select("*, stone_invoices(count)")
 			.in("refund_of", parentIds)
 			.eq("is_archived", isArchived)
 			.order("created_at", { ascending: false });
 
-		for (const { stones, ...cn } of cnData || []) {
+		for (const { stone_invoices, ...cn } of cnData || []) {
 			const parentId = cn.refund_of!;
 			if (!creditNotes[parentId]) creditNotes[parentId] = [];
-			creditNotes[parentId].push({ ...cn, stone_count: stones?.[0]?.count ?? 0 });
+			creditNotes[parentId].push({ ...cn, stone_count: stone_invoices?.[0]?.count ?? 0 });
 		}
 	}
 
@@ -104,7 +104,7 @@ export const fetchInvoiceById = cache(async (id: string): Promise<InvoiceDetail 
 
 	const { data, error } = await supabase
 		.from("invoices")
-		.select("*, stones(id, name, stone_type, color, weight_carats, selling_price, is_sold, item_number, created_at)")
+		.select("*, stone_invoices(stones(id, name, stone_type, color, weight_carats, selling_price, is_sold, item_number, created_at))")
 		.eq("id", id)
 		.single();
 
@@ -148,11 +148,12 @@ export const fetchInvoiceById = cache(async (id: string): Promise<InvoiceDetail 
 		})
 	);
 
-	const { stones, ...invoice } = data;
+	const { stone_invoices, ...invoice } = data;
+	const stones = (stone_invoices || []).map((si: { stones: unknown }) => si.stones).filter(Boolean);
 	return {
 		...invoice,
 		signed_url: signedUrl,
-		stones: stones || [],
+		stones,
 		parent_invoice: parentInvoice,
 		refund_invoices: refundInvoices,
 	} as InvoiceDetail;
@@ -185,14 +186,16 @@ export const fetchInvoiceStats = cache(async (): Promise<InvoiceStats> => {
 			.eq("is_validated", true)
 			.eq("is_archived", false),
 		supabase
-			.from("stones")
-			.select("sold_price")
-			.eq("is_sold", true),
+			.from("invoices")
+			.select("gross_eur")
+			.eq("type", "issued")
+			.eq("is_archived", false)
+			.eq("is_paid", true),
 	]);
 
 	return {
 		total_eur: (invoiceAgg.data ?? []).reduce((sum, row) => sum + (row.gross_eur ?? 0), 0),
-		total_revenue: (revenueAgg.data ?? []).reduce((sum, row) => sum + (row.sold_price ?? 0), 0),
+		total_revenue: (revenueAgg.data ?? []).reduce((sum, row) => sum + (row.gross_eur ?? 0), 0),
 		parsed_count: parsedCount.count ?? 0,
 		unparsed_count: unparsedCount.count ?? 0,
 		validated_count: validatedCount.count ?? 0,

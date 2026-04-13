@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 		const { data: stone, error } = await supabase
 			.from("stones")
-			.select("*, invoices(*)")
+			.select("*, stone_invoices(invoice_id, invoices(*))")
 			.eq("id", id)
 			.single();
 
@@ -31,11 +31,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			return NextResponse.json({ error: "Stone not found" }, { status: 404 });
 		}
 
-		if (stone.invoices?.file_path) {
-			const { data: urlData } = await supabase.storage
-				.from("invoices")
-				.createSignedUrl(stone.invoices.file_path, 3600);
-			stone.invoices.signed_url = urlData?.signedUrl || null;
+		if (stone.stone_invoices?.length) {
+			for (const si of stone.stone_invoices) {
+				if (si.invoices?.file_path) {
+					const { data: urlData } = await supabase.storage
+						.from("invoices")
+						.createSignedUrl(si.invoices.file_path, 3600);
+					si.invoices.signed_url = urlData?.signedUrl || null;
+				}
+			}
 		}
 
 		return NextResponse.json(stone);
@@ -83,7 +87,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 			.from("stones")
 			.update(validation.data)
 			.eq("id", id)
-			.select("*, invoices(*)")
+			.select("*, stone_invoices(invoice_id, invoices(*))")
 			.single();
 
 		if (updateError) {

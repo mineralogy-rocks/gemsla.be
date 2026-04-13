@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -8,46 +8,69 @@ import toast from "react-hot-toast";
 
 import { Button } from "../../components/Button";
 import { DeleteDialog } from "../../components/DeleteDialog";
-import { PageHeader } from "../../components/PageHeader";
-import type { Stone, Invoice } from "../../api/stones/types";
+import { StoneEditPanel, StoneDocumentsList, StonePriceBreakdown } from "../../components/StoneDetail";
+import { money, fmtDate } from "@/app/lib/format";
+import type { Stone } from "../../api/stones/types";
+
 
 interface StoneDetailClientProps {
 	stone: Stone;
 }
 
-function FieldDisplay({ label, value, suffix }: { label: string; value: string | number | null | undefined; suffix?: string }) {
-	if (value == null || value === "") return null;
+
+const pillBase = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
+
+
+function ToggleSwitch({ label, checked, onToggle }: {
+	label: string;
+	checked: boolean;
+	onToggle: () => Promise<void>;
+}) {
+	const [display, setDisplay] = useState(checked);
+	const [pending, setPending] = useState(false);
+
+	const handleClick = useCallback(async (e: React.MouseEvent) => {
+		e.stopPropagation();
+		if (pending) return;
+		const next = !display;
+		setDisplay(next);
+		setPending(true);
+		try {
+			await onToggle();
+		} catch {
+			setDisplay(!next);
+			toast.error(`Failed to update ${label.toLowerCase()}`);
+		} finally {
+			setPending(false);
+		}
+	}, [pending, display, onToggle, label]);
+
 	return (
-		<div className="py-2">
-			<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">{label}</dt>
-			<dd className="mt-1 text-sm text-foreground">
-				{value}{suffix && <span className="text-text-gray ml-1">{suffix}</span>}
-			</dd>
-		</div>
+		<button className={`flex items-start gap-1.5 group ${pending ? "opacity-70" : ""}`}
+		        onClick={handleClick}
+		        role="switch"
+		        aria-checked={display}
+		        aria-label={`Toggle ${label}`}
+		        disabled={pending}>
+			<span className="text-xs text-text-gray group-hover:text-foreground transition-colors">
+				{label}
+			</span>
+			<div className={`relative w-7 h-4 rounded-full transition-colors mt-0.5 ${display ? "bg-foreground" : "bg-border"}`}>
+				<motion.div className="absolute top-0.5 w-3 h-3 rounded-full bg-background shadow-sm"
+				            animate={{ left: display ? 14 : 2 }}
+				            transition={{ type: "spring", stiffness: 500, damping: 30 }} />
+			</div>
+		</button>
 	);
 }
 
-function formatPrice(price: number | null, symbol = "$"): string {
-	if (price == null) return "-";
-	return `${symbol}${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function PriceRow({ label, eur, usd }: { label: string; eur: number | null; usd: number | null }) {
-	if (eur == null && usd == null) return null;
-	return (
-		<div className="grid grid-cols-[110px_1fr_1fr] gap-3 py-1.5 text-xs">
-			<div className="text-text-gray">{label}</div>
-			<div className="tabular-nums text-foreground">{formatPrice(eur, "\u20AC")}</div>
-			<div className="tabular-nums text-foreground">{formatPrice(usd)}</div>
-		</div>
-	);
-}
 
 export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProps) {
 	const router = useRouter();
-	const [stone] = useState(initialStone);
+	const [stone, setStone] = useState(initialStone);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [editing, setEditing] = useState(false);
 
 	const handleDelete = async () => {
 		setIsDeleting(true);
@@ -61,7 +84,33 @@ export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProp
 		}
 	};
 
-	const invoice = stone.invoices as (Invoice & { signed_url?: string }) | null;
+	const patchStone = useCallback(async (data: Record<string, unknown>) => {
+		const res = await fetch(`/api/stones/${stone.id}`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(data),
+		});
+		if (!res.ok) throw new Error("Failed to update");
+	}, [stone.id]);
+
+	const toggleSold = useCallback(async () => {
+		const next = !stone.is_sold;
+		setStone((prev) => ({ ...prev, is_sold: next, sold_at: next ? new Date().toISOString() : prev.sold_at }));
+		try {
+			await patchStone({
+				is_sold: next,
+				sold_at: next ? new Date().toISOString() : null,
+			});
+			router.refresh();
+		} catch (e) {
+			setStone((prev) => ({ ...prev, is_sold: !next }));
+			throw e;
+		}
+	}, [stone.is_sold, patchStone, router]);
+
+	const stoneInvoices = stone.stone_invoices ?? [];
+	const hasPricing = stone.price_eur != null || stone.price_usd != null || stone.gross_eur != null || stone.gross_usd != null;
+
 
 	return (
 		<div className="min-h-screen relative pt-16">
@@ -72,213 +121,154 @@ export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProp
 				     backgroundRepeat: "repeat",
 			     }} />
 
-			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
+			<section className="relative py-8 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-4xl mx-auto">
+
 					<Link href="/stones"
-					      className="mb-6 inline-flex items-center gap-2 text-sm text-text-gray hover:text-foreground transition-colors">
+					      className="inline-flex items-center gap-1 text-sm text-text-gray hover:text-foreground transition-colors mb-5">
 						<svg className="h-4 w-4"
 						     fill="none"
 						     viewBox="0 0 24 24"
 						     stroke="currentColor">
 							<path strokeLinecap="round"
 							      strokeLinejoin="round"
-							      strokeWidth={2}
-							      d="M15 19l-7-7 7-7" />
+							      strokeWidth={1.5}
+							      d="M15.75 19.5L8.25 12l7.5-7.5" />
 						</svg>
-						Back to Stones
+						Back to stones
 					</Link>
 
-					<PageHeader title={<>
-					            {stone.name}
-					            <span className={`ml-3 align-middle rounded-full px-2.5 py-0.5 text-xs font-medium ${
-						            stone.is_sold
-							            ? "bg-gray-100 text-gray-800 border"
-							            : "bg-green-100 text-green-800 border"
-					            }`}>
-						            {stone.is_sold ? "Sold" : "Available"}
-					            </span>
-				            </>} />
 
-					<div className="flex flex-wrap items-center gap-2 -mt-4 mb-8">
-						<div className="ml-auto flex flex-wrap items-center gap-2">
-							<Link href={`/stones/${stone.id}/edit`}>
-								<Button variant="secondary" size="sm">Edit</Button>
-							</Link>
-							<Button variant="accent"
+					<div className="flex items-start justify-between gap-3 mb-6">
+						<div className="min-w-0">
+							<h1 className="text-2xl font-medium font-heading text-foreground">
+								{stone.name}
+							</h1>
+							<div className="flex items-center gap-1.5 mt-1.5">
+								<span className={`${pillBase} ${
+									stone.is_sold
+										? "bg-gray-100 text-gray-800 border"
+										: "bg-green-100 text-green-800 border"
+								}`}>
+									{stone.is_sold ? "Sold" : "Available"}
+								</span>
+							</div>
+						</div>
+						<div className="flex items-center gap-2 shrink-0">
+							<Button variant="ghost"
 							        size="sm"
+							        aria-label="Delete stone"
 							        onClick={() => setDeleteDialogOpen(true)}>
-								Delete
+								<svg className="h-4 w-4 text-text-gray"
+								     fill="none"
+								     viewBox="0 0 24 24"
+								     stroke="currentColor">
+									<path strokeLinecap="round"
+									      strokeLinejoin="round"
+									      strokeWidth={1.5}
+									      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+								</svg>
 							</Button>
 						</div>
 					</div>
 
-					<motion.div initial={{ opacity: 0 }}
-					            animate={{ opacity: 1 }}
-					            transition={{ duration: 0.4, delay: 0.1 }}
-					            className="space-y-8">
-						{/* Stone Information */}
-						<div className="border border-border rounded-lg bg-background overflow-hidden">
-							<div className="border-b border-border bg-background-creme px-6 py-4">
-								<h2 className="font-medium">Stone Information</h2>
-							</div>
-							<div className="p-6">
-								<dl className="grid sm:grid-cols-2 gap-x-12">
-									<FieldDisplay label="Stone Type" value={stone.stone_type} />
-									<FieldDisplay label="Color" value={stone.color} />
-									<FieldDisplay label="Cut" value={stone.cut} />
-									<FieldDisplay label="Weight" value={stone.weight_carats} suffix="ct" />
-									<FieldDisplay label="Dimensions" value={stone.dimensions} />
-									<FieldDisplay label="Country" value={stone.country} />
-								</dl>
-								{stone.description && (
-									<div className="mt-4 pt-4 border-t border-border">
-										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Description</dt>
-										<dd className="mt-1 text-sm text-foreground whitespace-pre-wrap">{stone.description}</dd>
+
+					<div className="space-y-5">
+
+						<div className="rounded-lg bg-white border border-border-light p-5 relative group/summary cursor-pointer hover:border-border transition-colors"
+						     onClick={() => setEditing(true)}>
+
+							<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+								<div className="flex-1 min-w-0">
+									<div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
+										<div>
+											<div className="text-xs text-text-gray">Stone Type</div>
+											<div className="font-medium truncate">{stone.stone_type ?? "---"}</div>
+										</div>
+										<div>
+											<div className="text-xs text-text-gray">Color</div>
+											<div className="font-medium">{stone.color ?? "---"}</div>
+										</div>
+										<div>
+											<div className="text-xs text-text-gray">Cut</div>
+											<div className="font-medium">{stone.cut ?? "---"}</div>
+										</div>
+										<div>
+											<div className="text-xs text-text-gray">Weight</div>
+											<div className="font-medium">{stone.weight_carats ? `${stone.weight_carats} ct` : "---"}</div>
+										</div>
+										<div>
+											<div className="text-xs text-text-gray">Dimensions</div>
+											<div className="font-medium">{stone.dimensions ?? "---"}</div>
+										</div>
+										<div>
+											<div className="text-xs text-text-gray">Country</div>
+											<div className="font-medium">{stone.country ?? "---"}</div>
+										</div>
 									</div>
-								)}
+
+									{stone.description && (
+										<div className="mt-3 text-xs text-text-gray italic">{stone.description}</div>
+									)}
+
+									<div className="flex items-baseline gap-6 mt-4 pt-3 border-t border-border-light">
+										{stone.selling_price != null ? (
+											<div>
+												<span className="text-xs text-text-gray mr-1.5">Selling</span>
+												<span className="text-lg font-medium tabular-nums">{money(stone.selling_price, "usd")}</span>
+											</div>
+										) : (
+											<div className="text-xs text-text-gray">No selling price set</div>
+										)}
+										{stone.is_sold && stone.sold_price != null && (
+											<div>
+												<span className="text-xs text-text-gray mr-1.5">Sold for</span>
+												<span className="text-lg font-medium tabular-nums">{money(stone.sold_price, "usd")}</span>
+											</div>
+										)}
+										{stone.is_sold && stone.sold_at && (
+											<div>
+												<span className="text-xs text-text-gray mr-1.5">Sold</span>
+												<span className="text-sm font-medium">{fmtDate(stone.sold_at)}</span>
+											</div>
+										)}
+									</div>
+
+									{stone.notes && (
+										<div className="mt-3 text-xs text-text-gray italic">{stone.notes}</div>
+									)}
+
+									<div className="mt-2 text-xs text-text-gray/60">
+										Created {fmtDate(stone.created_at)}
+										{stone.updated_at !== stone.created_at && <> · Updated {fmtDate(stone.updated_at)}</>}
+									</div>
+								</div>
+
+								<div className="flex sm:flex-col items-center sm:items-end gap-3 shrink-0"
+								     onClick={(e) => e.stopPropagation()}>
+									<ToggleSwitch label="Sold"
+									              checked={stone.is_sold}
+									              onToggle={toggleSold} />
+								</div>
 							</div>
 						</div>
 
-						{/* Pricing */}
-						<div className="border border-border rounded-lg bg-background overflow-hidden">
-							<div className="border-b border-border bg-background-creme px-6 py-4">
-								<h2 className="font-medium">Pricing</h2>
-							</div>
-							<div className="p-6">
-								<div className="grid grid-cols-[110px_1fr_1fr] gap-3 text-xs text-text-gray/60 pb-1.5">
-									<div></div>
-									<div className="uppercase tracking-wider">EUR</div>
-									<div className="uppercase tracking-wider">USD</div>
-								</div>
 
-								<PriceRow label="Price"
-								          eur={stone.price_eur}
-								          usd={stone.price_usd} />
-								<PriceRow label="Shipment"
-								          eur={stone.shipment_eur}
-								          usd={stone.shipment_usd} />
-								<PriceRow label="VAT"
-								          eur={stone.vat_eur}
-								          usd={stone.vat_usd} />
-
-								<div className="grid grid-cols-[110px_1fr_1fr] gap-3 pt-2.5 mt-1.5 border-t border-border text-sm">
-									<div className="font-medium">Gross</div>
-									<div className="tabular-nums font-medium">{formatPrice(stone.gross_eur, "\u20AC")}</div>
-									<div className="tabular-nums font-medium">{formatPrice(stone.gross_usd)}</div>
-								</div>
-
-								<div className="mt-6 pt-4 border-t border-border">
-									<div className="py-2">
-										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Selling Price</dt>
-										<dd className="mt-1 text-lg font-medium text-foreground">{formatPrice(stone.selling_price)}</dd>
-									</div>
-									{stone.is_sold && stone.sold_price != null && (
-										<div className="py-2">
-											<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Sold Price</dt>
-											<dd className="mt-1 text-sm text-foreground">{formatPrice(stone.sold_price)}</dd>
-										</div>
-									)}
-									{stone.is_sold && stone.sold_at && (
-										<div className="py-2">
-											<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Sold Date</dt>
-											<dd className="mt-1 text-sm text-foreground">
-												{new Date(stone.sold_at).toLocaleDateString("en-US", {
-													year: "numeric",
-													month: "long",
-													day: "numeric",
-												})}
-											</dd>
-										</div>
-									)}
-								</div>
-							</div>
-						</div>
-
-						{/* Invoice */}
-						{invoice && (
-							<div className="border border-border rounded-lg bg-background overflow-hidden">
-								<div className="border-b border-border bg-background-creme px-6 py-4">
-									<h2 className="font-medium">Linked Invoice</h2>
-								</div>
-								<div className="p-6">
-									<dl className="grid sm:grid-cols-2 gap-x-12">
-										<FieldDisplay label="Invoice Number" value={invoice.invoice_number} />
-										<FieldDisplay label="Supplier" value={invoice.supplier} />
-										<FieldDisplay label="Invoice Date"
-										              value={invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString() : null} />
-										<FieldDisplay label="Price (USD)"
-										              value={invoice.price_usd != null ? formatPrice(invoice.price_usd) : null} />
-									<FieldDisplay label="Price (EUR)"
-									              value={invoice.price_eur != null ? formatPrice(invoice.price_eur, "\u20AC") : null} />
-									</dl>
-									{invoice.signed_url && (
-										<div className="mt-4 pt-4 border-t border-border">
-											<a href={invoice.signed_url}
-											   target="_blank"
-											   rel="noopener noreferrer"
-											   className="inline-flex items-center gap-2 text-sm text-callout-accent hover:underline">
-												<svg className="h-4 w-4"
-												     fill="none"
-												     viewBox="0 0 24 24"
-												     stroke="currentColor">
-													<path strokeLinecap="round"
-													      strokeLinejoin="round"
-													      strokeWidth={1.5}
-													      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-												</svg>
-												Download Invoice PDF
-											</a>
-										</div>
-									)}
-								</div>
-							</div>
+						{hasPricing && (
+							<StonePriceBreakdown stone={stone}
+							                     onEdit={() => setEditing(true)} />
 						)}
 
-						{/* Notes */}
-						{stone.notes && (
-							<div className="border border-border rounded-lg bg-background overflow-hidden">
-								<div className="border-b border-border bg-background-creme px-6 py-4">
-									<h2 className="font-medium">Notes</h2>
-								</div>
-								<div className="p-6">
-									<p className="text-sm text-foreground whitespace-pre-wrap">{stone.notes}</p>
-								</div>
-							</div>
-						)}
 
-						{/* Metadata */}
-						<div className="border border-border rounded-lg bg-background overflow-hidden">
-							<div className="border-b border-border bg-background-creme px-6 py-4">
-								<h2 className="font-medium">Metadata</h2>
-							</div>
-							<div className="p-6">
-								<dl className="grid sm:grid-cols-2 gap-x-12">
-									<div className="py-2">
-										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Created</dt>
-										<dd className="mt-1 text-sm text-foreground">
-											{new Date(stone.created_at).toLocaleDateString("en-US", {
-												year: "numeric",
-												month: "long",
-												day: "numeric",
-											})}
-										</dd>
-									</div>
-									<div className="py-2">
-										<dt className="text-xs font-medium uppercase tracking-wider text-text-gray">Updated</dt>
-										<dd className="mt-1 text-sm text-foreground">
-											{new Date(stone.updated_at).toLocaleDateString("en-US", {
-												year: "numeric",
-												month: "long",
-												day: "numeric",
-											})}
-										</dd>
-									</div>
-								</dl>
-							</div>
-						</div>
-					</motion.div>
+						<StoneDocumentsList stoneInvoices={stoneInvoices} />
+					</div>
 				</div>
 			</section>
+
+			<StoneEditPanel isOpen={editing}
+			                onClose={() => setEditing(false)}
+			                stone={stone}
+			                onSaved={() => router.refresh()} />
 
 			<DeleteDialog isOpen={deleteDialogOpen}
 			              onClose={() => setDeleteDialogOpen(false)}
