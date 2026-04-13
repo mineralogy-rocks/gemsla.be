@@ -73,10 +73,22 @@ docker-compose -f ./main/docker-compose.yaml exec -it gems-labe bash
 
 ## Environment Variables
 
+### Next.js app (Docker container)
+
 ```
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
 RESEND_API_KEY
+OPENAI_API_KEY
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+### Supabase Edge Functions
+
+Supabase reserves the `SUPABASE_` prefix for its own env vars, so edge functions use different names. Set via `supabase secrets set --project-ref <ref>`.
+
+```
+SERVICE_ROLE_KEY          # same value as SUPABASE_SERVICE_ROLE_KEY
 OPENAI_API_KEY
 ```
 
