@@ -4,6 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+
+import { staggerContainer, staggerItem } from "@/app/lib/animations";
+import { useDebounce } from "@/app/lib/hooks/useDebounce";
+import { createQueryString } from "@/app/lib/queryString";
+import { fmtDate } from "@/app/lib/format";
+import { BackgroundTexture } from "@/app/components/BackgroundTexture";
 import { Button } from "../components/Button";
 import { Checkbox } from "../components/Checkbox";
 import { PageHeader } from "../components/PageHeader";
@@ -15,37 +22,6 @@ type FilterType = "all" | "public" | "private";
 
 interface ReportsListClientProps {
 	initialData: PaginatedReportListResponse;
-}
-
-const staggerContainer = {
-	hidden: { opacity: 0 },
-	show: {
-		opacity: 1,
-		transition: {
-			staggerChildren: 0.05,
-		},
-	},
-};
-
-const staggerItem = {
-	hidden: { opacity: 0, y: 10 },
-	show: { opacity: 1, y: 0 },
-};
-
-function useDebounce<T>(value: T, delay: number): T {
-	const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setDebouncedValue(value);
-		}, delay);
-
-		return () => {
-			clearTimeout(timer);
-		};
-	}, [value, delay]);
-
-	return debouncedValue;
 }
 
 function ReportCard({ report }: { report: ReportListItem }) {
@@ -99,7 +75,7 @@ function ReportCard({ report }: { report: ReportListItem }) {
 							{report.imageCount} {report.imageCount === 1 ? "image" : "images"}
 						</span>
 						<span>
-							{new Date(report.created_at).toLocaleDateString()}
+							{fmtDate(report.created_at)}
 						</span>
 					</div>
 				</div>
@@ -121,33 +97,23 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 	const [search, setSearch] = useState(currentSearch);
 	const debouncedSearch = useDebounce(search, 300);
 
-	const createQueryString = useCallback((params: Record<string, string | number>) => {
-		const urlParams = new URLSearchParams(searchParams.toString());
-		Object.entries(params).forEach(([key, value]) => {
-			if (value === "all" || value === "" || value === 1) {
-				urlParams.delete(key);
-			} else {
-				urlParams.set(key, String(value));
-			}
-		});
-		return urlParams.toString();
-	}, [searchParams]);
+	const qs = useCallback((params: Record<string, string | number | boolean>) => createQueryString(params, searchParams), [searchParams]);
 
 	useEffect(() => {
 		if (debouncedSearch !== currentSearch) {
-			const query = createQueryString({ q: debouncedSearch, page: 1 });
+			const query = qs({ q: debouncedSearch, page: 1 });
 			router.push(`${pathname}${query ? `?${query}` : ""}`);
 		}
-	}, [debouncedSearch, currentSearch, createQueryString, pathname, router]);
+	}, [debouncedSearch, currentSearch, qs, pathname, router]);
 
 	const handleFilterChange = (newFilter: FilterType) => {
 		setSearch("");
-		const query = createQueryString({ filter: newFilter, search: "", page: 1 });
+		const query = qs({ filter: newFilter, search: "", page: 1 });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
 	const handlePageChange = (newPage: number) => {
-		const query = createQueryString({ page: newPage });
+		const query = qs({ page: newPage });
 		router.push(`${pathname}${query ? `?${query}` : ""}`);
 	};
 
@@ -163,8 +129,8 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 			a.download = "qr-codes.pdf";
 			a.click();
 			URL.revokeObjectURL(url);
-		} catch (error) {
-			console.error("Export QR codes failed:", error);
+		} catch {
+			toast.error("Failed to export QR codes. Please try again.");
 		} finally {
 			setIsExporting(false);
 		}
@@ -175,12 +141,7 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 
 	return (
 		<div className="min-h-screen relative pt-16">
-			<div className="fixed inset-0 z-0 opacity-10 pointer-events-none"
-			     style={{
-				     backgroundImage: 'url("/NNNoise Texture Generator.svg")',
-				     backgroundSize: "400px 400px",
-				     backgroundRepeat: "repeat",
-			     }} />
+			<BackgroundTexture />
 
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-6xl mx-auto">
@@ -269,7 +230,7 @@ export function ReportsListClient({ initialData }: ReportsListClientProps) {
 							<motion.div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
 							            variants={staggerContainer}
 							            initial="hidden"
-							            animate="show"
+							            animate="visible"
 							            key={`${currentPage}-${currentFilter}-${currentSearch}`}>
 								{reports.map((report) => (
 									<ReportCard key={report.id} report={report} />

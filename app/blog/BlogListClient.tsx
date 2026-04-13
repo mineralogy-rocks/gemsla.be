@@ -4,7 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+
 import { staggerContainer, staggerItem } from "@/app/lib/animations";
+import { createQueryString } from "@/app/lib/queryString";
+import { fmtDate } from "@/app/lib/format";
+import { BackgroundTexture } from "@/app/components/BackgroundTexture";
 import { PageHeader } from "@/app/components/PageHeader";
 import { SearchInput } from "@/app/components/SearchInput";
 import { Pagination } from "@/app/components/Pagination";
@@ -31,13 +36,7 @@ function BlogPostRow({
 	onDelete?: (id: string) => void;
 }) {
 	const router = useRouter();
-	const formattedDate = post.published_at
-		? new Date(post.published_at).toLocaleDateString("en-US", {
-			year: "numeric",
-			month: "long",
-			day: "numeric",
-		})
-		: null;
+	const formattedDate = post.published_at ? fmtDate(post.published_at) : null;
 
 	return (
 		<motion.article variants={staggerItem} className="group py-8 border-b border-border-light">
@@ -46,7 +45,7 @@ function BlogPostRow({
 				const label = !post.is_published
 					? "Draft"
 					: isScheduled
-						? `Scheduled for ${new Date(post.published_at!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+						? `Scheduled for ${fmtDate(post.published_at!)}`
 						: "Published";
 				const style = !post.is_published
 					? "border-border-light text-text-gray bg-background-creme"
@@ -126,16 +125,8 @@ export function BlogListClient({
 	}, [initialPosts.data]);
 
 	const updateUrl = useCallback((params: Record<string, string>) => {
-		const newParams = new URLSearchParams(searchParams.toString());
-		Object.entries(params).forEach(([key, value]) => {
-			if (value) {
-				newParams.set(key, value);
-			} else {
-				newParams.delete(key);
-			}
-		});
-		newParams.delete("page");
-		router.push(`/blog?${newParams.toString()}`);
+		const query = createQueryString({ ...params, page: "" }, searchParams);
+		router.push(`/blog${query ? `?${query}` : ""}`);
 	}, [router, searchParams]);
 
 	useEffect(() => {
@@ -170,8 +161,8 @@ export function BlogListClient({
 			if (res.ok) {
 				setPosts((prev) => prev.filter((p) => p.id !== deleteTarget));
 			}
-		} catch (error) {
-			console.error("Failed to delete post:", error);
+		} catch {
+			toast.error("Failed to delete post. Please try again.");
 		} finally {
 			setDeleting(false);
 			setDeleteTarget(null);
@@ -180,12 +171,7 @@ export function BlogListClient({
 
 	return (
 		<div className="min-h-screen relative pt-16">
-			<div className="fixed inset-0 z-0 opacity-10 pointer-events-none"
-				style={{
-					backgroundImage: 'url("/NNNoise Texture Generator.svg")',
-					backgroundSize: "400px 400px",
-					backgroundRepeat: "repeat",
-				}} />
+			<BackgroundTexture />
 
 			<section className="relative py-12 px-4 sm:px-6 lg:px-8 z-10">
 				<div className="max-w-4xl mx-auto">

@@ -66,6 +66,45 @@ export function DashboardContent({ user, isAdmin }: DashboardContentProps) {
 									<p className="mt-1 text-sm text-text-gray">View and manage gemological reports</p>
 								</Link>
 							</motion.div>
+							<motion.div variants={staggerItem}>
+								<Link href="/stones"
+								      className="glass-card group flex flex-col p-6">
+									<div className="flex items-center justify-between mb-3">
+										<div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
+											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gold">
+												<path d="M12 2L2 7l10 5 10-5-10-5Z" />
+												<path d="M2 17l10 5 10-5" />
+												<path d="M2 12l10 5 10-5" />
+											</svg>
+										</div>
+										<span className="text-sm text-text-gray opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+											Open →
+										</span>
+									</div>
+									<h3 className="text-lg font-medium text-foreground">Stones</h3>
+									<p className="mt-1 text-sm text-text-gray">Manage stone inventory</p>
+								</Link>
+							</motion.div>
+							<motion.div variants={staggerItem}>
+								<Link href="/invoices"
+								      className="glass-card group flex flex-col p-6">
+									<div className="flex items-center justify-between mb-3">
+										<div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
+											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gold">
+												<path d="M9 14l6-6" />
+												<circle cx="9.5" cy="8.5" r="1.5" />
+												<circle cx="14.5" cy="13.5" r="1.5" />
+												<path d="M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16l-3.5-2L12 21l-3.5-2L5 21z" />
+											</svg>
+										</div>
+										<span className="text-sm text-text-gray opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+											Open →
+										</span>
+									</div>
+									<h3 className="text-lg font-medium text-foreground">Invoices</h3>
+									<p className="mt-1 text-sm text-text-gray">Manage invoices and PDF documents</p>
+								</Link>
+							</motion.div>
 						</motion.div>
 					)}
 				</div>

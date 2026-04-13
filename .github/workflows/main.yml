@@ -41,6 +41,8 @@ jobs:
               RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
               NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
               NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
+              OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+              SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
   deploy-application:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
