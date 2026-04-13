@@ -19,7 +19,6 @@ import type { InvoiceListItem, InvoiceStats, PaginatedInvoicesResponse } from ".
 interface InvoiceListClientProps {
 	initialData: PaginatedInvoicesResponse;
 	stats: InvoiceStats;
-	isArchived: boolean;
 }
 
 type SortColumn = "invoice_number" | "original_invoice_number" | "supplier" | "invoice_date" | "gross_eur" | "gross_usd";
@@ -49,9 +48,10 @@ function SortArrow({ active, direction }: { active: boolean; direction: string }
 }
 
 
-function InvoiceRow({ invoice, isChild, selectedIds, someSelected, archivingId, onSelect, onArchive }: {
+function InvoiceRow({ invoice, isChild, isArchived, selectedIds, someSelected, archivingId, onSelect, onArchive }: {
 	invoice: InvoiceListItem;
 	isChild?: boolean;
+	isArchived: boolean;
 	selectedIds: Set<string>;
 	someSelected: boolean;
 	archivingId: string | null;
@@ -110,7 +110,7 @@ function InvoiceRow({ invoice, isChild, selectedIds, someSelected, archivingId, 
 					{invoice.id}
 				</Link>
 			</td>
-			<td className={`py-2.5 px-3 font-medium ${isChild ? "text-text-gray" : "text-foreground"}`}>
+			<td className="py-2.5 px-3 font-medium text-foreground">
 				{invoice.invoice_number || "-"}
 			</td>
 			<td className="py-2.5 px-3 text-[13px] text-text-gray hidden sm:table-cell">
@@ -128,6 +128,42 @@ function InvoiceRow({ invoice, isChild, selectedIds, someSelected, archivingId, 
 			<td className="py-2.5 px-3 text-right text-[13px] text-text-gray tabular-nums">
 				{invoice.stone_count}
 			</td>
+			<td className="py-2.5 px-3 w-8">
+				{invoice.type === "credit_note" ? (
+					<svg className="h-3.5 w-3.5 text-amber-500"
+					     fill="none"
+					     viewBox="0 0 24 24"
+					     stroke="currentColor">
+						<title>Credit note</title>
+						<path strokeLinecap="round"
+						      strokeLinejoin="round"
+						      strokeWidth={1.5}
+						      d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+					</svg>
+				) : invoice.type === "issued" ? (
+					<svg className="h-3.5 w-3.5 text-blue-500"
+					     fill="none"
+					     viewBox="0 0 24 24"
+					     stroke="currentColor">
+						<title>Issued</title>
+						<path strokeLinecap="round"
+						      strokeLinejoin="round"
+						      strokeWidth={1.5}
+						      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+					</svg>
+				) : (
+					<svg className="h-3.5 w-3.5 text-emerald-500"
+					     fill="none"
+					     viewBox="0 0 24 24"
+					     stroke="currentColor">
+						<title>Received</title>
+						<path strokeLinecap="round"
+						      strokeLinejoin="round"
+						      strokeWidth={1.5}
+						      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+					</svg>
+				)}
+			</td>
 			<td className="py-2.5 px-3">
 				{!isChild && (
 					archivingId === invoice.id ? (
@@ -138,16 +174,28 @@ function InvoiceRow({ invoice, isChild, selectedIds, someSelected, archivingId, 
 						<button type="button"
 						        onClick={() => onArchive(invoice.id)}
 						        className="text-text-gray hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
-						        aria-label="Archive invoice">
-							<svg className="h-4 w-4"
-							     fill="none"
-							     viewBox="0 0 24 24"
-							     stroke="currentColor">
-								<path strokeLinecap="round"
-								      strokeLinejoin="round"
-								      strokeWidth={1.5}
-								      d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-							</svg>
+						        aria-label={isArchived ? "Unarchive invoice" : "Archive invoice"}>
+							{isArchived ? (
+								<svg className="h-4 w-4"
+								     fill="none"
+								     viewBox="0 0 24 24"
+								     stroke="currentColor">
+									<path strokeLinecap="round"
+									      strokeLinejoin="round"
+									      strokeWidth={1.5}
+									      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.731l3.181 3.182m0-4.991v4.99" />
+								</svg>
+							) : (
+								<svg className="h-4 w-4"
+								     fill="none"
+								     viewBox="0 0 24 24"
+								     stroke="currentColor">
+									<path strokeLinecap="round"
+									      strokeLinejoin="round"
+									      strokeWidth={1.5}
+									      d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+								</svg>
+							)}
 						</button>
 					)
 				)}
@@ -157,11 +205,12 @@ function InvoiceRow({ invoice, isChild, selectedIds, someSelected, archivingId, 
 }
 
 
-export function InvoiceListClient({ initialData, stats, isArchived }: InvoiceListClientProps) {
+export function InvoiceListClient({ initialData, stats }: InvoiceListClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
+	const isArchived = searchParams.get("is_archived") === "1";
 	const currentPage = parseInt(searchParams.get("page") || "1", 10);
 	const currentSortBy = searchParams.get("sort_by") || "";
 	const currentSortDir = searchParams.get("sort_dir") || "";
@@ -425,7 +474,7 @@ export function InvoiceListClient({ initialData, stats, isArchived }: InvoiceLis
 						      }`}>
 							All
 						</Link>
-						<Link href="/invoices/archived"
+						<Link href="/invoices?is_archived=1"
 						      className={`pb-2.5 transition-colors border-b-2 -mb-px ${
 							      isArchived
 								      ? "border-foreground text-foreground font-medium"
@@ -435,7 +484,7 @@ export function InvoiceListClient({ initialData, stats, isArchived }: InvoiceLis
 						</Link>
 					</div>
 
-					<div className="flex items-center gap-3 mb-5">
+					<div className="flex items-center gap-3">
 						<div className="flex-1 max-w-sm">
 							<SearchInput value={search}
 							             onChange={(e) => setSearch(e.target.value)}
@@ -451,6 +500,49 @@ export function InvoiceListClient({ initialData, stats, isArchived }: InvoiceLis
 							<span className="text-border-light">|</span>
 							<span>{stats.validated_count} validated</span>
 						</div>
+					</div>
+
+					<div className="hidden sm:flex items-center justify-end gap-1.5 mt-2 mb-5 text-[11px] text-text-gray/60">
+						<span className="inline-flex items-center gap-1">
+							<span className="h-1.5 w-1.5 rounded-full bg-gray-300" />
+							New
+						</span>
+						<svg className="h-2.5 w-2.5 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+						</svg>
+						<span className="inline-flex items-center gap-1">
+							<span className="relative flex h-1.5 w-1.5">
+								<span className="absolute inset-0 rounded-full bg-amber-400 animate-ping opacity-75" />
+								<span className="relative rounded-full h-1.5 w-1.5 bg-amber-400" />
+							</span>
+							Parsing
+						</span>
+						<svg className="h-2.5 w-2.5 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+						</svg>
+						<span className="inline-flex items-center gap-1">
+							<span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+							Parsed
+						</span>
+						<svg className="h-2.5 w-2.5 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+						</svg>
+						<span className="inline-flex items-center gap-1">
+							<span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+							Validated
+						</span>
+						<svg className="h-2.5 w-2.5 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+						</svg>
+						<span className="inline-flex items-center gap-1">
+							<span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+							Complete
+						</span>
+						<span className="mx-1 text-border-light">·</span>
+						<span className="inline-flex items-center gap-1">
+							<span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+							Failed
+						</span>
 					</div>
 
 
@@ -485,6 +577,7 @@ export function InvoiceListClient({ initialData, stats, isArchived }: InvoiceLis
 											{renderSortableHeader("gross_eur", "EUR", "text-right")}
 											{renderSortableHeader("gross_usd", "USD", "text-right")}
 											<th className="py-2 px-3 text-[11px] font-normal text-text-gray tracking-wide text-right">Items</th>
+											<th className="py-2 px-3 w-8"></th>
 											<th className="py-2 px-3 w-10"></th>
 										</tr>
 									</thead>
@@ -492,6 +585,7 @@ export function InvoiceListClient({ initialData, stats, isArchived }: InvoiceLis
 										{invoices.map((invoice) => (
 											<React.Fragment key={invoice.id}>
 												<InvoiceRow invoice={invoice}
+												            isArchived={isArchived}
 												            selectedIds={selectedIds}
 												            someSelected={someSelected}
 												            archivingId={archivingId}
@@ -501,6 +595,7 @@ export function InvoiceListClient({ initialData, stats, isArchived }: InvoiceLis
 													<InvoiceRow key={cn.id}
 													            invoice={cn}
 													            isChild
+													            isArchived={isArchived}
 													            selectedIds={selectedIds}
 													            someSelected={someSelected}
 													            archivingId={archivingId}

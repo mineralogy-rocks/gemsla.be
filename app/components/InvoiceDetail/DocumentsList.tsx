@@ -53,7 +53,7 @@ export function DocumentsList({
 	};
 
 	return (
-		<div className="glass-card glass-secondary p-4">
+		<div className="rounded-lg border border-border-light p-4">
 			<div className="text-xs text-text-gray uppercase tracking-wider mb-3">Documents</div>
 
 			{signedUrl && (

@@ -15,6 +15,7 @@ interface PageProps {
 		sort_by?: string;
 		sort_dir?: string;
 		q?: string;
+		is_archived?: string;
 	}>;
 }
 
@@ -30,13 +31,13 @@ export default async function InvoicesPage({ searchParams }: PageProps) {
 	const sortBy = params.sort_by || "created_at";
 	const sortDir = params.sort_dir || "desc";
 	const q = params.q || "";
+	const isArchived = params.is_archived === "1";
 
 	const [initialData, stats] = await Promise.all([
-		fetchInvoices({ page, limit: 20, sortBy, sortDir, q, isArchived: false }),
+		fetchInvoices({ page, limit: 20, sortBy, sortDir, q, isArchived }),
 		fetchInvoiceStats(),
 	]);
 
 	return <InvoiceListClient initialData={initialData}
-	                          stats={stats}
-	                          isArchived={false} />;
+	                          stats={stats} />;
 }

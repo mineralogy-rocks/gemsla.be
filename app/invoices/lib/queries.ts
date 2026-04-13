@@ -165,8 +165,9 @@ export const fetchInvoiceStats = cache(async (): Promise<InvoiceStats> => {
 	const [invoiceAgg, parsedCount, unparsedCount, validatedCount, revenueAgg] = await Promise.all([
 		supabase
 			.from("invoices")
-			.select("total_eur:gross_eur.sum()")
+			.select("gross_eur")
 			.eq("is_parsed", true)
+			.eq("is_paid", true)
 			.eq("is_archived", false),
 		supabase
 			.from("invoices")
@@ -185,13 +186,13 @@ export const fetchInvoiceStats = cache(async (): Promise<InvoiceStats> => {
 			.eq("is_archived", false),
 		supabase
 			.from("stones")
-			.select("total_revenue:sold_price.sum()")
+			.select("sold_price")
 			.eq("is_sold", true),
 	]);
 
 	return {
-		total_eur: invoiceAgg.data?.[0]?.total_eur ?? 0,
-		total_revenue: revenueAgg.data?.[0]?.total_revenue ?? 0,
+		total_eur: (invoiceAgg.data ?? []).reduce((sum, row) => sum + (row.gross_eur ?? 0), 0),
+		total_revenue: (revenueAgg.data ?? []).reduce((sum, row) => sum + (row.sold_price ?? 0), 0),
 		parsed_count: parsedCount.count ?? 0,
 		unparsed_count: unparsedCount.count ?? 0,
 		validated_count: validatedCount.count ?? 0,

@@ -6,21 +6,20 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 
 import { Button } from "../../components/Button";
-import { Checkbox } from "../../components/Checkbox";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { IssueIndicator } from "../../components/IssueIndicator";
 import {
 	IssuesBanner,
-	TotalsCard,
 	DocumentsList,
-	ItemCard,
 	StonesPanel,
 	InvoiceEditPanel,
 	ItemEditPanel,
+	InvoiceSummaryCard,
+	PriceBreakdown,
+	ItemsTable,
+	BatchStoneCreation,
 } from "../../components/InvoiceDetail";
 import { validate } from "../lib/validate";
 import { computeNet } from "../lib/totals";
-import { fmtDate } from "../lib/format";
 import type { InvoiceDetail, InvoiceItem, Invoice, Issue } from "../../api/stones/types";
 import type { ItemFormData } from "../../components/InvoiceForms/InvoiceForms.types";
 import type { FieldIssue } from "../../components/Input";
@@ -158,10 +157,8 @@ function formDataToItem(fd: ItemFormData): InvoiceItem {
 
 const pillBase = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
 const pillColors: Record<string, string> = {
-	success: "bg-green-100 text-green-800",
 	warning: "bg-amber-100 text-amber-800",
 	info: "bg-blue-100 text-blue-800",
-	neutral: "bg-gray-100 text-gray-700",
 };
 
 
@@ -182,8 +179,8 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 		(invoice.items || []).map(itemToFormData)
 	);
 	const [isSavingItems, setIsSavingItems] = useState(false);
-	const [creatingStoneIdx, setCreatingStoneIdx] = useState<number | null>(null);
 	const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+	const [showBatchCreate, setShowBatchCreate] = useState(false);
 
 	const isParseActive = invoice.parse_status === "pending" || invoice.parse_status === "parsing";
 	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -265,6 +262,12 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 		return map;
 	}, [invoice.stones]);
 
+	const unlinkedCount = useMemo(() => {
+		return localItems.filter((item) =>
+			!item.item_number || !stonesByItem.has(item.item_number)
+		).length;
+	}, [localItems, stonesByItem]);
+
 	const initialForm = useMemo(() => initForm(invoice), [invoice]);
 	const isDirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(initialForm), [form, initialForm]);
 
@@ -279,12 +282,8 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 	}, [invoice.id]);
 
 	const toggleFlag = useCallback(async (field: "is_paid" | "is_parsed" | "is_validated", value: boolean) => {
-		try {
-			await patchInvoice({ [field]: value });
-			router.refresh();
-		} catch {
-			toast.error("Failed to update");
-		}
+		await patchInvoice({ [field]: value });
+		router.refresh();
 	}, [patchInvoice, router]);
 
 	const handleSave = useCallback(async () => {
@@ -399,47 +398,6 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 		});
 	}, [itemsForm, invoice.refund_invoices]);
 
-	const handleCreateStone = useCallback(async (index: number) => {
-		const item = itemsForm[index];
-		if (!item) return;
-		const pos = (v: string) => { const n = toNum(v); return n != null && n >= 0 ? n : null; };
-		setCreatingStoneIdx(index);
-		try {
-			const res = await fetch("/api/stones", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					name: item.name || "Unknown Stone",
-					description: item.description || null,
-					stone_type: item.name || null,
-					color: item.color || null,
-					cut: item.shape || null,
-					weight_carats: toNum(item.carat_weight),
-					dimensions: item.dimensions || null,
-					country: item.origin || null,
-					price_usd: pos(item.price_usd),
-					price_eur: pos(item.price_eur),
-					shipment_usd: pos(item.shipment_usd),
-					shipment_eur: pos(item.shipment_eur),
-					vat_usd: pos(item.vat_usd),
-					vat_eur: pos(item.vat_eur),
-					gross_usd: pos(item.gross_usd),
-					gross_eur: pos(item.gross_eur),
-					is_sold: false,
-					invoice_id: invoice.id,
-					item_number: item.item_number || null,
-				}),
-			});
-			if (!res.ok) throw new Error((await res.json()).error || "Failed");
-			toast.success(`Stone "${item.name}" created`);
-			router.refresh();
-		} catch (err) {
-			toast.error(err instanceof Error ? err.message : "Failed to create stone");
-		} finally {
-			setCreatingStoneIdx(null);
-		}
-	}, [itemsForm, invoice.id, router]);
-
 	const handleUploadRefund = useCallback(async (file: File) => {
 		setIsUploadingRefund(true);
 		try {
@@ -535,7 +493,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 							      className="hover:text-foreground transition-colors">Invoices</Link>
 							<span className="text-border">/</span>
 							<Link href={`/invoices/${invoice.parent_invoice.id}`}
-							      className="text-callout-accent hover:underline">
+							      className="hover:underline">
 								{invoice.parent_invoice.invoice_number || invoice.parent_invoice.original_invoice_number}
 							</Link>
 							<span className="text-border">/</span>
@@ -563,38 +521,25 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 							<div className="flex flex-col items-center py-20"
 							     role="status"
 							     aria-busy="true">
-								<div className="h-8 w-8 rounded-full border-2 border-callout-accent border-t-transparent animate-spin" />
+								<div className="h-8 w-8 rounded-full border-2 border-foreground/30 border-t-transparent animate-spin" />
 								<p className="mt-4 text-sm text-text-gray">Extracting metadata...</p>
 							</div>
 						) : (
 							<div className="space-y-5">
 
-							<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+								<div className="flex items-start justify-between gap-3">
 									<div className="min-w-0">
 										<h1 className="text-2xl font-medium font-heading text-foreground">
 											{currentInvoice.invoice_number || "Untitled invoice"}
 										</h1>
-										<div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-											{isCreditNote ? (
-												<span className={`${pillBase} ${pillColors.warning}`}>Credit note</span>
-											) : invoice.is_paid ? (
-												<span className={`${pillBase} ${pillColors.success}`}>Paid</span>
-											) : (
-												<span className={`${pillBase} ${pillColors.warning}`}>Unpaid</span>
-											)}
-											{invoice.is_parsed && <span className={`${pillBase} ${pillColors.neutral}`}>Parsed</span>}
-											{invoice.is_validated && <span className={`${pillBase} ${pillColors.success}`}>Validated</span>}
-											{hasRefunds && <span className={`${pillBase} ${pillColors.info}`}>Has credit note</span>}
-										</div>
-										<div className="text-xs text-text-gray mt-2 space-x-5">
-											<span>{currentInvoice.order_number && <>Order #{currentInvoice.order_number}</>}</span>
-											<span>{currentInvoice.supplier ?? "Unknown supplier"}</span>
-											<span>{currentInvoice.invoice_date && <>{fmtDate(currentInvoice.invoice_date)}</>}</span>
-										</div>
-										{invoice.parse_metadata && (
-											<div className="text-xs text-text-gray mt-1">
-												Parsed by {invoice.parse_metadata.model}
-												{invoice.parse_metadata.parsed_at && <> on {fmtDate(invoice.parse_metadata.parsed_at)}</>}
+										{(isCreditNote || hasRefunds) && (
+											<div className="flex items-center gap-1.5 mt-1.5">
+												{isCreditNote && (
+													<span className={`${pillBase} ${pillColors.warning}`}>Credit note</span>
+												)}
+												{hasRefunds && (
+													<span className={`${pillBase} ${pillColors.info}`}>Has credit note</span>
+												)}
 											</div>
 										)}
 									</div>
@@ -648,88 +593,48 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 								</div>
 
 
+								<InvoiceSummaryCard invoice={currentInvoice}
+								                    itemCount={localItems.length}
+								                    parseMetadata={invoice.parse_metadata}
+								                    isPaid={invoice.is_paid}
+								                    isParsed={invoice.is_parsed}
+								                    isValidated={invoice.is_validated}
+								                    onToggleFlag={toggleFlag}
+								                    onEdit={() => setEditing(true)}
+								                    fieldIssues={fieldIssues} />
+
+
 								<div>
 									<IssuesBanner issues={validation.issues}
 									              onApplyFix={handleApplyFix} />
 								</div>
 
 
+								<PriceBreakdown invoice={currentInvoice}
+								                net={net}
+								                hasCredit={hasRefunds}
+								                fieldIssues={fieldIssues}
+								                onEdit={() => setEditing(true)} />
+
+
 								<div>
-									<div className="flex flex-wrap items-center gap-6 rounded-lg border border-border bg-background-creme/30 px-4 py-3">
-										<Checkbox label="Paid"
-										          checked={invoice.is_paid}
-										          onChange={() => toggleFlag("is_paid", !invoice.is_paid)} />
-										<Checkbox label="Parsed"
-										          checked={invoice.is_parsed}
-										          onChange={() => toggleFlag("is_parsed", !invoice.is_parsed)} />
-										<Checkbox label="Validated"
-										          checked={invoice.is_validated}
-										          onChange={() => toggleFlag("is_validated", !invoice.is_validated)} />
-									</div>
+									<DocumentsList invoice={currentInvoice}
+									               signedUrl={invoice.signed_url}
+									               refundInvoices={invoice.refund_invoices}
+									               onUploadCreditNote={handleUploadRefund}
+									               isUploading={isUploadingRefund}
+									               onLinkCreditNote={handleLinkCreditNote}
+									               onUnlinkCreditNote={handleUnlinkCreditNote} />
 								</div>
 
 
-								<>
-									<div className="relative group/totals cursor-pointer"
-									     onClick={() => setEditing(true)}>
-										<button className="absolute top-3 right-3 text-xs text-text-gray hover:text-foreground opacity-0 group-hover/totals:opacity-100 transition-opacity px-2 py-1 rounded border border-border-light hover:bg-background-creme/50">
-											Edit
-										</button>
-										<TotalsCard invoice={currentInvoice}
-										            net={net}
-										            hasCredit={hasRefunds}
-										            fieldIssues={fieldIssues} />
-									</div>
-
-									<div>
-										<div className="grid gap-4 grid-cols-1 sm:grid-cols-[1.4fr_1fr]">
-											<DocumentsList invoice={currentInvoice}
-											               signedUrl={invoice.signed_url}
-											               refundInvoices={invoice.refund_invoices}
-											               onUploadCreditNote={handleUploadRefund}
-											               isUploading={isUploadingRefund}
-											               onLinkCreditNote={handleLinkCreditNote}
-											               onUnlinkCreditNote={handleUnlinkCreditNote} />
-											<div className="glass-card glass-secondary p-4 relative group/details cursor-pointer"
-											     onClick={() => setEditing(true)}>
-												<div className="flex items-center justify-between mb-3">
-													<div className="text-xs text-text-gray uppercase tracking-wider">Details</div>
-													<button className="text-xs text-text-gray hover:text-foreground opacity-0 group-hover/details:opacity-100 transition-opacity px-2 py-1 rounded border border-border-light hover:bg-background-creme/50">
-														Edit
-													</button>
-												</div>
-												<table className="w-full text-xs">
-													<tbody>
-														<tr><td className="text-text-gray py-1.5">Supplier</td><td className="text-right">{currentInvoice.supplier ?? "—"}<IssueIndicator issues={issuesFor("supplier")} /></td></tr>
-														<tr><td className="text-text-gray py-1.5">Order #</td><td className="text-right font-mono">{currentInvoice.order_number ?? "—"}<IssueIndicator issues={issuesFor("order_number")} /></td></tr>
-														<tr><td className="text-text-gray py-1.5">Date</td><td className="text-right">{fmtDate(currentInvoice.invoice_date)}<IssueIndicator issues={issuesFor("invoice_date")} /></td></tr>
-														<tr><td className="text-text-gray py-1.5">VAT rate</td><td className="text-right">{currentInvoice.vat_rate ? `${currentInvoice.vat_rate}%` : "—"}<IssueIndicator issues={issuesFor("vat_rate")} /></td></tr>
-														{currentInvoice.notes && (
-															<tr><td className="text-text-gray py-1.5">Notes</td><td className="text-right">{currentInvoice.notes}</td></tr>
-														)}
-													</tbody>
-												</table>
-											</div>
-										</div>
-									</div>
-								</>
-
-
 								{localItems.length > 0 && (
-									<div>
-										<div className="text-xs font-medium uppercase tracking-wider text-text-gray mb-3">
-											Items ({localItems.length})
-										</div>
-										{localItems.map((item, i) => (
-											<ItemCard key={item.item_number || i}
-											          item={item}
-											          refundInvoices={invoice.refund_invoices}
-											          linkedStone={item.item_number ? stonesByItem.get(item.item_number) : undefined}
-											          onCreateStone={() => handleCreateStone(i)}
-											          isCreating={creatingStoneIdx === i}
-											          onClick={() => setEditingItemIndex(i)} />
-										))}
-									</div>
+									<ItemsTable items={localItems}
+									            refundInvoices={invoice.refund_invoices}
+									            stonesByItem={stonesByItem}
+									            onItemClick={(i) => setEditingItemIndex(i)}
+									            unlinkedCount={unlinkedCount}
+									            onOpenBatchCreate={() => setShowBatchCreate(true)} />
 								)}
 
 
@@ -772,7 +677,8 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 			                  isSaving={isSaving}
 			                  isDirty={isDirty}
 			                  canSave={validation.canSave}
-			                  issuesFor={issuesFor} />
+			                  issuesFor={issuesFor}
+			                  refundInvoices={invoice.refund_invoices} />
 
 			<ItemEditPanel isOpen={editingItemIndex !== null}
 			               onClose={handleCloseItemPanel}
@@ -784,8 +690,15 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 			               creditNoteData={editingItemIndex !== null ? creditNoteDataForItem(editingItemIndex) : []}
 			               onSaveCreditNoteItem={handleSaveCreditNoteItem}
 			               linkedStone={editingItemIndex !== null && localItems[editingItemIndex]?.item_number ? stonesByItem.get(localItems[editingItemIndex].item_number!) : undefined}
-			               onCreateStone={() => editingItemIndex !== null && handleCreateStone(editingItemIndex)}
-			               isCreatingStone={creatingStoneIdx === editingItemIndex} />
+			               onCreateStone={() => {}}
+			               isCreatingStone={false} />
+
+			<BatchStoneCreation isOpen={showBatchCreate}
+			                    onClose={() => setShowBatchCreate(false)}
+			                    items={localItems}
+			                    stonesByItem={stonesByItem}
+			                    invoiceId={invoice.id}
+			                    onComplete={() => router.refresh()} />
 
 		</div>
 	);

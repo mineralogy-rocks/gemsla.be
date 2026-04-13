@@ -4,7 +4,9 @@ import { SlidePanel } from "@/app/components/SlidePanel";
 import { Button } from "@/app/components/Button";
 import { Input } from "@/app/components/Input";
 import { TextArea } from "@/app/components/TextArea";
+import { money } from "@/app/invoices/lib/format";
 import type { FieldIssue } from "@/app/components/Input";
+import type { InvoiceDetail } from "@/app/api/stones/types";
 
 
 interface FormState {
@@ -38,6 +40,7 @@ interface InvoiceEditPanelProps {
 	isDirty: boolean;
 	canSave: boolean;
 	issuesFor: (field: string) => FieldIssue[] | undefined;
+	refundInvoices?: InvoiceDetail["refund_invoices"];
 }
 
 
@@ -52,7 +55,10 @@ export function InvoiceEditPanel({
 	isDirty,
 	canSave,
 	issuesFor,
+	refundInvoices,
 }: InvoiceEditPanelProps) {
+	const hasRefunds = (refundInvoices?.length ?? 0) > 0;
+
 	return (
 		<SlidePanel isOpen={isOpen}
 		            onClose={onCancel}
@@ -197,6 +203,71 @@ export function InvoiceEditPanel({
 						</div>
 					</div>
 				</div>
+
+
+				{hasRefunds && (
+					<div>
+						<div className="text-xs font-medium uppercase tracking-wider text-text-gray mb-3">Credit note adjustments</div>
+						<div className="space-y-3">
+							{refundInvoices!.map((cn) => {
+								const totalRefundEur = Math.abs(cn.gross_eur ?? 0);
+								const totalRefundUsd = Math.abs(cn.gross_usd ?? 0);
+
+								return (
+									<div key={cn.id}
+									     className="rounded-lg border border-border-light p-3">
+										<div className="flex items-center justify-between mb-2">
+											<span className="text-xs font-medium">
+												{cn.invoice_number || cn.original_invoice_number || "Credit note"}
+											</span>
+											{cn.invoice_date && (
+												<span className="text-xs text-text-gray">{cn.invoice_date}</span>
+											)}
+										</div>
+										<table className="w-full text-xs">
+											<thead>
+												<tr className="text-text-gray/60">
+													<th className="text-left font-normal pb-1"></th>
+													<th className="text-right font-normal pb-1">EUR</th>
+													<th className="text-right font-normal pb-1">USD</th>
+												</tr>
+											</thead>
+											<tbody className="text-red-600">
+												<tr>
+													<td className="py-0.5 text-text-gray">Price</td>
+													<td className="py-0.5 text-right tabular-nums">{money(cn.price_eur, "eur")}</td>
+													<td className="py-0.5 text-right tabular-nums">{money(cn.price_usd, "usd")}</td>
+												</tr>
+												<tr>
+													<td className="py-0.5 text-text-gray">Shipment</td>
+													<td className="py-0.5 text-right tabular-nums">{money(cn.shipment_eur, "eur")}</td>
+													<td className="py-0.5 text-right tabular-nums">{money(cn.shipment_usd, "usd")}</td>
+												</tr>
+												<tr>
+													<td className="py-0.5 text-text-gray">VAT</td>
+													<td className="py-0.5 text-right tabular-nums">{money(cn.vat_eur, "eur")}</td>
+													<td className="py-0.5 text-right tabular-nums">{money(cn.vat_usd, "usd")}</td>
+												</tr>
+												<tr className="border-t border-border-light font-medium">
+													<td className="pt-1 text-text-gray">Gross</td>
+													<td className="pt-1 text-right tabular-nums">{money(cn.gross_eur, "eur")}</td>
+													<td className="pt-1 text-right tabular-nums">{money(cn.gross_usd, "usd")}</td>
+												</tr>
+											</tbody>
+										</table>
+										{(totalRefundEur > 0 || totalRefundUsd > 0) && (
+											<div className="mt-2 pt-2 border-t border-border-light text-xs text-text-gray/60">
+												Refund: {totalRefundEur > 0 && <>{money(totalRefundEur, "eur")}</>}
+												{totalRefundEur > 0 && totalRefundUsd > 0 && " / "}
+												{totalRefundUsd > 0 && <>{money(totalRefundUsd, "usd")}</>}
+											</div>
+										)}
+									</div>
+								);
+							})}
+						</div>
+					</div>
+				)}
 
 
 				<div>

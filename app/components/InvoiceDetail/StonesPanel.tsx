@@ -17,14 +17,14 @@ const pillBase = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs fo
 export function StonesPanel({ stones }: StonesPanelProps) {
 	if (stones.length === 0) {
 		return (
-			<div className="glass-card glass-secondary p-4 text-text-gray text-xs">
+			<div className="rounded-lg border border-border-light p-4 text-text-gray text-xs">
 				No stones created from this invoice yet.
 			</div>
 		);
 	}
 
 	return (
-		<div className="glass-card glass-secondary p-4">
+		<div className="rounded-lg border border-border-light p-4">
 			{stones.map((stone, idx) => (
 				<div key={stone.id}
 				     className={`flex items-center gap-3.5 py-2.5 ${idx > 0 ? "border-t border-border-light" : ""}`}>
