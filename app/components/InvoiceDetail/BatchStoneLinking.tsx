@@ -50,7 +50,7 @@ export function BatchStoneLinking({
 
 	const stonesByItem = new Map<string, StoneListItem>();
 	for (const s of stones) {
-		if (s.item_number) stonesByItem.set(s.item_number, s);
+		stonesByItem.set(s.id, s);
 	}
 
 	const uuidItems = items
