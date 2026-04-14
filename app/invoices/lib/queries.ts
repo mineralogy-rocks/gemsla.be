@@ -104,7 +104,7 @@ export const fetchInvoiceById = cache(async (id: string): Promise<InvoiceDetail 
 
 	const { data, error } = await supabase
 		.from("invoices")
-		.select("*, stone_invoices(stones(id, name, stone_type, color, weight_carats, selling_price, sold_price, sold_at, gross_eur, is_sold, item_number, created_at))")
+		.select("*, stone_invoices(stones(id, name, stone_type, color, cut, weight_carats, dimensions, country, description, selling_price, sold_price, sold_at, gross_eur, gross_usd, adjusted_price_eur, is_sold, item_number, created_at))")
 		.eq("id", id)
 		.single();
 

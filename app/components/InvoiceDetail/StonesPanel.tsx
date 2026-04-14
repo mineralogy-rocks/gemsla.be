@@ -3,69 +3,90 @@
 import Link from "next/link";
 
 import { money } from "@/app/invoices/lib/format";
-import type { StoneListItem, InvoiceType } from "@/app/api/stones/types";
+import type { StoneListItem } from "@/app/api/stones/types";
 
 
 interface StonesPanelProps {
 	stones: StoneListItem[];
-	invoiceType?: InvoiceType;
 }
 
 
 const pillBase = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
 
 
-export function StonesPanel({ stones, invoiceType = "received" }: StonesPanelProps) {
-	const isIssued = invoiceType === "issued";
+function stoneCost(stone: StoneListItem): number | null {
+	return stone.adjusted_price_eur ?? stone.gross_eur;
+}
 
+
+export function StonesPanel({ stones }: StonesPanelProps) {
 	if (stones.length === 0) {
 		return (
 			<div className="rounded-lg border border-border-light p-4 text-text-gray text-xs">
-				{isIssued
-					? "No stones linked to this invoice yet."
-					: "No stones created from this invoice yet."}
+				No stones created from this invoice yet.
 			</div>
 		);
 	}
 
+
 	return (
-		<div className="rounded-lg border border-border-light p-4">
-			{stones.map((stone, idx) => (
-				<div key={stone.id}
-				     className={`flex items-center gap-3.5 py-2.5 ${idx > 0 ? "border-t border-border-light" : ""}`}>
-					<div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-medium shrink-0">
-						{stone.name.slice(0, 2)}
-					</div>
+		<div className="space-y-2">
+			{stones.map((stone) => {
+				const cost = stoneCost(stone);
 
-					<div className="min-w-0 flex-1">
-						<div className="text-sm font-medium">
-							{stone.name}
-							<span className="font-normal text-text-gray">
-								{stone.color && ` · ${stone.color.toLowerCase()}`}
-								{stone.weight_carats && ` · ${stone.weight_carats} ct`}
-							</span>
+				return (
+					<div key={stone.id}
+					     className={`rounded-lg border p-3 ${
+						     stone.is_sold
+							     ? "border-border-light bg-background-creme/20"
+							     : "border-border-light"
+					     }`}>
+						<div className="min-w-0">
+							<div className="flex items-center gap-2 flex-wrap">
+								<span className="text-sm font-medium">
+									{stone.name}
+									<span className="font-normal text-text-gray">
+										{stone.color && ` · ${stone.color.toLowerCase()}`}
+										{stone.weight_carats && ` · ${stone.weight_carats} ct`}
+									</span>
+								</span>
+								<span className={`${pillBase} ${stone.is_sold ? "bg-gray-100 text-gray-700" : "bg-green-100 text-green-800"}`}>
+									{stone.is_sold ? "Sold" : "Available"}
+								</span>
+							</div>
+
+							<Link href={`/stones/${stone.id}`}
+							      className="font-mono text-xs text-callout-accent hover:text-callout-accent-hover transition-colors underline decoration-callout-accent/30 hover:decoration-callout-accent truncate block mt-0.5">
+								{stone.id}
+							</Link>
+
+							{stone.description && (
+								<div className="text-xs text-text-gray mt-1 line-clamp-2">
+									{stone.description}
+								</div>
+							)}
+
+							<div className="flex items-center gap-4 mt-1.5 text-xs">
+								{cost != null && (
+									<span className="text-text-gray">
+										Cost {money(cost, "eur")}
+									</span>
+								)}
+								{stone.selling_price != null && (
+									<span className="text-text-gray">
+										Selling {money(stone.selling_price, "eur")}
+									</span>
+								)}
+								{stone.is_sold && stone.sold_price != null && (
+									<span className="text-text-gray">
+										Sold {money(stone.sold_price, "eur")}
+									</span>
+								)}
+							</div>
 						</div>
-						<div className="text-xs text-text-gray/60">
-							{isIssued
-								? <>Sold for {money(stone.sold_price, "eur")}</>
-								: <>
-									Cost basis {money(stone.selling_price, "eur")}
-									{stone.selling_price ? ` · Listed at ${money(stone.selling_price, "eur")}` : " · No selling price set"}
-								</>}
-						</div>
 					</div>
-
-					<span className={`${pillBase} ${stone.is_sold ? "bg-gray-100 text-gray-700" : "bg-green-100 text-green-800"}`}>
-						{stone.is_sold ? "Sold" : "Available"}
-					</span>
-
-					<Link href={`/stones/${stone.id}`}>
-						<button className="text-xs px-2 py-1 rounded border border-border-light hover:bg-background-creme/50 transition-colors">
-							Open
-						</button>
-					</Link>
-				</div>
-			))}
+				);
+			})}
 		</div>
 	);
 }

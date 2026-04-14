@@ -259,12 +259,17 @@ export interface StoneListItem {
 	name: string;
 	stone_type: string | null;
 	color: string | null;
+	cut: string | null;
 	weight_carats: number | null;
+	dimensions: string | null;
 	country: string | null;
+	description: string | null;
 	selling_price: number | null;
 	sold_price: number | null;
 	sold_at: string | null;
 	gross_eur: number | null;
+	gross_usd: number | null;
+	adjusted_price_eur: number | null;
 	is_sold: boolean;
 	item_number: string | null;
 	created_at: string;

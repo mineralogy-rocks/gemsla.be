@@ -17,7 +17,7 @@ import {
 	PriceBreakdown,
 	ItemsTable,
 	BatchStoneCreation,
-	BatchStoneLinking,
+	IssuedStonesSection,
 } from "../../components/InvoiceDetail";
 import { validate } from "../lib/validate";
 import { computeNet } from "../lib/totals";
@@ -195,7 +195,6 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 	const [isSavingItems, setIsSavingItems] = useState(false);
 	const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 	const [showBatchCreate, setShowBatchCreate] = useState(false);
-	const [showBatchLinking, setShowBatchLinking] = useState(false);
 
 	const isParseActive = invoice.parse_status === "pending" || invoice.parse_status === "parsing";
 	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -273,6 +272,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 	const stonesByItem = useMemo(() => {
 		const map = new Map<string, (typeof invoice.stones)[0]>();
 		for (const s of invoice.stones) {
+			map.set(s.id, s);
 			if (s.item_number) map.set(s.item_number, s);
 		}
 		return map;
@@ -650,26 +650,33 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 								</div>
 
 
-								{localItems.length > 0 && (
-									<ItemsTable items={localItems}
-									            refundInvoices={invoice.refund_invoices}
-									            stonesByItem={stonesByItem}
-									            onItemClick={(i) => setEditingItemIndex(i)}
-									            unlinkedCount={unlinkedCount}
-									            invoiceType={currentInvoice.type}
-									            onOpenBatchCreate={() => isIssued ? setShowBatchLinking(true) : setShowBatchCreate(true)} />
+								{isIssued ? (
+									<IssuedStonesSection items={localItems}
+									                     stones={invoice.stones}
+									                     invoiceId={invoice.id}
+									                     onComplete={() => router.refresh()} />
+								) : (
+									<>
+										{localItems.length > 0 && (
+											<ItemsTable items={localItems}
+											            refundInvoices={invoice.refund_invoices}
+											            stonesByItem={stonesByItem}
+											            onItemClick={(i) => setEditingItemIndex(i)}
+											            unlinkedCount={unlinkedCount}
+											            invoiceType={currentInvoice.type}
+											            onOpenBatchCreate={() => setShowBatchCreate(true)} />
+										)}
+
+										{!isCreditNote && (
+											<div>
+												<div className="text-xs font-medium uppercase tracking-wider text-text-gray mb-3">
+													Stones ({invoice.stones.length})
+												</div>
+												<StonesPanel stones={invoice.stones} />
+											</div>
+										)}
+									</>
 								)}
-
-
-							{!isCreditNote && (
-								<div>
-									<div className="text-xs font-medium uppercase tracking-wider text-text-gray mb-3">
-										Stones ({invoice.stones.length})
-									</div>
-									<StonesPanel stones={invoice.stones}
-									             invoiceType={currentInvoice.type} />
-								</div>
-							)}
 						</div>
 					</div>
 			</section>
@@ -725,13 +732,6 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
 				                    refundInvoices={invoice.refund_invoices}
 				                    onComplete={() => router.refresh()} />
 			)}
-
-			<BatchStoneLinking isOpen={showBatchLinking}
-			                   onClose={() => setShowBatchLinking(false)}
-			                   items={localItems}
-			                   stones={invoice.stones}
-			                   invoiceId={invoice.id}
-			                   onComplete={() => router.refresh()} />
 
 		</div>
 	);
