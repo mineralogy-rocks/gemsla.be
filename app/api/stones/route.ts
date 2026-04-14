@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
 		let query = supabase
 			.from("stones")
-			.select("id, name, stone_type, color, weight_carats, country, selling_price, sold_price, sold_at, gross_eur, is_sold, item_number, created_at", { count: "exact" });
+			.select("id, name, stone_type, color, cut, weight_carats, dimensions, description, country, selling_price, sold_price, sold_at, gross_eur, gross_usd, adjusted_price_eur, is_sold, item_number, created_at", { count: "exact" });
 
 		if (search) {
 			const sanitized = search.replace(/[%_,().]/g, "\\$&");
@@ -72,12 +72,17 @@ export async function GET(request: NextRequest) {
 			name: stone.name,
 			stone_type: stone.stone_type,
 			color: stone.color,
+			cut: stone.cut,
 			weight_carats: stone.weight_carats,
+			dimensions: stone.dimensions,
+			description: stone.description,
 			country: stone.country,
 			selling_price: stone.selling_price,
 			sold_price: stone.sold_price,
 			sold_at: stone.sold_at,
 			gross_eur: stone.gross_eur,
+			gross_usd: stone.gross_usd,
+			adjusted_price_eur: stone.adjusted_price_eur,
 			is_sold: stone.is_sold,
 			item_number: stone.item_number,
 			created_at: stone.created_at,
