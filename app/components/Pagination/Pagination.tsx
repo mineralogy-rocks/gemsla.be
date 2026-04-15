@@ -23,7 +23,7 @@ const generatePageNumbers = (currentPage: number, totalPages: number): (number |
 };
 
 const ChevronLeft = () => (
-	<svg className="h-5 w-5"
+	<svg className="h-4 w-4"
 	     fill="none"
 	     stroke="currentColor"
 	     viewBox="0 0 24 24"
@@ -36,7 +36,7 @@ const ChevronLeft = () => (
 );
 
 const ChevronRight = () => (
-	<svg className="h-5 w-5"
+	<svg className="h-4 w-4"
 	     fill="none"
 	     stroke="currentColor"
 	     viewBox="0 0 24 24"
@@ -55,13 +55,13 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
 	const isPreviousDisabled = currentPage === 1;
 	const isNextDisabled = currentPage === totalPages;
 
-	const baseButtonClasses = "inline-flex items-center justify-center min-w-[40px] h-10 rounded-md text-sm font-medium transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
+	const baseButtonClasses = "inline-flex items-center justify-center min-w-[32px] h-8 rounded-md text-xs font-medium transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
 
 	return (
-		<div className={`flex items-center justify-center gap-2 ${className}`}>
+		<div className={`flex items-center justify-end gap-1 ${className}`}>
 			<motion.button onClick={() => onPageChange(currentPage - 1)}
 			               disabled={isPreviousDisabled}
-			               className={`${baseButtonClasses} px-3 border border-border bg-background text-foreground hover:border-gold ${isPreviousDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+			               className={`${baseButtonClasses} px-3 text-foreground hover:bg-background-creme/50 ${isPreviousDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
 			               whileTap={isPreviousDisabled || prefersReducedMotion ? undefined : { scale: 0.95 }}>
 				<ChevronLeft />
 				<span className="hidden sm:inline">Previous</span>
@@ -71,7 +71,7 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
 				if (page === "...") {
 					return (
 						<span key={`ellipsis-${index}`}
-						      className="inline-flex items-center justify-center min-w-[40px] h-10 text-text-gray">
+						      className="inline-flex items-center justify-center min-w-[32px] h-8 text-text-gray">
 							...
 						</span>
 					);
@@ -96,7 +96,7 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
 
 			<motion.button onClick={() => onPageChange(currentPage + 1)}
 			               disabled={isNextDisabled}
-			               className={`${baseButtonClasses} px-3 border border-border bg-background text-foreground hover:border-gold ${isNextDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+			               className={`${baseButtonClasses} px-3 text-foreground hover:bg-background-creme/50 ${isNextDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
 			               whileTap={isNextDisabled || prefersReducedMotion ? undefined : { scale: 0.95 }}>
 				<span className="hidden sm:inline">Next</span>
 				<ChevronRight />
