@@ -45,6 +45,26 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [copied, setCopied] = useState(false);
+	const [pdfLoading, setPdfLoading] = useState(false);
+
+	const generatePdf = async () => {
+		setPdfLoading(true);
+		try {
+			const response = await fetch(`/api/reports/${report.id}/pdf`);
+			if (!response.ok) throw new Error("Failed to generate PDF");
+			const blob = await response.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `${report.title.toLowerCase().replace(/\s+/g, "-")}.pdf`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch {
+			toast.error("Failed to generate PDF. Please try again.");
+		} finally {
+			setPdfLoading(false);
+		}
+	};
 
 	const downloadQR = () => {
 		const svg = document.querySelector<SVGSVGElement>("#report-qr-svg svg");
@@ -247,6 +267,12 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 									Download QR
 								</Button>
 							)}
+							<Button variant="ghost"
+							        size="sm"
+							        disabled={pdfLoading}
+							        onClick={generatePdf}>
+								{pdfLoading ? "Generating..." : "Generate PDF"}
+							</Button>
 							{isAdmin && (
 								<div className="ml-auto flex flex-wrap items-center gap-2">
 									<Button variant="outline"
