@@ -172,7 +172,7 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 
 	const handlePickStone = async (stone: StoneSearchResult) => {
 		const ok = await patchStoneLink(stone.id);
-		if (!ok) return;
+		if (!ok) throw new Error();
 		toast.success("Linked");
 		router.refresh();
 	};
@@ -548,7 +548,7 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 														                                        s.stone_type,
 														                                        s.color,
 														                                        s.weight_carats != null ? `${s.weight_carats} ct` : null,
-														                                        s.is_sold ? "sold" : null,
+														                                         s.id,
 													                                        ].filter(Boolean).join(" · ") || "—"}
 												                                        </span>
 											                                        </div>

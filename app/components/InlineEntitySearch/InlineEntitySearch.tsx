@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { SearchInput } from "@/app/components/SearchInput";
+import { normalizeSearchResults } from "@/app/lib/normalizeSearchResults";
 
 
 interface InlineEntitySearchProps<T> {
@@ -35,7 +36,7 @@ export function InlineEntitySearch<T>({
 	const [selecting, setSelecting] = useState(false);
 
 	const containerRef = useRef<HTMLDivElement>(null);
-	const inputRef = useRef<HTMLInputElement>(null);
+	const selectingRef = useRef(false);
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const abortRef = useRef<AbortController | null>(null);
 	const requestIdRef = useRef(0);
@@ -53,10 +54,7 @@ export function InlineEntitySearch<T>({
 			if (!res.ok) throw new Error();
 			const data = await res.json();
 			if (myId !== requestIdRef.current) return;
-			const next: T[] = Array.isArray(data?.results) ? data.results
-				: Array.isArray(data?.stones) ? data.stones
-				: Array.isArray(data?.reports) ? data.reports
-				: [];
+			const next = normalizeSearchResults<T>(data);
 			setResults(next);
 			setActiveIndex(next.length > 0 ? 0 : -1);
 		} catch (err) {
@@ -89,18 +87,27 @@ export function InlineEntitySearch<T>({
 	}, [open]);
 
 
+	useEffect(() => {
+		return () => { abortRef.current?.abort(); };
+	}, []);
+
+
 	const handlePick = useCallback(async (item: T) => {
-		if (selecting) return;
+		if (selectingRef.current) return;
+		selectingRef.current = true;
 		setSelecting(true);
 		try {
 			await onSelect(item);
 			setQuery("");
 			setOpen(false);
 			setResults([]);
+		} catch {
+			// onSelect threw — keep dropdown open so user can retry
 		} finally {
+			selectingRef.current = false;
 			setSelecting(false);
 		}
-	}, [onSelect, selecting]);
+	}, [onSelect]);
 
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -129,8 +136,7 @@ export function InlineEntitySearch<T>({
 	return (
 		<div ref={containerRef}
 		     className="relative">
-			<SearchInput ref={inputRef}
-			             value={query}
+			<SearchInput value={query}
 			             onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
 			             onClear={() => { setQuery(""); setResults([]); }}
 			             placeholder={placeholder}
@@ -143,11 +149,13 @@ export function InlineEntitySearch<T>({
 			             aria-autocomplete="list" />
 
 
-			{open && (results.length > 0 || (!loading && query.trim())) && (
+			{open && (results.length > 0 || loading || query.trim()) && (
 				<ul id={listboxId}
 				    role="listbox"
 				    className="absolute z-20 mt-1 w-full rounded-md border border-border bg-background shadow-md overflow-y-auto max-h-60">
-					{results.length === 0 ? (
+					{loading && results.length === 0 ? (
+						<li className="px-3 py-2 text-sm text-text-gray">Searching...</li>
+					) : results.length === 0 ? (
 						<li className="px-3 py-2 text-sm text-text-gray">{emptyLabel}</li>
 					) : (
 						results.map((item, index) => {

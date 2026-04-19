@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { SearchInput } from "@/app/components/SearchInput";
 import { SlidePanel } from "@/app/components/SlidePanel";
+import { normalizeSearchResults } from "@/app/lib/normalizeSearchResults";
 
 
 interface EntityPickerProps<T> {
@@ -72,13 +73,7 @@ export function EntityPicker<T>({
 			const data = await res.json();
 			if (myRequestId !== requestIdRef.current) return;
 
-			const next: T[] = Array.isArray(data?.results)
-				? data.results
-				: Array.isArray(data?.stones)
-					? data.stones
-					: Array.isArray(data?.reports)
-						? data.reports
-						: [];
+			const next = normalizeSearchResults<T>(data);
 			setResults(next);
 			setActiveIndex(next.length > 0 ? 0 : -1);
 		} catch (err) {

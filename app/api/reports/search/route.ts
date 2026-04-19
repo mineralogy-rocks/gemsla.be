@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
 		let query = supabase
 			.from("reports")
 			.select("id, title, stone, created_at")
+			.is("stone_id", null)
 			.order("created_at", { ascending: false })
 			.limit(limit);
 

@@ -149,7 +149,7 @@ export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProp
 
 	const handlePickReport = async (report: ReportSearchResult) => {
 		const ok = await putLinkedReport(report.id);
-		if (!ok) return;
+		if (!ok) throw new Error();
 		toast.success("Linked");
 		router.refresh();
 	};
