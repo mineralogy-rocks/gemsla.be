@@ -108,12 +108,17 @@ export const fetchStoneById = cache(async (id: string): Promise<Stone | null> =>
 
 	const { data, error } = await supabase
 		.from("stones")
-		.select("*, stone_invoices(invoice_id, invoices(*))")
+		.select("*, stone_invoices(invoice_id, invoices(*)), linked_report:reports!reports_stone_id_fkey(id, title, created_at)")
 		.eq("id", id)
 		.single();
 
 	if (error || !data) {
 		return null;
+	}
+
+	const rawLinkedReport = (data as Record<string, unknown>).linked_report;
+	if (Array.isArray(rawLinkedReport)) {
+		(data as Record<string, unknown>).linked_report = rawLinkedReport[0] ?? null;
 	}
 
 	if (data.stone_invoices?.length) {

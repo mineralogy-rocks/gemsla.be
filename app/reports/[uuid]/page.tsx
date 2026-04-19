@@ -15,11 +15,16 @@ const getReport = cache(async (uuid: string) => {
 	const supabase = await createClient();
 	const { data: report, error } = await supabase
 		.from("reports")
-		.select("*, report_images(*)")
+		.select("*, report_images(*), linked_stone:stones!reports_stone_id_fkey(id, name, weight_carats, stone_type)")
 		.eq("id", uuid)
 		.single();
 
 	if (error || !report) return null;
+
+	const rawLinkedStone = (report as Record<string, unknown>).linked_stone;
+	if (Array.isArray(rawLinkedStone)) {
+		(report as Record<string, unknown>).linked_stone = rawLinkedStone[0] ?? null;
+	}
 
 	if (report.report_images) {
 		report.report_images.sort(

@@ -218,10 +218,17 @@ export interface MonthlyInvoiceStat {
 	revenue_all: number;
 }
 
+export interface LinkedReportSummary {
+	id: string;
+	title: string;
+	created_at: string;
+}
+
 export interface Stone {
 	id: string;
 	item_number: string | null;
 	name: string;
+	linked_report?: LinkedReportSummary | null;
 	description: string | null;
 	stone_type: string | null;
 	color: string | null;

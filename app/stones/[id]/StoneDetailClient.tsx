@@ -8,9 +8,18 @@ import toast from "react-hot-toast";
 
 import { Button } from "../../components/Button";
 import { DeleteDialog } from "../../components/DeleteDialog";
+import { InlineEntitySearch } from "../../components/InlineEntitySearch";
 import { StoneEditPanel, StoneDocumentsList, StonePriceBreakdown } from "../../components/StoneDetail";
 import { money, fmtDate } from "@/app/lib/format";
-import type { Stone } from "../../api/stones/types";
+import type { LinkedReportSummary, Stone } from "../../api/stones/types";
+
+
+interface ReportSearchResult {
+	id: string;
+	title: string;
+	stone: string | null;
+	created_at: string;
+}
 
 
 interface StoneDetailClientProps {
@@ -71,6 +80,9 @@ export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProp
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [editing, setEditing] = useState(false);
+	const [isUnlinkingReport, setIsUnlinkingReport] = useState(false);
+
+	const linkedReport: LinkedReportSummary | null = initialStone.linked_report ?? null;
 
 	const handleDelete = async () => {
 		setIsDeleting(true);
@@ -107,6 +119,54 @@ export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProp
 			throw e;
 		}
 	}, [stone.is_sold, patchStone, router]);
+
+	const putLinkedReport = async (reportId: string | null) => {
+		const res = await fetch(`/api/stones/${stone.id}/linked-report`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ report_id: reportId }),
+		});
+
+		if (res.status === 409) {
+			const body = await res.json().catch(() => null);
+			const title = body?.linked_report_title;
+			toast.error(
+				title
+					? `Report already linked to another stone (“${title}”).`
+					: "Report is already linked to another stone."
+			);
+			return false;
+		}
+
+		if (!res.ok) {
+			toast.error("Could not update link. Try again.");
+			return false;
+		}
+
+		return true;
+	};
+
+
+	const handlePickReport = async (report: ReportSearchResult) => {
+		const ok = await putLinkedReport(report.id);
+		if (!ok) return;
+		toast.success("Linked");
+		router.refresh();
+	};
+
+
+	const handleUnlinkReport = async () => {
+		setIsUnlinkingReport(true);
+		try {
+			const ok = await putLinkedReport(null);
+			if (!ok) return;
+			toast.success("Unlinked");
+			router.refresh();
+		} finally {
+			setIsUnlinkingReport(false);
+		}
+	};
+
 
 	const stoneInvoices = stone.stone_invoices ?? [];
 	const hasPricing = stone.price_eur != null || stone.price_usd != null || stone.gross_eur != null || stone.gross_usd != null;
@@ -260,6 +320,51 @@ export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProp
 						)}
 
 
+						<div className="rounded-lg bg-white border border-border-light p-5">
+							<h3 className="text-sm font-medium text-foreground mb-3">Linked Report</h3>
+							{linkedReport ? (
+								<div className="relative">
+									<Link href={`/reports/${linkedReport.id}`}
+									      className="flex flex-col gap-1 rounded-md border border-border px-4 py-3 pr-9 hover:bg-background-creme transition-colors">
+										<span className="text-sm font-medium text-foreground">
+											{linkedReport.title}
+										</span>
+										<span className="text-xs text-text-gray">
+											Created {fmtDate(linkedReport.created_at)}
+										</span>
+									</Link>
+									<button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-text-gray hover:text-foreground transition-colors disabled:opacity-40"
+									        onClick={handleUnlinkReport}
+									        disabled={isUnlinkingReport}
+									        aria-label="Unlink report">
+										<svg className="h-3.5 w-3.5"
+										     fill="none"
+										     viewBox="0 0 24 24"
+										     stroke="currentColor">
+											<path strokeLinecap="round"
+											      strokeLinejoin="round"
+											      strokeWidth={2}
+											      d="M6 18L18 6M6 6l12 12" />
+										</svg>
+									</button>
+								</div>
+							) : (
+								<InlineEntitySearch<ReportSearchResult> searchUrl="/api/reports/search"
+								                                         placeholder="Search reports..."
+								                                         getId={(r) => r.id}
+								                                         onSelect={handlePickReport}
+								                                         renderItem={(r) => (
+									                                         <div className="flex flex-col gap-0.5">
+										                                         <span className="text-sm font-medium text-foreground">{r.title}</span>
+										                                         <span className="text-xs text-text-gray">
+											                                         {[r.stone, fmtDate(r.created_at)].filter(Boolean).join(" · ")}
+										                                         </span>
+									                                         </div>
+								                                         )} />
+							)}
+						</div>
+
+
 						<StoneDocumentsList stoneInvoices={stoneInvoices} />
 					</div>
 				</div>
@@ -276,6 +381,8 @@ export function StoneDetailClient({ stone: initialStone }: StoneDetailClientProp
 			              title="Delete Stone"
 			              message={`Are you sure you want to delete "${stone.name}"? This action cannot be undone.`}
 			              isPending={isDeleting} />
+
+
 		</div>
 	);
 }

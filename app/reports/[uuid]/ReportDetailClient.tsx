@@ -10,8 +10,19 @@ import toast from "react-hot-toast";
 import { Button } from "../../components/Button";
 import { DeleteDialog } from "../../components/DeleteDialog";
 import { ImageGallery } from "../../components/ImageGallery";
+import { InlineEntitySearch } from "../../components/InlineEntitySearch";
 import { PageHeader } from "../../components/PageHeader";
-import type { Report } from "../../api/reports/types";
+import type { LinkedStoneSummary, Report } from "../../api/reports/types";
+
+
+interface StoneSearchResult {
+	id: string;
+	name: string;
+	color: string | null;
+	stone_type: string | null;
+	weight_carats: number | null;
+	is_sold: boolean;
+}
 
 const QRCode = dynamic(() => import("../../components/QRCode/QRCode"), { ssr: false });
 
@@ -46,6 +57,9 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [copied, setCopied] = useState(false);
 	const [pdfLoading, setPdfLoading] = useState(false);
+	const [isUnlinkingStone, setIsUnlinkingStone] = useState(false);
+
+	const linkedStone = (initialReport as Report & { linked_stone?: LinkedStoneSummary | null }).linked_stone ?? null;
 
 	const generatePdf = async () => {
 		setPdfLoading(true);
@@ -125,6 +139,54 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 		} catch {
 			toast.error("Failed to delete report. Please try again.");
 			setIsDeleting(false);
+		}
+	};
+
+
+	const patchStoneLink = async (stoneId: string | null) => {
+		const res = await fetch(`/api/reports/${report.id}`, {
+			method: "PATCH",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ stone_id: stoneId }),
+		});
+
+		if (res.status === 409) {
+			const body = await res.json().catch(() => null);
+			const title = body?.linked_report_title;
+			toast.error(
+				title
+					? `Stone already linked to report "${title}". Unlink it first.`
+					: "Stone is already linked to another report."
+			);
+			return false;
+		}
+
+		if (!res.ok) {
+			toast.error("Could not update link. Try again.");
+			return false;
+		}
+
+		return true;
+	};
+
+
+	const handlePickStone = async (stone: StoneSearchResult) => {
+		const ok = await patchStoneLink(stone.id);
+		if (!ok) return;
+		toast.success("Linked");
+		router.refresh();
+	};
+
+
+	const handleUnlinkStone = async () => {
+		setIsUnlinkingStone(true);
+		try {
+			const ok = await patchStoneLink(null);
+			if (!ok) return;
+			toast.success("Unlinked");
+			router.refresh();
+		} finally {
+			setIsUnlinkingStone(false);
 		}
 	};
 
@@ -436,6 +498,67 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 						</div>
 
 
+						{isAdmin && (
+							<div className="border border-border rounded-lg bg-background">
+								<div className="border-b border-border bg-background-creme px-6 py-4 rounded-t-lg">
+									<h2 className="font-medium">Linked Stone</h2>
+								</div>
+								<div className="p-6">
+									{linkedStone ? (
+										<div className="relative">
+											<Link href={`/stones/${linkedStone.id}`}
+											      className="flex flex-col gap-1 rounded-md border border-border px-4 py-3 pr-9 hover:bg-background-creme transition-colors">
+												<span className="text-sm font-medium text-foreground">
+													{linkedStone.name}
+												</span>
+												<span className="text-xs text-text-gray">
+													{[
+														linkedStone.stone_type,
+														linkedStone.weight_carats != null
+															? `${linkedStone.weight_carats} ct`
+															: null,
+													].filter(Boolean).join(" · ") || "—"}
+												</span>
+											</Link>
+											<button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-text-gray hover:text-foreground transition-colors disabled:opacity-40"
+											        onClick={handleUnlinkStone}
+											        disabled={isUnlinkingStone}
+											        aria-label="Unlink stone">
+												<svg className="h-3.5 w-3.5"
+												     fill="none"
+												     viewBox="0 0 24 24"
+												     stroke="currentColor">
+													<path strokeLinecap="round"
+													      strokeLinejoin="round"
+													      strokeWidth={2}
+													      d="M6 18L18 6M6 6l12 12" />
+												</svg>
+											</button>
+										</div>
+									) : (
+										<InlineEntitySearch<StoneSearchResult> searchUrl="/api/stones/search"
+										                                        placeholder="Search stones..."
+										                                        getId={(s) => s.id}
+										                                        onSelect={handlePickStone}
+										                                        renderItem={(s) => (
+											                                        <div className="flex flex-col gap-0.5">
+												                                        <span className="text-sm font-medium text-foreground">{s.name}</span>
+												                                        <span className="text-xs text-text-gray">
+													                                        {[
+														                                        s.stone_type,
+														                                        s.color,
+														                                        s.weight_carats != null ? `${s.weight_carats} ct` : null,
+														                                        s.is_sold ? "sold" : null,
+													                                        ].filter(Boolean).join(" · ") || "—"}
+												                                        </span>
+											                                        </div>
+										                                        )} />
+									)}
+								</div>
+							</div>
+						)}
+
+
 						{hasGemologicalData && (
 							<div className="border border-border rounded-lg bg-background overflow-hidden">
 								<div className="border-b border-border bg-background-creme px-6 py-4">
@@ -537,6 +660,8 @@ export function ReportDetailClient({ report: initialReport, isAdmin }: ReportDet
 			              title="Delete Report"
 			              message={`Are you sure you want to delete "${report.title}"? This action cannot be undone. All associated images will also be deleted.`}
 			              isPending={isDeleting} />
+
+
 		</div>
 	);
 }

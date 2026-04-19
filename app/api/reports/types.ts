@@ -38,12 +38,21 @@ export const createReportSchema = z.object({
 	price: z.number().min(0).optional().nullable(),
 });
 
-export const updateReportSchema = createReportSchema.partial();
+export const updateReportSchema = createReportSchema.partial().extend({
+	stone_id: z.string().uuid().nullable().optional(),
+});
 
 export type CreateReportInput = z.infer<typeof createReportSchema>;
 export type UpdateReportInput = z.infer<typeof updateReportSchema>;
 
 // Response types
+export interface LinkedStoneSummary {
+	id: string;
+	name: string;
+	weight_carats: number | null;
+	stone_type: string | null;
+}
+
 export interface ReportImage {
 	id: string;
 	report_id: string;
@@ -60,6 +69,8 @@ export interface Report {
 	id: string;
 	title: string;
 	stone: string;
+	stone_id: string | null;
+	linked_stone?: LinkedStoneSummary | null;
 	description: string | null;
 	note: string | null;
 	owner_id: string | null;

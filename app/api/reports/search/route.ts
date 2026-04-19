@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
 		const limit = Math.min(50, Math.max(1, Number.isFinite(limitParam) ? limitParam : 20));
 
 		let query = supabase
-			.from("stones")
-			.select("id, name, color, stone_type, weight_carats, is_sold")
+			.from("reports")
+			.select("id, title, stone, created_at")
 			.order("created_at", { ascending: false })
 			.limit(limit);
 
@@ -35,9 +35,8 @@ export async function GET(request: NextRequest) {
 			const safe = escapeIlike(q);
 			const pattern = `%${safe}%`;
 			const clauses = [
-				`name.ilike.${pattern}`,
-				`stone_type.ilike.${pattern}`,
-				`color.ilike.${pattern}`,
+				`title.ilike.${pattern}`,
+				`stone.ilike.${pattern}`,
 			];
 
 			if (UUID_RE.test(q)) {
@@ -50,14 +49,13 @@ export async function GET(request: NextRequest) {
 		const { data, error } = await query;
 
 		if (error) {
-			console.error("Stones search failed", { endpoint: "/api/stones/search", q, error });
+			console.error("Reports search failed", { endpoint: "/api/reports/search", q, error });
 			return NextResponse.json({ error: "Search failed" }, { status: 500 });
 		}
 
-		const results = data || [];
-		return NextResponse.json({ results, stones: results });
+		return NextResponse.json({ results: data || [] });
 	} catch (error) {
-		console.error("Stones search error", { endpoint: "/api/stones/search", error });
+		console.error("Reports search error", { endpoint: "/api/reports/search", error });
 		return NextResponse.json({ error: "Search failed" }, { status: 500 });
 	}
 }

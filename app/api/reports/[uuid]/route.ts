@@ -1,8 +1,23 @@
+/**
+ * SINGLE-WRITER INVARIANT: reports.stone_id is owned by exactly two routes:
+ *   - PATCH /api/reports/[uuid]           (this file; report-side link)
+ *   - PUT   /api/stones/[id]/linked-report (stone-side link)
+ * Both write to the same column (reports.stone_id). No other route or trigger
+ * mutates it. Keep both handlers aligned on schema, 23505 handling, and admin
+ * gating.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/supabase/admin";
 import { updateReportSchema, ADMIN_ONLY_FIELDS } from "../types";
 import { moveImagesToReportFolder, generateSignedImageUrls } from "../storage-utils";
+
+interface PgErrorLike {
+	code?: string;
+	message?: string;
+	details?: string;
+	constraint?: string;
+}
 
 interface RouteParams {
 	params: Promise<{ uuid: string }>;
@@ -151,6 +166,44 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 				.eq("id", uuid);
 
 			if (updateError) {
+				const pg = updateError as PgErrorLike;
+				if (
+					pg.code === "23505" &&
+					(pg.constraint === "reports_stone_id_unique" ||
+						(pg.message && pg.message.includes("reports_stone_id_unique")))
+				) {
+					const stoneIdValue = (reportData as Record<string, unknown>).stone_id;
+					let conflictingId: string | null = null;
+					let conflictingTitle: string | null = null;
+					if (typeof stoneIdValue === "string" && stoneIdValue.length > 0) {
+						const { data: conflict } = await supabase
+							.from("reports")
+							.select("id, title")
+							.eq("stone_id", stoneIdValue)
+							.neq("id", uuid)
+							.maybeSingle();
+						if (conflict) {
+							conflictingId = conflict.id;
+							conflictingTitle = conflict.title;
+						}
+					}
+					return NextResponse.json(
+						{
+							error: "STONE_ALREADY_LINKED",
+							linked_report_id: conflictingId,
+							linked_report_title: conflictingTitle,
+						},
+						{ status: 409 }
+					);
+				}
+
+				if (pg.code === "23503") {
+					return NextResponse.json(
+						{ error: "Not found" },
+						{ status: 404 }
+					);
+				}
+
 				console.error("Error updating report:", updateError);
 				return NextResponse.json(
 					{ error: "Failed to update report" },
